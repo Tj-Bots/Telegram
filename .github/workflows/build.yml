@@ -57,7 +57,13 @@ jobs:
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
           script: |
-            APK=$(find TMessagesProj_App/build/outputs/apk/afat/debug -name "*.apk" | head -n1)
+            echo "Workspace: $GITHUB_WORKSPACE, pwd: $(pwd)"
+            APK=$(find "$GITHUB_WORKSPACE/TMessagesProj_App/build/outputs/apk/afat/debug" -name "*.apk" | head -n1)
+            if [ -z "$APK" ]; then
+              echo "APK not found, listing directory tree for debugging:"
+              find "$GITHUB_WORKSPACE/TMessagesProj_App/build/outputs" -type f || true
+              exit 1
+            fi
             echo "Installing $APK"
             adb install -r "$APK"
             adb logcat -c
