@@ -1640,6 +1640,7 @@ public class ChatActivity extends BaseFragment implements
     private final static int report = 21;
     private final static int star = 22;
     private final static int jump_to_first_message = 1001;
+    private final static int select_range = 1002;
     private final static int edit = 23;
     private final static int add_shortcut = 24;
     private final static int save_to = 25;
@@ -3761,6 +3762,24 @@ public class ChatActivity extends BaseFragment implements
                         return;
                     }
                     createDeleteMessagesAlert(null, null);
+                } else if (id == select_range) {
+                    int minId = Integer.MAX_VALUE, maxId = Integer.MIN_VALUE;
+                    for (int b = 0; b < selectedMessagesIds[0].size(); b++) {
+                        int mid = selectedMessagesIds[0].keyAt(b);
+                        minId = Math.min(minId, mid);
+                        maxId = Math.max(maxId, mid);
+                    }
+                    if (minId < maxId) {
+                        for (int b = 0; b < messages.size(); b++) {
+                            MessageObject messageObject = messages.get(b);
+                            int mid = messageObject.getId();
+                            if (mid >= minId && mid <= maxId && messageObject.getDialogId() == dialog_id && selectedMessagesIds[0].indexOfKey(mid) < 0) {
+                                addToSelectedMessages(messageObject, false);
+                            }
+                        }
+                        updateActionModeTitle();
+                        updateVisibleRows();
+                    }
                 } else if (id == forward) {
                     openForward(true);
                 } else if (id == share) {
@@ -10326,6 +10345,7 @@ public class ChatActivity extends BaseFragment implements
             }
             actionModeViews.add(actionMode.addItemWithWidth(star, R.drawable.msg_fave, dp(48), LocaleController.getString(R.string.AddToFavorites)));
             actionModeViews.add(actionMode.addItemWithWidth(copy, R.drawable.msg_copy, dp(48), LocaleController.getString(R.string.Copy)));
+            actionModeViews.add(actionMode.addItemWithWidth(select_range, R.drawable.msg_select, dp(48), "Select range"));
             if (!isSavedMessages && getDialogId() != UserObject.VERIFY) {
                 actionModeViews.add(actionMode.addItemWithWidth(forward, R.drawable.msg_forward, dp(48), LocaleController.getString(R.string.Forward)));
             }
@@ -10335,6 +10355,7 @@ public class ChatActivity extends BaseFragment implements
             actionModeViews.add(actionMode.addItemWithWidth(edit, R.drawable.msg_edit, dp(48), LocaleController.getString(R.string.Edit)));
             actionModeViews.add(actionMode.addItemWithWidth(star, R.drawable.msg_fave, dp(48), LocaleController.getString(R.string.AddToFavorites)));
             actionModeViews.add(actionMode.addItemWithWidth(copy, R.drawable.msg_copy, dp(48), LocaleController.getString(R.string.Copy)));
+            actionModeViews.add(actionMode.addItemWithWidth(select_range, R.drawable.msg_select, dp(48), "Select range"));
             actionModeViews.add(actionMode.addItemWithWidth(delete, R.drawable.msg_delete, dp(48), LocaleController.getString(R.string.Delete)));
         }
         actionMode.setItemVisibility(edit, canEditMessagesCount == 1 && selectedMessagesIds[0].size() + selectedMessagesIds[1].size() == 1 ? View.VISIBLE : View.GONE);
