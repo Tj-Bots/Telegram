@@ -199,4 +199,11 @@ android {
     }
 }
 
-apply plugin: 'com.google.gms.google-services'
+// google-services plugin disabled: this fork has no real registered Firebase
+// project, so google-services.json only contains a fabricated client entry
+// for org.telegram.messenger.tjgram (cloned from the official .beta entry so
+// the build-time package-name check would pass). That's not a valid Firebase
+// app registration and is a plausible source of runtime instability, so push
+// notifications fall back gracefully (already wrapped in try/catch in
+// PushListenerController) instead of relying on a fake Firebase config.
+// apply plugin: 'com.google.gms.google-services'
