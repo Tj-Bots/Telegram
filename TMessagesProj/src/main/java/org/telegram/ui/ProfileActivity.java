@@ -2621,7 +2621,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         }
                     }
                     AndroidUtilities.addToClipboard(String.valueOf(displayId));
-                    BulletinFactory.of(this, resourcesProvider).createCopyBulletin(getString(R.string.TextCopied)).show();
+                    BulletinFactory.of(ProfileActivity.this, resourcesProvider).createCopyBulletin(getString(R.string.TextCopied)).show();
                 } else if (id == delete_topic) {
                     AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
                     builder.setTitle(LocaleController.getPluralString("DeleteTopics", 1));

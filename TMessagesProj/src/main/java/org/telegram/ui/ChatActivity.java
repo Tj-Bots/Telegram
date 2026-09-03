@@ -34366,7 +34366,6 @@ public class ChatActivity extends BaseFragment implements
         }
     }
 
-    @Override
     private TLRPC.InputMedia getInputMediaForCopy(MessageObject msg) {
         TLRPC.Document document = msg.getDocument();
         if (document != null) {
