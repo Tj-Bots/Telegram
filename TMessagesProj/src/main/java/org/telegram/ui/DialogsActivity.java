@@ -590,6 +590,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     private ActionBarMenuSubItem readItem;
     @Nullable
     private ActionBarMenuSubItem blockItem;
+    private ActionBarMenuSubItem selectAllItem;
 
     private float additionalFloatingTranslation;
     private float floatingButtonPanOffset;
@@ -710,6 +711,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     private final static int add_to_folder = 109;
     private final static int remove_from_folder = 110;
     private final static int community_ungroup = 111;
+    private final static int select_all = 112;
 
     private final static int ARCHIVE_ITEM_STATE_PINNED = 0;
     private final static int ARCHIVE_ITEM_STATE_SHOWED = 1;
@@ -4014,6 +4016,19 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                     hideActionMode(false);
                 } else if (id == pin || id == read || id == delete || id == clear || id == mute || id == archive || id == block || id == archive2 || id == pin2) {
                     performSelectedDialogsAction(selectedDialogs, id, true, false);
+                } else if (id == select_all) {
+                    ArrayList<TLRPC.Dialog> archiveDialogs = getMessagesController().getDialogs(1);
+                    for (int a = 0; a < archiveDialogs.size(); a++) {
+                        long did = archiveDialogs.get(a).id;
+                        if (!selectedDialogs.contains(did)) {
+                            selectedDialogs.add(did);
+                        }
+                    }
+                    updateVisibleRows(0);
+                    updateCounters(false);
+                    if (selectedDialogsCountTextView != null) {
+                        selectedDialogsCountTextView.setNumber(selectedDialogs.size(), true);
+                    }
                 }
             }
         });
@@ -6753,6 +6768,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         readItem = otherItem.addSubItem(read, R.drawable.msg_markread, LocaleController.getString(R.string.MarkAsRead));
         clearItem = otherItem.addSubItem(clear, R.drawable.msg_clear, LocaleController.getString(R.string.ClearHistory));
         blockItem = otherItem.addSubItem(block, R.drawable.msg_block, LocaleController.getString(R.string.BlockUser));
+        selectAllItem = otherItem.addSubItem(select_all, R.drawable.msg_select, LocaleController.getString(R.string.SelectAll));
 
         muteItem.setOnLongClickListener(e -> {
             performSelectedDialogsAction(selectedDialogs, mute, true, true);
@@ -9984,6 +10000,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 pinItem.setContentDescription(LocaleController.getString(R.string.UnpinFromTop));
                 pin2Item.setText(LocaleController.getString(R.string.DialogUnpin));
             }
+        }
+        if (selectAllItem != null) {
+            selectAllItem.setVisibility(folderId == 1 ? View.VISIBLE : View.GONE);
         }
     }
 
