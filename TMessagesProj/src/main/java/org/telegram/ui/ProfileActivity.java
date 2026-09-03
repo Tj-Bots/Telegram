@@ -600,6 +600,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     private final static int delete_group = 45;
     private final static int enable_no_forwards = 46;
     private final static int disable_no_forwards = 47;
+    private final static int copy_id = 48;
 
     private Rect rect = new Rect();
 
@@ -2607,6 +2608,20 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     AlertsCreator.showDisableSharingInfo(context, resourcesProvider, () -> toggleNoForwards(true));
                 } else if (id == disable_no_forwards) {
                     toggleNoForwards(false);
+                } else if (id == copy_id) {
+                    long displayId;
+                    if (userId != 0) {
+                        displayId = userId;
+                    } else {
+                        TLRPC.Chat chat = getMessagesController().getChat(chatId);
+                        if (chat != null && ChatObject.isChannel(chat)) {
+                            displayId = -1000000000000L - chatId;
+                        } else {
+                            displayId = -chatId;
+                        }
+                    }
+                    AndroidUtilities.addToClipboard(String.valueOf(displayId));
+                    BulletinFactory.of(this, resourcesProvider).createCopyBulletin(getString(R.string.TextCopied)).show();
                 } else if (id == delete_topic) {
                     AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
                     builder.setTitle(LocaleController.getPluralString("DeleteTopics", 1));
@@ -12440,6 +12455,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         }
         if (sharedMediaLayout != null) {
             sharedMediaLayout.getSearchItem().requestLayout();
+        }
+        if (userId != 0 || chatId != 0) {
+            otherItem.addSubItem(copy_id, R.drawable.msg_copy, "Copy ID");
         }
         updateStoriesViewBounds(false);
     }

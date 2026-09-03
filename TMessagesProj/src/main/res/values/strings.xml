@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="AppName">Telegram</string>
-    <string name="AppNameBeta">Telegram Beta</string>
+    <string name="AppName">TjGram</string>
+    <string name="AppNameBeta">TjGram Beta</string>
     <string name="LanguageName">English</string>
     <string name="English">English</string>
     <string name="LanguageNameInEnglish">English</string>
@@ -2110,6 +2110,7 @@
     <string name="AddToStickers">Add to Stickers</string>
     <string name="AddToStickerPack">Add to Sticker Pack</string>
     <string name="AddToFavorites">Add to Favorites</string>
+    <string name="ForwardWithoutTag">Forward without tag</string>
     <string name="AddedToFavorites">Sticker was added to Favorites</string>
     <string name="RemovedFromFavorites">Sticker was removed from Favorites</string>
     <string name="RemovedFromRecent">Sticker was removed from Recent</string>

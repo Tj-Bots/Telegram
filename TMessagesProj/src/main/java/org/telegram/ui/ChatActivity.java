@@ -794,6 +794,7 @@ public class ChatActivity extends BaseFragment implements
     private CharSequence formwardingNameText;
     private MessageObject forwardingMessage;
     private MessageObject.GroupedMessages forwardingMessageGroup;
+    private boolean forwardingMessageAsCopy;
     private MessageObject.GroupedMessages replyingQuoteGroup;
     public MessageObject replyingTopMessage;
     private ReplyQuote replyingQuote;
@@ -1198,6 +1199,7 @@ public class ChatActivity extends BaseFragment implements
     public final static int OPTION_RETRY = 0;
     public final static int OPTION_DELETE = 1;
     public final static int OPTION_FORWARD = 2;
+    public final static int OPTION_FORWARD_NO_TAG = 1000;
     public final static int OPTION_COPY = 3;
     public final static int OPTION_SAVE_TO_GALLERY = 4;
     public final static int OPTION_APPLY_LOCALIZATION_OR_THEME = 5;
@@ -1637,6 +1639,7 @@ public class ChatActivity extends BaseFragment implements
     private final static int mute = 18;
     private final static int report = 21;
     private final static int star = 22;
+    private final static int jump_to_first_message = 1001;
     private final static int edit = 23;
     private final static int add_shortcut = 24;
     private final static int save_to = 25;
@@ -3827,6 +3830,8 @@ public class ChatActivity extends BaseFragment implements
                         return;
                     }
                     showDialog(AlertsCreator.createTTLAlert(getParentActivity(), currentEncryptedChat, themeDelegate).create());
+                } else if (id == jump_to_first_message) {
+                    jumpToDate(1);
                 } else if (id == clear_history || id == delete_chat || id == auto_delete_timer) {
                     if (getParentActivity() == null) {
                         return;
@@ -4447,6 +4452,7 @@ public class ChatActivity extends BaseFragment implements
                 clearHistoryItem = headerItem.lazilyAddSubItem(clear_history, R.drawable.msg_clear,
                     LocaleController.getString(UserObject.isBotForum(currentUser) ? R.string.ClearAllHistory : R.string.ClearHistory));
             }
+            headerItem.lazilyAddSubItem(jump_to_first_message, R.drawable.msg_go_up, "Go to first message");
             boolean addedSettings = false;
             if (!isTopic) {
                 if (ChatObject.isChannel(currentChat) && !currentChat.creator) {
@@ -33334,6 +33340,11 @@ public class ChatActivity extends BaseFragment implements
                 createDeleteMessagesAlert(selectedObject, selectedObjectGroup, true);
                 break;
             }
+            case OPTION_FORWARD_NO_TAG: {
+                forwardingMessageAsCopy = true;
+                processSelectedOption(OPTION_FORWARD);
+                return;
+            }
             case OPTION_FORWARD: {
                 if (getMessagesController().isFrozen()) {
                     AccountFrozenAlert.show(currentAccount);
@@ -34356,6 +34367,111 @@ public class ChatActivity extends BaseFragment implements
     }
 
     @Override
+    private TLRPC.InputMedia getInputMediaForCopy(MessageObject msg) {
+        TLRPC.Document document = msg.getDocument();
+        if (document != null) {
+            TLRPC.TL_inputMediaDocument inputMediaDocument = new TLRPC.TL_inputMediaDocument();
+            TLRPC.TL_inputDocument inputDocument = new TLRPC.TL_inputDocument();
+            inputDocument.id = document.id;
+            inputDocument.access_hash = document.access_hash;
+            inputDocument.file_reference = document.file_reference;
+            inputMediaDocument.id = inputDocument;
+            return inputMediaDocument;
+        }
+        TLRPC.Photo photo = msg.getPhoto();
+        if (photo != null) {
+            TLRPC.TL_inputMediaPhoto inputMediaPhoto = new TLRPC.TL_inputMediaPhoto();
+            TLRPC.TL_inputPhoto inputPhoto = new TLRPC.TL_inputPhoto();
+            inputPhoto.id = photo.id;
+            inputPhoto.access_hash = photo.access_hash;
+            inputPhoto.file_reference = photo.file_reference;
+            inputMediaPhoto.id = inputPhoto;
+            return inputMediaPhoto;
+        }
+        return null;
+    }
+
+    private void sendSingleMessageAsCopy(MessageObject msg, TLRPC.InputPeer peer) {
+        TLRPC.InputMedia media = getInputMediaForCopy(msg);
+        String text = msg.messageOwner.message != null ? msg.messageOwner.message : "";
+        ArrayList<TLRPC.MessageEntity> entities = msg.messageOwner.entities;
+        long randomId = Utilities.random.nextLong();
+        TLObject request;
+        if (media != null) {
+            TLRPC.TL_messages_sendMedia req = new TLRPC.TL_messages_sendMedia();
+            req.peer = peer;
+            req.media = media;
+            req.message = text;
+            req.random_id = randomId;
+            if (entities != null && !entities.isEmpty()) {
+                req.entities = entities;
+                req.flags |= 8;
+            }
+            request = req;
+        } else {
+            TLRPC.TL_messages_sendMessage req = new TLRPC.TL_messages_sendMessage();
+            req.peer = peer;
+            req.message = text;
+            req.random_id = randomId;
+            if (entities != null && !entities.isEmpty()) {
+                req.entities = entities;
+                req.flags |= 8;
+            }
+            request = req;
+        }
+        getConnectionsManager().sendRequest(request, null);
+    }
+
+    private void sendAlbumAsCopy(ArrayList<MessageObject> group, TLRPC.InputPeer peer) {
+        TLRPC.TL_messages_sendMultiMedia req = new TLRPC.TL_messages_sendMultiMedia();
+        req.peer = peer;
+        for (MessageObject msg : group) {
+            TLRPC.InputMedia media = getInputMediaForCopy(msg);
+            if (media == null) {
+                continue;
+            }
+            TLRPC.TL_inputSingleMedia single = new TLRPC.TL_inputSingleMedia();
+            single.media = media;
+            single.random_id = Utilities.random.nextLong();
+            single.message = msg.messageOwner.message != null ? msg.messageOwner.message : "";
+            ArrayList<TLRPC.MessageEntity> entities = msg.messageOwner.entities;
+            if (entities != null && !entities.isEmpty()) {
+                single.entities = entities;
+                single.flags |= 1;
+            }
+            req.multi_media.add(single);
+        }
+        if (req.multi_media.isEmpty()) {
+            return;
+        }
+        getConnectionsManager().sendRequest(req, null);
+    }
+
+    private void sendMessagesAsCopy(ArrayList<MessageObject> fmessages, long did) {
+        TLRPC.InputPeer peer = getMessagesController().getInputPeer(did);
+        if (peer == null) {
+            return;
+        }
+        java.util.LinkedHashMap<Long, ArrayList<MessageObject>> albums = new java.util.LinkedHashMap<>();
+        for (int i = 0; i < fmessages.size(); i++) {
+            MessageObject msg = fmessages.get(i);
+            long groupId = msg.getGroupId();
+            if (groupId != 0) {
+                ArrayList<MessageObject> list = albums.get(groupId);
+                if (list == null) {
+                    list = new ArrayList<>();
+                    albums.put(groupId, list);
+                }
+                list.add(msg);
+            } else {
+                sendSingleMessageAsCopy(msg, peer);
+            }
+        }
+        for (ArrayList<MessageObject> group : albums.values()) {
+            sendAlbumAsCopy(group, peer);
+        }
+    }
+
     public boolean didSelectDialogs(DialogsActivity fragment, ArrayList<MessagesStorage.TopicKey> dids, CharSequence message, boolean param, boolean notify, int scheduleDate, int scheduleRepeatPeriod, TopicsFragment topicsFragment) {
         if ((messagePreviewParams == null && (!fragment.isQuote || replyingMessageObject == null) || fragment.isQuote && replyingMessageObject == null) && forwardingMessage == null && selectedMessagesIds[0].size() == 0 && selectedMessagesIds[1].size() == 0) {
             return false;
@@ -34382,6 +34498,33 @@ public class ChatActivity extends BaseFragment implements
                     }
                 }
             }
+        }
+        if (forwardingMessageAsCopy) {
+            forwardingMessageAsCopy = false;
+            if (fragment.resetDelegate) {
+                fragment.setDelegate(null);
+            }
+            forwardingMessage = null;
+            forwardingMessageGroup = null;
+            messagePreviewParams = null;
+            hideFieldPanel(false);
+            for (int a = 0; a < dids.size(); a++) {
+                sendMessagesAsCopy(fmessages, dids.get(a).dialogId);
+            }
+            fragment.finishFragment();
+            if (dids.size() == 1) {
+                final long did = dids.get(0).dialogId;
+                AndroidUtilities.runOnUIThread(() -> {
+                    Bundle args = new Bundle();
+                    if (DialogObject.isUserDialog(did)) {
+                        args.putLong("user_id", did);
+                    } else {
+                        args.putLong("chat_id", -did);
+                    }
+                    presentFragment(new ChatActivity(args), true);
+                }, 100);
+            }
+            return true;
         }
         for (int j = 0; j < dids.size(); j++) {
             TLRPC.Chat chat = getMessagesController().getChat(-dids.get(j).dialogId);
@@ -40182,6 +40325,29 @@ public class ChatActivity extends BaseFragment implements
 
             if (buttonTypeCopy != null) {
                 didLongPressCopyButton(buttonTypeCopy.copy_text);
+                return;
+            }
+            final TL_keyboard.TL_inlineButtonTypeCallback buttonTypeCallback = TLKeyboardHelper.getType(button, TL_keyboard.TL_inlineButtonTypeCallback.class);
+            if (buttonTypeCallback != null) {
+                String callbackDataString;
+                try {
+                    callbackDataString = new String(buttonTypeCallback.data, "UTF-8");
+                } catch (Exception e) {
+                    callbackDataString = Utilities.bytesToHex(buttonTypeCallback.data);
+                }
+                final String finalCallbackData = callbackDataString;
+                BottomSheet.Builder builder = new BottomSheet.Builder(getParentActivity(), false, themeDelegate);
+                builder.setTitle(button.getText());
+                builder.setTitleMultipleLines(true);
+                builder.setItems(new CharSequence[] { "Copy button name", "Copy callback data" }, (dialog, which) -> {
+                    if (which == 0) {
+                        AndroidUtilities.addToClipboard(button.getText());
+                    } else {
+                        AndroidUtilities.addToClipboard(finalCallbackData);
+                    }
+                    BulletinFactory.of(ChatActivity.this).createCopyBulletin(getString(R.string.TextCopied)).show();
+                });
+                showDialog(builder.create());
                 return;
             }
             if (buttonTypeUrl != null) {
@@ -46143,6 +46309,9 @@ public class ChatActivity extends BaseFragment implements
                 if (canForward) {
                     items.add(LocaleController.getString(R.string.Forward));
                     options.add(OPTION_FORWARD);
+                    icons.add(R.drawable.msg_forward);
+                    items.add(LocaleController.getString(R.string.ForwardWithoutTag));
+                    options.add(OPTION_FORWARD_NO_TAG);
                     icons.add(R.drawable.msg_forward);
                 }
                 if (allowUnpin) {
