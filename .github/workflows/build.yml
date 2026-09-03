@@ -62,12 +62,22 @@ jobs:
           fi
           echo "Installing $APK"
           adb install -r "$APK"
+          echo "Enabling libc malloc debug (backtrace+guard) to diagnose the SIGSEGV from the previous run"
+          adb shell setprop libc.debug.malloc.options "backtrace guard"
+          adb reboot
+          adb wait-for-device
+          for i in $(seq 1 90); do
+            BOOTED=$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')
+            if [ "$BOOTED" = "1" ]; then break; fi
+            sleep 2
+          done
+          sleep 5
           adb logcat -c
           adb shell am start -n org.telegram.messenger.tjgram/org.telegram.ui.LaunchActivity
           sleep 20
           adb logcat -d > /tmp/logcat_full.txt
           echo "=== Searching for the actual crash signal line (with context) ==="
-          grep -n -A 120 -i "Fatal signal\|Aborting\|backtrace:" /tmp/logcat_full.txt | head -400 || echo "No 'Fatal signal/Aborting/backtrace:' line found"
+          grep -n -A 150 -i "Fatal signal\|Aborting\|backtrace:\|memory corruption\|heap corruption\|GWP-ASan" /tmp/logcat_full.txt | head -500 || echo "No 'Fatal signal/Aborting/backtrace:' line found"
           echo "=== Searching for Java-level FATAL EXCEPTION (with context) ==="
           grep -n -A 60 "FATAL EXCEPTION" /tmp/logcat_full.txt | head -200 || echo "No FATAL EXCEPTION found"
           echo "=== General crash-relevant lines (fallback) ==="
