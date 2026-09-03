@@ -18268,7 +18268,7 @@ public class ChatActivity extends BaseFragment implements
             if (lastWidth != widthSize) {
                 globalIgnoreLayout = false;
                 lastWidth = widthMeasureSpec;
-                if (!inPreviewMode && currentUser != null && currentUser.self) {
+                if (!inPreviewMode) {
                     SimpleTextView textView = avatarContainer.getTitleTextView();
                     int textWidth = (int) textView.getPaint().measureText(textView.getText(), 0, textView.getText().length());
                     if (widthSize - AndroidUtilities.dp(96 + 56) > textWidth + AndroidUtilities.dp(10)) {
@@ -18276,9 +18276,7 @@ public class ChatActivity extends BaseFragment implements
                     } else {
                         showSearchAsIcon = false;
                     }
-                } /*else if (chatMode == MODE_SUGGESTIONS) {
-                    showSearchAsIcon = true;
-                }*/ else {
+                } else {
                     showSearchAsIcon = false;
                 }
                 if (showSearchAsIcon || showAudioCallAsIcon || UserObject.isBotForumWithEditableTopics(currentUser)) {
