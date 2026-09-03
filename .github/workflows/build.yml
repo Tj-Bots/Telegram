@@ -66,7 +66,11 @@ jobs:
           adb shell am start -n org.telegram.messenger.tjgram/org.telegram.ui.LaunchActivity
           sleep 20
           adb logcat -d > /tmp/logcat_full.txt
-          echo "=== Full logcat saved, printing crash-relevant lines ==="
+          echo "=== Searching for the actual crash signal line (with context) ==="
+          grep -n -A 120 -i "Fatal signal\|Aborting\|backtrace:" /tmp/logcat_full.txt | head -400 || echo "No 'Fatal signal/Aborting/backtrace:' line found"
+          echo "=== Searching for Java-level FATAL EXCEPTION (with context) ==="
+          grep -n -A 60 "FATAL EXCEPTION" /tmp/logcat_full.txt | head -200 || echo "No FATAL EXCEPTION found"
+          echo "=== General crash-relevant lines (fallback) ==="
           grep -iE "FATAL EXCEPTION|AndroidRuntime|tjgram|org\.telegram|Caused by|signal [0-9]+|backtrace" /tmp/logcat_full.txt | tail -300 || echo "No matching lines found"
           cp /tmp/logcat_full.txt "$GITHUB_WORKSPACE/logcat_full.txt"
           SCRIPT_EOF
