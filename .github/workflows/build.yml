@@ -48,6 +48,30 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
+      - name: Write emulator test script
+        run: |
+          cat > /tmp/emulator_test.sh <<'SCRIPT_EOF'
+          #!/usr/bin/env bash
+          set -x
+          echo "Workspace: $GITHUB_WORKSPACE, pwd: $(pwd)"
+          APK=$(find "$GITHUB_WORKSPACE/TMessagesProj_App/build/outputs/apk/afat/debug" -name "*.apk" | head -n1)
+          if [ -z "$APK" ]; then
+            echo "APK not found, listing directory tree for debugging:"
+            find "$GITHUB_WORKSPACE/TMessagesProj_App/build/outputs" -type f || true
+            exit 1
+          fi
+          echo "Installing $APK"
+          adb install -r "$APK"
+          adb logcat -c
+          adb shell am start -n org.telegram.messenger.tjgram/org.telegram.ui.LaunchActivity
+          sleep 20
+          adb logcat -d > /tmp/logcat_full.txt
+          echo "=== Full logcat saved, printing crash-relevant lines ==="
+          grep -iE "FATAL EXCEPTION|AndroidRuntime|tjgram|org\.telegram|Caused by|signal [0-9]+|backtrace" /tmp/logcat_full.txt | tail -300 || echo "No matching lines found"
+          cp /tmp/logcat_full.txt "$GITHUB_WORKSPACE/logcat_full.txt"
+          SCRIPT_EOF
+          chmod +x /tmp/emulator_test.sh
+
       - name: Run app on emulator and capture crash log
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -56,23 +80,7 @@ jobs:
           arch: x86_64
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
-          script: |
-            echo "Workspace: $GITHUB_WORKSPACE, pwd: $(pwd)"
-            APK=$(find "$GITHUB_WORKSPACE/TMessagesProj_App/build/outputs/apk/afat/debug" -name "*.apk" | head -n1)
-            if [ -z "$APK" ]; then
-              echo "APK not found, listing directory tree for debugging:"
-              find "$GITHUB_WORKSPACE/TMessagesProj_App/build/outputs" -type f || true
-              exit 1
-            fi
-            echo "Installing $APK"
-            adb install -r "$APK"
-            adb logcat -c
-            adb shell am start -n org.telegram.messenger.tjgram/org.telegram.ui.LaunchActivity
-            sleep 20
-            adb logcat -d > /tmp/logcat_full.txt
-            echo "=== Full logcat saved, printing crash-relevant lines ==="
-            grep -iE "FATAL EXCEPTION|AndroidRuntime|tjgram|org\.telegram|Caused by|signal [0-9]+|backtrace" /tmp/logcat_full.txt | tail -300 || echo "No matching lines found"
-            cp /tmp/logcat_full.txt logcat_full.txt
+          script: bash /tmp/emulator_test.sh
 
       - name: Upload full logcat
         if: always()
