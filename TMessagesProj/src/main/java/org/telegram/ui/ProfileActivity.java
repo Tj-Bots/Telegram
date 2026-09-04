@@ -4542,7 +4542,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     }
                 }
                 AndroidUtilities.addToClipboard(String.valueOf(displayId));
-                BulletinFactory.of(this, resourcesProvider).createCopyBulletin(getString(R.string.TextCopied)).show();
+                BulletinFactory.of(this).createCopyBulletin(getString(R.string.TextCopied)).show();
             } else if (position == linkedCommunityRow) {
                 if (currentChat != null) {
                     showDialog(new CommunitySheet(this, currentChat.linked_community_id));
