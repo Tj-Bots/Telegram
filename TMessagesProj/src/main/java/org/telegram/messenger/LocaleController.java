@@ -1431,6 +1431,13 @@ public class LocaleController {
     }
 
     private String getStringInternal(String key, String fallback, int fallbackRes, int res) {
+        if ("AppName".equals(key) || "AppNameBeta".equals(key)) {
+            try {
+                return ApplicationLoader.applicationContext.getString(res);
+            } catch (Exception e) {
+                FileLog.e(e);
+            }
+        }
         String value = BuildVars.USE_CLOUD_STRINGS ? localeValues.get(key) : null;
         if (value == null) {
             if (BuildVars.USE_CLOUD_STRINGS && fallback != null) {
