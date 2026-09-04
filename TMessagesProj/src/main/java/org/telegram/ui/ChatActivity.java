@@ -34486,126 +34486,6 @@ public class ChatActivity extends BaseFragment implements
         }
     }
 
-    private TLRPC.InputMedia getInputMediaForCopy(MessageObject msg) {
-        TLRPC.Document document = msg.getDocument();
-        if (document != null) {
-            TLRPC.TL_inputMediaDocument inputMediaDocument = new TLRPC.TL_inputMediaDocument();
-            TLRPC.TL_inputDocument inputDocument = new TLRPC.TL_inputDocument();
-            inputDocument.id = document.id;
-            inputDocument.access_hash = document.access_hash;
-            inputDocument.file_reference = document.file_reference;
-            inputMediaDocument.id = inputDocument;
-            return inputMediaDocument;
-        }
-        TLRPC.Photo photo = msg.getPhoto();
-        if (photo != null) {
-            TLRPC.TL_inputMediaPhoto inputMediaPhoto = new TLRPC.TL_inputMediaPhoto();
-            TLRPC.TL_inputPhoto inputPhoto = new TLRPC.TL_inputPhoto();
-            inputPhoto.id = photo.id;
-            inputPhoto.access_hash = photo.access_hash;
-            inputPhoto.file_reference = photo.file_reference;
-            inputMediaPhoto.id = inputPhoto;
-            return inputMediaPhoto;
-        }
-        return null;
-    }
-
-    private void sendSingleMessageAsCopy(MessageObject msg, TLRPC.InputPeer peer, boolean notify, int scheduleDate) {
-        TLRPC.InputMedia media = getInputMediaForCopy(msg);
-        String text = msg.messageOwner.message != null ? msg.messageOwner.message : "";
-        ArrayList<TLRPC.MessageEntity> entities = msg.messageOwner.entities;
-        long randomId = Utilities.random.nextLong();
-        TLObject request;
-        if (media != null) {
-            TLRPC.TL_messages_sendMedia req = new TLRPC.TL_messages_sendMedia();
-            req.peer = peer;
-            req.media = media;
-            req.message = text;
-            req.random_id = randomId;
-            req.silent = !notify;
-            if (entities != null && !entities.isEmpty()) {
-                req.entities = entities;
-                req.flags |= 8;
-            }
-            if (scheduleDate != 0) {
-                req.schedule_date = scheduleDate;
-                req.flags |= 1024;
-            }
-            request = req;
-        } else {
-            TLRPC.TL_messages_sendMessage req = new TLRPC.TL_messages_sendMessage();
-            req.peer = peer;
-            req.message = text;
-            req.random_id = randomId;
-            req.silent = !notify;
-            if (entities != null && !entities.isEmpty()) {
-                req.entities = entities;
-                req.flags |= 8;
-            }
-            if (scheduleDate != 0) {
-                req.schedule_date = scheduleDate;
-                req.flags |= 1024;
-            }
-            request = req;
-        }
-        getConnectionsManager().sendRequest(request, null);
-    }
-
-    private void sendAlbumAsCopy(ArrayList<MessageObject> group, TLRPC.InputPeer peer, boolean notify, int scheduleDate) {
-        TLRPC.TL_messages_sendMultiMedia req = new TLRPC.TL_messages_sendMultiMedia();
-        req.peer = peer;
-        req.silent = !notify;
-        if (scheduleDate != 0) {
-            req.schedule_date = scheduleDate;
-            req.flags |= 1024;
-        }
-        for (MessageObject msg : group) {
-            TLRPC.InputMedia media = getInputMediaForCopy(msg);
-            if (media == null) {
-                continue;
-            }
-            TLRPC.TL_inputSingleMedia single = new TLRPC.TL_inputSingleMedia();
-            single.media = media;
-            single.random_id = Utilities.random.nextLong();
-            single.message = msg.messageOwner.message != null ? msg.messageOwner.message : "";
-            ArrayList<TLRPC.MessageEntity> entities = msg.messageOwner.entities;
-            if (entities != null && !entities.isEmpty()) {
-                single.entities = entities;
-                single.flags |= 1;
-            }
-            req.multi_media.add(single);
-        }
-        if (req.multi_media.isEmpty()) {
-            return;
-        }
-        getConnectionsManager().sendRequest(req, null);
-    }
-
-    private void sendMessagesAsCopy(ArrayList<MessageObject> fmessages, long did, boolean notify, int scheduleDate) {
-        TLRPC.InputPeer peer = getMessagesController().getInputPeer(did);
-        if (peer == null) {
-            return;
-        }
-        java.util.LinkedHashMap<Long, ArrayList<MessageObject>> albums = new java.util.LinkedHashMap<>();
-        for (int i = 0; i < fmessages.size(); i++) {
-            MessageObject msg = fmessages.get(i);
-            long groupId = msg.getGroupId();
-            if (groupId != 0) {
-                ArrayList<MessageObject> list = albums.get(groupId);
-                if (list == null) {
-                    list = new ArrayList<>();
-                    albums.put(groupId, list);
-                }
-                list.add(msg);
-            } else {
-                sendSingleMessageAsCopy(msg, peer, notify, scheduleDate);
-            }
-        }
-        for (ArrayList<MessageObject> group : albums.values()) {
-            sendAlbumAsCopy(group, peer, notify, scheduleDate);
-        }
-    }
-
     public boolean didSelectDialogs(DialogsActivity fragment, ArrayList<MessagesStorage.TopicKey> dids, CharSequence message, boolean param, boolean notify, int scheduleDate, int scheduleRepeatPeriod, TopicsFragment topicsFragment) {
         if ((messagePreviewParams == null && (!fragment.isQuote || replyingMessageObject == null) || fragment.isQuote && replyingMessageObject == null) && forwardingMessage == null && selectedMessagesIds[0].size() == 0 && selectedMessagesIds[1].size() == 0) {
             return false;
@@ -34644,7 +34524,7 @@ public class ChatActivity extends BaseFragment implements
             hideFieldPanel(false);
             for (int a = 0; a < dids.size(); a++) {
                 final long did = dids.get(a).dialogId;
-                sendMessagesAsCopy(fmessages, did, notify, scheduleDate);
+                getSendMessagesHelper().sendMessage(fmessages, did, true, false, notify, scheduleDate, scheduleRepeatPeriod, null, -1, 0, getSendMonoForumPeerId(), getSendMessageSuggestionParams());
                 if (message != null) {
                     final SendMessagesHelper.SendMessageParams params = SendMessagesHelper.SendMessageParams.of(message.toString(), did, null, null, null, true, null, null, null, notify, scheduleDate, scheduleRepeatPeriod, null, false);
                     getSendMessagesHelper().sendMessage(params);
