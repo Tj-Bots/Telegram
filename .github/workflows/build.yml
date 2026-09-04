@@ -31,6 +31,13 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
+      - name: Write API credentials
+        run: |
+          cat >> local.properties <<EOF
+          APP_ID=${{ secrets.TG_API_ID }}
+          APP_HASH=${{ secrets.TG_API_HASH }}
+          EOF
+
       - name: Build debug APK
         run: ./gradlew :TMessagesProj_App:assembleAfatDebug --stacktrace
         env:
