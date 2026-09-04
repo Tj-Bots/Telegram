@@ -3640,6 +3640,16 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                     showScrollbars(false);
                     switchToCurrentSelectedMode(true);
                     animatingForward = forward;
+
+                    if (folderId == 0 && communityId == 0 && logoDrawable != null && statusDrawable != null) {
+                        if (tab.isDefault) {
+                            SpannableStringBuilder ssb = new SpannableStringBuilder(getString(R.string.AppName) + (BuildVars.DEBUG_PRIVATE_VERSION ? " #" + BuildConfig.BUILD_TAG : ""));
+                            ssb.setSpan(new ImageSpan(logoDrawable), 0, ssb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                            actionBar.setTitle(ssb, statusDrawable);
+                        } else {
+                            actionBar.setTitle(tab.title);
+                        }
+                    }
                 }
 
                 @Override
