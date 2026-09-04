@@ -105,6 +105,10 @@ public class ProfileActionsView extends View {
     public static final int KEY_STOP = 13;
     public static final int KEY_SET_PHOTO = 14;
     public static final int KEY_EDIT_USERNAME = 15;
+    public static final int KEY_PERMISSIONS = 18;
+    public static final int KEY_BANNED_USERS = 19;
+    public static final int KEY_ADMINS = 20;
+    public static final int KEY_RECENT_ACTIONS = 21;
     public static final int KEY_EDIT_INFO = 16;
     public static final int KEY_SETTINGS = 17;
 
@@ -740,6 +744,10 @@ public class ProfileActionsView extends View {
                     out.add(getOrCreate(KEY_REPORT));
                 } else {
                     insertIfAvailable(out, KEY_STORY);
+                    insertIfAvailable(out, KEY_PERMISSIONS);
+                    insertIfAvailable(out, KEY_BANNED_USERS);
+                    insertIfAvailable(out, KEY_ADMINS);
+                    insertIfAvailable(out, KEY_RECENT_ACTIONS);
                     insertIfNotAvailable(out, KEY_LEAVE, KEY_STORY);
                 }
                 break;
@@ -757,6 +765,10 @@ public class ProfileActionsView extends View {
                     insertIfAvailable(out, KEY_VOICE_CHAT);
                     insertIfNotAvailable(out, KEY_STREAM, KEY_VOICE_CHAT);
                     insertIfAvailable(out, KEY_STORY);
+                    insertIfAvailable(out, KEY_PERMISSIONS);
+                    insertIfAvailable(out, KEY_BANNED_USERS);
+                    insertIfAvailable(out, KEY_ADMINS);
+                    insertIfAvailable(out, KEY_RECENT_ACTIONS);
                     insertIfAvailable(out, KEY_LEAVE);
                 }
                 break;
@@ -893,6 +905,18 @@ public class ProfileActionsView extends View {
             case KEY_NOTIFICATION:
                 newAction = new Action();
                 updateNotification(newAction, false);
+                break;
+            case KEY_PERMISSIONS:
+                newAction = new Action(ActionButton.PERMISSIONS);
+                break;
+            case KEY_BANNED_USERS:
+                newAction = new Action(ActionButton.BANNED_USERS);
+                break;
+            case KEY_ADMINS:
+                newAction = new Action(ActionButton.ADMINS);
+                break;
+            case KEY_RECENT_ACTIONS:
+                newAction = new Action(ActionButton.RECENT_ACTIONS);
                 break;
         }
 
@@ -1232,7 +1256,11 @@ public class ProfileActionsView extends View {
         SET_PHOTO(R.string.ProfileActionsEditPhoto2, R.drawable.filled_profile_photo, R.drawable.outline_profile_photo),
         EDIT_USERNAME(R.string.ProfileActionsEditUsername, R.drawable.filled_profile_edit_24, R.drawable.outline_profile_edit_24),
         EDIT_INFO(R.string.ProfileActionsEditInfo, R.drawable.filled_profile_edit_24, R.drawable.outline_profile_edit_24),
-        SETTINGS(R.string.Settings, R.drawable.filled_profile_settings, R.drawable.outline_profile_settings),;
+        SETTINGS(R.string.Settings, R.drawable.filled_profile_settings, R.drawable.outline_profile_settings),
+        PERMISSIONS(R.string.ChannelPermissions, R.drawable.msg_permissions, R.drawable.msg_permissions),
+        BANNED_USERS(R.string.ChannelBlacklist, R.drawable.msg_user_remove, R.drawable.msg_user_remove),
+        ADMINS(R.string.ChannelAdministrators, R.drawable.msg_admins, R.drawable.msg_admins),
+        RECENT_ACTIONS(R.string.EventLog, R.drawable.msg_log, R.drawable.msg_log),;
 
         final @StringRes int title;
         final @DrawableRes int filledIcon;

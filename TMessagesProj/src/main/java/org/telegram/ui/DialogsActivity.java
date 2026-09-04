@@ -6916,7 +6916,12 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                         filterTabsView.addTab(a, 0, LocaleController.getString(R.string.FilterAllChats), null, false, true, filters.get(a).locked);
                     } else {
                         final MessagesController.DialogFilter filter = filters.get(a);
-                        filterTabsView.addTab(a, filter.localId, filter.name, filter.entities, filter.title_noanimate, false, filters.get(a).locked);
+                        String tabTitle = filter.name;
+                        ArrayList<TLRPC.MessageEntity> tabEntities = filter.entities;
+                        if (!TextUtils.isEmpty(filter.emoticon) && (filter.entities == null || filter.entities.isEmpty())) {
+                            tabTitle = filter.emoticon + " " + filter.name;
+                        }
+                        filterTabsView.addTab(a, filter.localId, tabTitle, tabEntities, filter.title_noanimate, false, filters.get(a).locked);
                     }
                 }
                 if (stableId >= 0) {

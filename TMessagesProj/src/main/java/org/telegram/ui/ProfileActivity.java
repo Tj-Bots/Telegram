@@ -3989,6 +3989,41 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     case ProfileActionsView.KEY_SETTINGS:
                         presentFragment(new SettingsActivity());
                         break;
+                    case ProfileActionsView.KEY_PERMISSIONS: {
+                        if (chatId == 0) break;
+                        Bundle args = new Bundle();
+                        args.putLong("chat_id", chatId);
+                        args.putInt("type", ChatUsersActivity.TYPE_KICKED);
+                        ChatUsersActivity fragment = new ChatUsersActivity(args);
+                        fragment.setInfo(chatInfo);
+                        presentFragment(fragment);
+                        break;
+                    }
+                    case ProfileActionsView.KEY_BANNED_USERS: {
+                        if (chatId == 0) break;
+                        Bundle args = new Bundle();
+                        args.putLong("chat_id", chatId);
+                        args.putInt("type", ChatUsersActivity.TYPE_BANNED);
+                        ChatUsersActivity fragment = new ChatUsersActivity(args);
+                        fragment.setInfo(chatInfo);
+                        presentFragment(fragment);
+                        break;
+                    }
+                    case ProfileActionsView.KEY_ADMINS: {
+                        if (chatId == 0) break;
+                        Bundle args = new Bundle();
+                        args.putLong("chat_id", chatId);
+                        args.putInt("type", ChatUsersActivity.TYPE_ADMIN);
+                        ChatUsersActivity fragment = new ChatUsersActivity(args);
+                        fragment.setInfo(chatInfo);
+                        presentFragment(fragment);
+                        break;
+                    }
+                    case ProfileActionsView.KEY_RECENT_ACTIONS:
+                        if (currentChat != null) {
+                            presentFragment(new ChannelAdminLogActivity(currentChat));
+                        }
+                        break;
                 }
             });
         }
@@ -12393,6 +12428,19 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             actionsView.set(ProfileActionsView.KEY_STORY, addStoryAction);
             actionsView.set(ProfileActionsView.KEY_VOICE_CHAT, voiceChatAction);
             actionsView.set(ProfileActionsView.KEY_STREAM, streamAction);
+
+            if (chatId != 0 && currentChat != null && !isTopic) {
+                boolean isPlainMegagroup = currentChat.megagroup && !currentChat.gigagroup && !ChatObject.isCommunity(currentChat);
+                actionsView.set(ProfileActionsView.KEY_PERMISSIONS, isPlainMegagroup && ChatObject.hasAdminRights(currentChat) && ChatObject.canChangeChatInfo(currentChat));
+                actionsView.set(ProfileActionsView.KEY_BANNED_USERS, ChatObject.canBlockUsers(currentChat));
+                actionsView.set(ProfileActionsView.KEY_ADMINS, currentChat.creator || chatInfo != null && chatInfo.can_view_participants);
+                actionsView.set(ProfileActionsView.KEY_RECENT_ACTIONS, ChatObject.isChannel(currentChat) && ChatObject.hasAdminRights(currentChat));
+            } else {
+                actionsView.set(ProfileActionsView.KEY_PERMISSIONS, false);
+                actionsView.set(ProfileActionsView.KEY_BANNED_USERS, false);
+                actionsView.set(ProfileActionsView.KEY_ADMINS, false);
+                actionsView.set(ProfileActionsView.KEY_RECENT_ACTIONS, false);
+            }
 
             actionsView.set(ProfileActionsView.KEY_GIFT, giftAction);
             callItemVisible = videoCallItemVisible = false;

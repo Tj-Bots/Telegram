@@ -1288,6 +1288,7 @@ public class MessagesController extends BaseController implements NotificationCe
         public ArrayList<TLRPC.Dialog> dialogsForward = new ArrayList<>();
         public int color;
         public boolean title_noanimate;
+        public String emoticon;
 
         public ArrayList<TL_chatlists.TL_exportedChatlistInvite> invites = null;
 
