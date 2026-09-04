@@ -798,6 +798,7 @@ public class ChatActivity extends BaseFragment implements
     private MessageObject forwardingMessage;
     private MessageObject.GroupedMessages forwardingMessageGroup;
     private boolean forwardingMessageAsCopy;
+    public boolean forwardWithoutTagPending;
     private MessageObject.GroupedMessages replyingQuoteGroup;
     public MessageObject replyingTopMessage;
     private ReplyQuote replyingQuote;
@@ -15169,6 +15170,12 @@ public class ChatActivity extends BaseFragment implements
                 messagePreviewParams.updateForward(messageObjectsToForward, dialog_id);
                 if (messagePreviewParams.isEmpty() && editingMessageObject == null) {
                     messagePreviewParams = null;
+                }
+                if (forwardWithoutTagPending) {
+                    forwardWithoutTagPending = false;
+                    if (messagePreviewParams != null) {
+                        messagePreviewParams.hideForwardSendersName = true;
+                    }
                 }
                 editingMessageObject = null;
                 chatActivityEnterView.setEditingMessageObject(null, null, false);
@@ -34563,38 +34570,8 @@ public class ChatActivity extends BaseFragment implements
                 }
             }
         }
-        if (forwardingMessageAsCopy) {
-            forwardingMessageAsCopy = false;
-            if (fragment.resetDelegate) {
-                fragment.setDelegate(null);
-            }
-            forwardingMessage = null;
-            forwardingMessageGroup = null;
-            messagePreviewParams = null;
-            hideFieldPanel(false);
-            for (int a = 0; a < dids.size(); a++) {
-                final long did = dids.get(a).dialogId;
-                getSendMessagesHelper().sendMessage(fmessages, did, true, false, notify, scheduleDate, scheduleRepeatPeriod, null, -1, 0, getSendMonoForumPeerId(), getSendMessageSuggestionParams());
-                if (message != null) {
-                    final SendMessagesHelper.SendMessageParams params = SendMessagesHelper.SendMessageParams.of(message.toString(), did, null, null, null, true, null, null, null, notify, scheduleDate, scheduleRepeatPeriod, null, false);
-                    getSendMessagesHelper().sendMessage(params);
-                }
-            }
-            fragment.finishFragment();
-            if (dids.size() == 1) {
-                final long did = dids.get(0).dialogId;
-                AndroidUtilities.runOnUIThread(() -> {
-                    Bundle args = new Bundle();
-                    if (DialogObject.isUserDialog(did)) {
-                        args.putLong("user_id", did);
-                    } else {
-                        args.putLong("chat_id", -did);
-                    }
-                    presentFragment(new ChatActivity(args), true);
-                }, 100);
-            }
-            return true;
-        }
+        final boolean forwardWithoutTag = forwardingMessageAsCopy;
+        forwardingMessageAsCopy = false;
         for (int j = 0; j < dids.size(); j++) {
             TLRPC.Chat chat = getMessagesController().getChat(-dids.get(j).dialogId);
             if (chat != null) {
@@ -34641,7 +34618,7 @@ public class ChatActivity extends BaseFragment implements
                         params.suggestionParams = messageSuggestionParams;
                         getSendMessagesHelper().sendMessage(params);
                     }
-                    getSendMessagesHelper().sendMessage(fmessages, did, false, false, notify, scheduleDate, scheduleRepeatPeriod, null, -1, price == null ? 0 : price, getSendMonoForumPeerId(), getSendMessageSuggestionParams());
+                    getSendMessagesHelper().sendMessage(fmessages, did, forwardWithoutTag, false, notify, scheduleDate, scheduleRepeatPeriod, null, -1, price == null ? 0 : price, getSendMonoForumPeerId(), getSendMessageSuggestionParams());
                 }
                 fragment.finishFragment();
                 createUndoView();
@@ -34728,6 +34705,7 @@ public class ChatActivity extends BaseFragment implements
                         };
                         chatActivity.showFieldPanelForReplyQuote(replyingMessageObject, replyingQuote);
                     } else {
+                        chatActivity.forwardWithoutTagPending = forwardWithoutTag;
                         chatActivity.showFieldPanelForForward(true, fmessages);
                     }
                     if (chatActivity.getDialogId() == getDialogId() && !AndroidUtilities.isTablet()) {
@@ -34756,6 +34734,7 @@ public class ChatActivity extends BaseFragment implements
                 if (fragment.isQuote && replyingMessageObject != null) {
                     showFieldPanelForReplyQuote(replyingMessageObject, replyingQuote);
                 } else {
+                    forwardWithoutTagPending = forwardWithoutTag;
                     showFieldPanelForForward(true, fmessages);
                 }
                 if (AndroidUtilities.isTablet()) {

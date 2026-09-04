@@ -10,6 +10,7 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 
 import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.ChatObject;
 import org.telegram.messenger.FileLoader;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessageObject;
@@ -130,7 +131,8 @@ public class MessageInfoActivity extends BaseFragment {
 
         addRow(container, LocaleController.getString(R.string.Message), !TextUtils.isEmpty(msg.message) ? msg.message : mediaTypeLabel, !TextUtils.isEmpty(msg.message) ? msg.message : mediaTypeLabel);
         addRow(container, "Id", String.valueOf(msg.id), String.valueOf(msg.id));
-        addRow(container, "Chat Id", String.valueOf(peerId), String.valueOf(peerId));
+        String chatIdText = formatBotApiPeerId(peerId);
+        addRow(container, "Chat Id", chatIdText, chatIdText);
         addPersonRow(container, LocaleController.getString(R.string.From), fromName, fromUsername, fromId);
         if (!TextUtils.isEmpty(msg.post_author)) {
             addRow(container, "Author", msg.post_author, msg.post_author);
@@ -175,6 +177,17 @@ public class MessageInfoActivity extends BaseFragment {
                 addRow(container, "DC", "DC" + photo.dc_id, null);
             }
         }
+    }
+
+    private String formatBotApiPeerId(long peerId) {
+        if (peerId >= 0) {
+            return String.valueOf(peerId);
+        }
+        TLRPC.Chat chat = getMessagesController().getChat(-peerId);
+        if (ChatObject.isChannel(chat)) {
+            return "-100" + (-peerId);
+        }
+        return String.valueOf(peerId);
     }
 
     private void copyValue(String text) {

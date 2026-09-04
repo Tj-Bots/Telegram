@@ -57,6 +57,7 @@ import org.telegram.tgnet.tl.TL_communities;
 import org.telegram.tgnet.tl.TL_stars;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.ActionBarMenu;
+import org.telegram.ui.ActionBar.ActionBarMenuSubItem;
 import org.telegram.ui.ActionBar.ActionBarMenuItem;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
@@ -234,6 +235,17 @@ public class ChatUsersActivity extends BaseFragment implements NotificationCente
     private final static int search_button = 0;
     private final static int done_button = 1;
 
+    private final static int member_filter_button = 99;
+    private final static int member_filter_all = 100;
+    private final static int member_filter_members = 101;
+    private final static int member_filter_contacts = 102;
+    private final static int member_filter_bots = 103;
+    private final static int member_filter_admins = 104;
+
+    private int memberFilter = member_filter_all;
+    private ActionBarMenuItem memberFilterItem;
+    private final ArrayList<TLObject> visibleParticipants = new ArrayList<>();
+
     public final static int TYPE_BANNED = 0;
     public final static int TYPE_ADMIN = 1;
     public final static int TYPE_USERS = 2;
@@ -324,11 +336,47 @@ public class ChatUsersActivity extends BaseFragment implements NotificationCente
 
     }
 
+    private void updateMemberFilterItemChecks() {
+        if (memberFilterItem == null) {
+            return;
+        }
+        int[] ids = new int[]{member_filter_all, member_filter_members, member_filter_contacts, member_filter_bots, member_filter_admins};
+        int[] icons = new int[]{R.drawable.msg_groups, R.drawable.msg_contacts, R.drawable.msg_contact_add, R.drawable.msg_bot, R.drawable.msg_admins};
+        String[] titles = new String[]{"All members", "Members only", "Contacts only", "Bots only", "Admins only"};
+        for (int a = 0; a < ids.length; a++) {
+            View view = memberFilterItem.getSubItem(ids[a]);
+            if (view instanceof ActionBarMenuSubItem) {
+                String text = (ids[a] == memberFilter ? "• " : "") + titles[a];
+                ((ActionBarMenuSubItem) view).setTextAndIcon(text, icons[a]);
+            }
+        }
+    }
+
+    private boolean isAdminParticipant(TLObject object) {
+        TLRPC.ChannelParticipant channelParticipant = null;
+        if (object instanceof TLRPC.ChannelParticipant) {
+            channelParticipant = (TLRPC.ChannelParticipant) object;
+        } else if (object instanceof TLRPC.TL_chatChannelParticipant) {
+            channelParticipant = ((TLRPC.TL_chatChannelParticipant) object).channelParticipant;
+        }
+        if (channelParticipant != null) {
+            return channelParticipant instanceof TLRPC.TL_channelParticipantCreator
+                    || channelParticipant instanceof TLRPC.TL_channelParticipantAdmin;
+        }
+        if (object instanceof TLRPC.ChatParticipant) {
+            return object instanceof TLRPC.TL_chatParticipantCreator
+                    || object instanceof TLRPC.TL_chatParticipantAdmin;
+        }
+        return false;
+    }
+
     private void updateRows() {
         currentChat = getMessagesController().getChat(chatId);
         if (currentChat == null) {
             return;
         }
+        visibleParticipants.clear();
+        visibleParticipants.addAll(participants);
         recentActionsRow = -1;
         antiSpamRow = -1;
         antiSpamInfoRow = -1;
@@ -580,26 +628,42 @@ public class ChatUsersActivity extends BaseFragment implements NotificationCente
             }
             if (!(loadingUsers && !firstLoaded)) {
                 boolean hasAnyOther = false;
-                if (!contacts.isEmpty()) {
+                boolean showContacts = memberFilter == member_filter_all || memberFilter == member_filter_contacts;
+                boolean showBots = memberFilter == member_filter_all || memberFilter == member_filter_bots;
+                boolean showParticipants = memberFilter != member_filter_contacts && memberFilter != member_filter_bots;
+                if (showContacts && !contacts.isEmpty()) {
                     contactsHeaderRow = rowCount++;
                     contactsStartRow = rowCount;
                     rowCount += contacts.size();
                     contactsEndRow = rowCount;
                     hasAnyOther = true;
                 }
-                if (!bots.isEmpty()) {
+                if (showBots && !bots.isEmpty()) {
                     botHeaderRow = rowCount++;
                     botStartRow = rowCount;
                     rowCount += bots.size();
                     botEndRow = rowCount;
                     hasAnyOther = true;
                 }
-                if (!participants.isEmpty()) {
+                if (memberFilter == member_filter_admins) {
+                    ArrayList<TLObject> filtered = new ArrayList<>();
+                    for (int a = 0; a < visibleParticipants.size(); a++) {
+                        if (isAdminParticipant(visibleParticipants.get(a))) {
+                            filtered.add(visibleParticipants.get(a));
+                        }
+                    }
+                    visibleParticipants.clear();
+                    visibleParticipants.addAll(filtered);
+                }
+                if (!showParticipants) {
+                    visibleParticipants.clear();
+                }
+                if (!visibleParticipants.isEmpty()) {
                     if (hasAnyOther) {
                         membersHeaderRow = rowCount++;
                     }
                     participantsStartRow = rowCount;
-                    rowCount += participants.size();
+                    rowCount += visibleParticipants.size();
                     participantsEndRow = rowCount;
                 }
                 if (rowCount != 0) {
@@ -668,12 +732,30 @@ public class ChatUsersActivity extends BaseFragment implements NotificationCente
                     }
                 } else if (id == done_button) {
                     processDone();
+                } else if (id == member_filter_all || id == member_filter_members || id == member_filter_contacts
+                        || id == member_filter_bots || id == member_filter_admins) {
+                    memberFilter = id;
+                    updateMemberFilterItemChecks();
+                    updateRows();
+                    if (listViewAdapter != null) {
+                        listViewAdapter.notifyDataSetChanged();
+                    }
                 }
             }
         });
         if (selectType != SELECT_TYPE_MEMBERS || type == TYPE_USERS || type == TYPE_BANNED || type == TYPE_KICKED) {
             searchListViewAdapter = new SearchAdapter(context);
             ActionBarMenu menu = actionBar.createMenu();
+            if (type == TYPE_USERS && selectType == SELECT_TYPE_MEMBERS) {
+                memberFilterItem = menu.addItem(member_filter_button, R.drawable.menu_tag_filter);
+                memberFilterItem.setContentDescription("Filter members");
+                memberFilterItem.addSubItem(member_filter_all, R.drawable.msg_groups, "All members");
+                memberFilterItem.addSubItem(member_filter_members, R.drawable.msg_contacts, "Members only");
+                memberFilterItem.addSubItem(member_filter_contacts, R.drawable.msg_contact_add, "Contacts only");
+                memberFilterItem.addSubItem(member_filter_bots, R.drawable.msg_bot, "Bots only");
+                memberFilterItem.addSubItem(member_filter_admins, R.drawable.msg_admins, "Admins only");
+                updateMemberFilterItemChecks();
+            }
             searchItem = menu.addItem(search_button, R.drawable.outline_header_search).setIsSearchField(true).setActionBarMenuItemSearchListener(new ActionBarMenuItem.ActionBarMenuItemSearchListener() {
                 @Override
                 public void onSearchExpand() {
@@ -3859,7 +3941,11 @@ public class ChatUsersActivity extends BaseFragment implements NotificationCente
 
         public TLObject getItem(int position) {
             if (position >= participantsStartRow && position < participantsEndRow) {
-                return participants.get(position - participantsStartRow);
+                int index = position - participantsStartRow;
+                if (index >= 0 && index < visibleParticipants.size()) {
+                    return visibleParticipants.get(index);
+                }
+                return null;
             } else if (position >= contactsStartRow && position < contactsEndRow) {
                 return contacts.get(position - contactsStartRow);
             } else if (position >= botStartRow && position < botEndRow) {
