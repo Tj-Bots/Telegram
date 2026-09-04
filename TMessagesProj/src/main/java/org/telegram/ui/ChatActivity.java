@@ -1254,6 +1254,7 @@ public class ChatActivity extends BaseFragment implements
     public final static int OPTION_MESSAGE_INFO = 1004;
     public final static int OPTION_COPY_IMAGE = 1005;
     public final static int OPTION_COPY_VIDEO_THUMB = 1006;
+    public final static int OPTION_COPY_DEEPLINK = 1007;
 
     private final static int[] allowedNotificationsDuringChatListAnimations = new int[]{
             NotificationCenter.messagesRead,
@@ -33544,6 +33545,24 @@ public class ChatActivity extends BaseFragment implements
                 showDialog(builder.create());
                 break;
             }
+            case OPTION_COPY_DEEPLINK: {
+                if (selectedObject == null || selectedObject.messageOwner == null) {
+                    return;
+                }
+                long peerId = selectedObject.messageOwner.peer_id != null ? MessageObject.getPeerId(selectedObject.messageOwner.peer_id) : 0;
+                String link;
+                if (peerId > 0) {
+                    link = "tg://openmessage?user_id=" + peerId + "&message_id=" + selectedObject.getId();
+                } else {
+                    link = "tg://openmessage?chat_id=" + (-peerId) + "&message_id=" + selectedObject.getId();
+                }
+                AndroidUtilities.addToClipboard(link);
+                createUndoView();
+                if (undoView != null) {
+                    undoView.showWithAction(0, UndoView.ACTION_MESSAGE_COPIED, null);
+                }
+                break;
+            }
             case OPTION_FORWARD: {
                 if (getMessagesController().isFrozen()) {
                     AccountFrozenAlert.show(currentAccount);
@@ -46491,6 +46510,9 @@ public class ChatActivity extends BaseFragment implements
                     items.add("Message Info");
                     options.add(OPTION_MESSAGE_INFO);
                     icons.add(R.drawable.msg_info);
+                    items.add("Copy Message Link");
+                    options.add(OPTION_COPY_DEEPLINK);
+                    icons.add(R.drawable.msg_link2);
                 }
                 if (allowUnpin) {
                     items.add(LocaleController.getString(R.string.UnpinMessage));
