@@ -1252,6 +1252,8 @@ public class ChatActivity extends BaseFragment implements
     public final static int OPTION_VIEW_STATISTICS = 115;
     public final static int OPTION_WELCOME_REVERT = 116;
     public final static int OPTION_MESSAGE_INFO = 1004;
+    public final static int OPTION_SAVE_TO_SAVED = 1005;
+    public final static int OPTION_COPY_INTERNAL_LINK = 1006;
 
     private final static int[] allowedNotificationsDuringChatListAnimations = new int[]{
             NotificationCenter.messagesRead,
@@ -18277,17 +18279,7 @@ public class ChatActivity extends BaseFragment implements
             if (lastWidth != widthSize) {
                 globalIgnoreLayout = false;
                 lastWidth = widthMeasureSpec;
-                if (!inPreviewMode) {
-                    SimpleTextView textView = avatarContainer.getTitleTextView();
-                    int textWidth = (int) textView.getPaint().measureText(textView.getText(), 0, textView.getText().length());
-                    if (widthSize - AndroidUtilities.dp(96 + 56) > textWidth + AndroidUtilities.dp(10)) {
-                        showSearchAsIcon = true;
-                    } else {
-                        showSearchAsIcon = false;
-                    }
-                } else {
-                    showSearchAsIcon = false;
-                }
+                showSearchAsIcon = !inPreviewMode;
                 if (showSearchAsIcon || showAudioCallAsIcon || UserObject.isBotForumWithEditableTopics(currentUser)) {
                     if (avatarContainer != null && avatarContainer.getLayoutParams() != null) {
                         ((ViewGroup.MarginLayoutParams) avatarContainer.getLayoutParams()).rightMargin = AndroidUtilities.dp(chatMode == MODE_SAVED ? 52 : 92);
@@ -33465,6 +33457,42 @@ public class ChatActivity extends BaseFragment implements
                 showDialog(builder.create());
                 break;
             }
+            case OPTION_SAVE_TO_SAVED: {
+                if (selectedObject == null) {
+                    return;
+                }
+                ArrayList<MessageObject> savedMessages = new ArrayList<>();
+                if (selectedObjectGroup != null) {
+                    savedMessages.addAll(selectedObjectGroup.messages);
+                } else {
+                    savedMessages.add(selectedObject);
+                }
+                long selfId = getUserConfig().getClientUserId();
+                getSendMessagesHelper().sendMessage(savedMessages, selfId, false, false, true, 0, 0, null, -1, 0, 0, null);
+                selectedObject = null;
+                selectedObjectToEditCaption = null;
+                selectedObjectGroup = null;
+                createUndoView();
+                if (undoView != null) {
+                    undoView.showWithAction(selfId, UndoView.ACTION_FWD_MESSAGES, savedMessages.size());
+                }
+                break;
+            }
+            case OPTION_COPY_INTERNAL_LINK: {
+                if (selectedObject == null) {
+                    return;
+                }
+                String internalLink = "tg://openmessage?user_id=" + getDialogId() + "&message_id=" + selectedObject.getId();
+                AndroidUtilities.addToClipboard(internalLink);
+                selectedObject = null;
+                selectedObjectToEditCaption = null;
+                selectedObjectGroup = null;
+                createUndoView();
+                if (undoView != null) {
+                    undoView.showWithAction(0, UndoView.ACTION_MESSAGE_COPIED, null);
+                }
+                break;
+            }
             case OPTION_FORWARD: {
                 if (getMessagesController().isFrozen()) {
                     AccountFrozenAlert.show(currentAccount);
@@ -46337,6 +46365,16 @@ public class ChatActivity extends BaseFragment implements
                     items.add("Message Info");
                     options.add(OPTION_MESSAGE_INFO);
                     icons.add(R.drawable.msg_info);
+                }
+                if (canForward && getDialogId() != getUserConfig().getClientUserId()) {
+                    items.add("Save to Saved Messages");
+                    options.add(OPTION_SAVE_TO_SAVED);
+                    icons.add(R.drawable.msg_saved);
+                }
+                if (selectedObject != null && selectedObject.getId() > 0 && getDialogId() > 0) {
+                    items.add("Copy internal link");
+                    options.add(OPTION_COPY_INTERNAL_LINK);
+                    icons.add(R.drawable.msg_link);
                 }
                 if (allowUnpin) {
                     items.add(LocaleController.getString(R.string.UnpinMessage));
