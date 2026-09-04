@@ -3504,9 +3504,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             }
             actionBar.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundWhite));
         } else {
-            if (searchString != null || folderId != 0 || communityId != 0) {
-                actionBar.setBackButtonDrawable(backDrawable = new BackDrawable(false));
-            }
+            actionBar.setBackButtonDrawable(backDrawable = new BackDrawable(false));
             if (folderId != 0) {
                 actionBar.setTitle(getString(R.string.ArchivedChats));
             } else if (communityId != 0) {

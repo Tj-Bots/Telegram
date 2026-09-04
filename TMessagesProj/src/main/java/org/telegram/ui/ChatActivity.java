@@ -33376,90 +33376,6 @@ public class ChatActivity extends BaseFragment implements
         MediaController.saveFile(path, getParentActivity(), messageObject.isVideo() ? 1 : 0, null, null);
     }
 
-    private void copyMessageInfoValue(String text) {
-        if (TextUtils.isEmpty(text)) {
-            return;
-        }
-        AndroidUtilities.addToClipboard(text);
-        createUndoView();
-        if (undoView != null) {
-            undoView.showWithAction(0, UndoView.ACTION_MESSAGE_COPIED, null);
-        }
-    }
-
-    private TextView makeMessageInfoValueLine(CharSequence text, String copyText) {
-        TextView valueView = new TextView(getParentActivity());
-        valueView.setText(text);
-        valueView.setTextSize(15);
-        valueView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
-        valueView.setBackground(Theme.getSelectorDrawable(true));
-        valueView.setClickable(true);
-        valueView.setFocusable(true);
-        valueView.setPadding(0, AndroidUtilities.dp(3), 0, AndroidUtilities.dp(3));
-        valueView.setOnClickListener(v -> copyMessageInfoValue(copyText));
-        return valueView;
-    }
-
-    private void addMessageInfoDivider(LinearLayout container) {
-        View divider = new View(getParentActivity());
-        divider.setBackgroundColor(Theme.getColor(Theme.key_divider));
-        container.addView(divider, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 1));
-    }
-
-    private void addMessageInfoRow(LinearLayout container, String label, CharSequence value, String copyText) {
-        if (TextUtils.isEmpty(value)) {
-            return;
-        }
-        LinearLayout row = new LinearLayout(getParentActivity());
-        row.setOrientation(LinearLayout.VERTICAL);
-        row.setPadding(0, AndroidUtilities.dp(10), 0, AndroidUtilities.dp(10));
-        if (copyText != null) {
-            row.setBackground(Theme.getSelectorDrawable(true));
-            row.setClickable(true);
-            row.setFocusable(true);
-            row.setOnClickListener(v -> copyMessageInfoValue(copyText));
-        }
-
-        TextView labelView = new TextView(getParentActivity());
-        labelView.setText(label);
-        labelView.setTextSize(13);
-        labelView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2));
-        row.addView(labelView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT));
-
-        TextView valueView = new TextView(getParentActivity());
-        valueView.setText(value);
-        valueView.setTextSize(15);
-        valueView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
-        row.addView(valueView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 0, 2, 0, 0));
-
-        container.addView(row, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
-        addMessageInfoDivider(container);
-    }
-
-    private void addMessageInfoPersonRow(LinearLayout container, String label, String name, String username, long id) {
-        LinearLayout row = new LinearLayout(getParentActivity());
-        row.setOrientation(LinearLayout.VERTICAL);
-        row.setPadding(0, AndroidUtilities.dp(10), 0, AndroidUtilities.dp(10));
-
-        TextView labelView = new TextView(getParentActivity());
-        labelView.setText(label);
-        labelView.setTextSize(13);
-        labelView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2));
-        row.addView(labelView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT));
-
-        if (!TextUtils.isEmpty(name)) {
-            row.addView(makeMessageInfoValueLine(name, name), LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 0, 2, 0, 0));
-        }
-        if (!TextUtils.isEmpty(username)) {
-            String withAt = "@" + username;
-            row.addView(makeMessageInfoValueLine(withAt, withAt), LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 0, 2, 0, 0));
-        }
-        row.addView(makeMessageInfoValueLine(String.valueOf(id), String.valueOf(id)), LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 0, 2, 0, 0));
-
-        container.addView(row, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
-        addMessageInfoDivider(container);
-    }
-
     private void processSelectedOption(int option) {
         if (selectedObject == null || getParentActivity() == null) {
             return;
@@ -33511,128 +33427,7 @@ public class ChatActivity extends BaseFragment implements
                 if (getParentActivity() == null || selectedObject == null || selectedObject.messageOwner == null) {
                     return;
                 }
-                final MessageObject msgObj = selectedObject;
-                final TLRPC.Message msg = selectedObject.messageOwner;
-                final long fromId = msg.from_id != null ? MessageObject.getPeerId(msg.from_id) : 0;
-                final long peerId = msg.peer_id != null ? MessageObject.getPeerId(msg.peer_id) : 0;
-
-                TLRPC.User fromUser = fromId > 0 ? getMessagesController().getUser(fromId) : null;
-                TLRPC.Chat fromChat = fromId < 0 ? getMessagesController().getChat(-fromId) : null;
-                String fromName = fromUser != null ? UserObject.getUserName(fromUser) : (fromChat != null ? fromChat.title : null);
-                String fromUsername = fromUser != null ? fromUser.username : (fromChat != null ? fromChat.username : null);
-
-                String replyName = null;
-                String replyUsername = null;
-                long replyFromId = 0;
-                boolean hasReply = false;
-                if (msgObj.replyMessageObject != null && msgObj.replyMessageObject.messageOwner != null) {
-                    hasReply = true;
-                    TLRPC.Message replyMsg = msgObj.replyMessageObject.messageOwner;
-                    replyFromId = replyMsg.from_id != null ? MessageObject.getPeerId(replyMsg.from_id) : 0;
-                    TLRPC.User replyUser = replyFromId > 0 ? getMessagesController().getUser(replyFromId) : null;
-                    TLRPC.Chat replyChat = replyFromId < 0 ? getMessagesController().getChat(-replyFromId) : null;
-                    replyName = replyUser != null ? UserObject.getUserName(replyUser) : (replyChat != null ? replyChat.title : null);
-                    replyUsername = replyUser != null ? replyUser.username : (replyChat != null ? replyChat.username : null);
-                } else if (msg.reply_to != null && msg.reply_to.reply_to_msg_id != 0) {
-                    hasReply = true;
-                }
-
-                TLRPC.Document document = msgObj.getDocument();
-                TLRPC.Photo photo = (msg.media instanceof TLRPC.TL_messageMediaPhoto) ? msg.media.photo : null;
-
-                String mediaTypeLabel = null;
-                if (msgObj.isRoundVideo()) {
-                    mediaTypeLabel = LocaleController.getString(R.string.AttachRound);
-                } else if (msgObj.isVoice()) {
-                    mediaTypeLabel = LocaleController.getString(R.string.AttachAudio);
-                } else if (document != null && MessageObject.isGifDocument(document)) {
-                    mediaTypeLabel = LocaleController.getString(R.string.AttachGif);
-                } else if (msgObj.isVideo()) {
-                    mediaTypeLabel = LocaleController.getString(R.string.AttachVideo);
-                } else if (msgObj.isMusic()) {
-                    mediaTypeLabel = LocaleController.getString(R.string.AttachMusic);
-                } else if (msgObj.isSticker() || msgObj.isAnimatedSticker()) {
-                    mediaTypeLabel = LocaleController.getString(R.string.AttachSticker);
-                } else if (msgObj.isPhoto()) {
-                    mediaTypeLabel = LocaleController.getString(R.string.AttachPhoto);
-                } else if (document != null) {
-                    mediaTypeLabel = LocaleController.getString(R.string.AttachDocument);
-                }
-
-                String filePath = null;
-                try {
-                    String attach = msg.attachPath;
-                    if (!TextUtils.isEmpty(attach) && new File(attach).exists()) {
-                        filePath = attach;
-                    } else {
-                        File f = getFileLoader().getPathToMessage(msg);
-                        if (f != null && f.exists()) {
-                            filePath = f.getPath();
-                        }
-                    }
-                } catch (Exception ignored) {
-                }
-
-                LinearLayout container = new LinearLayout(getParentActivity());
-                container.setOrientation(LinearLayout.VERTICAL);
-                container.setPadding(AndroidUtilities.dp(20), AndroidUtilities.dp(6), AndroidUtilities.dp(20), AndroidUtilities.dp(6));
-
-                addMessageInfoRow(container, LocaleController.getString(R.string.Message), !TextUtils.isEmpty(msg.message) ? msg.message : mediaTypeLabel, !TextUtils.isEmpty(msg.message) ? msg.message : mediaTypeLabel);
-                addMessageInfoRow(container, "Id", String.valueOf(msg.id), String.valueOf(msg.id));
-                addMessageInfoRow(container, "Chat Id", String.valueOf(peerId), String.valueOf(peerId));
-                addMessageInfoPersonRow(container, LocaleController.getString(R.string.From), fromName, fromUsername, fromId);
-                if (!TextUtils.isEmpty(msg.post_author)) {
-                    addMessageInfoRow(container, "Author", msg.post_author, msg.post_author);
-                }
-                addMessageInfoRow(container, "Date", LocaleController.getInstance().getFormatterStats().format((long) msg.date * 1000), null);
-                if (msg.edit_date != 0) {
-                    addMessageInfoRow(container, "Edited", LocaleController.getInstance().getFormatterStats().format((long) msg.edit_date * 1000), null);
-                }
-                if (msg.views != 0) {
-                    addMessageInfoRow(container, "Views", String.valueOf(msg.views), String.valueOf(msg.views));
-                }
-                if (hasReply) {
-                    if (replyName != null || replyUsername != null) {
-                        addMessageInfoPersonRow(container, "Reply to", replyName, replyUsername, replyFromId);
-                    } else {
-                        addMessageInfoRow(container, "Reply to", String.valueOf(msg.reply_to.reply_to_msg_id), String.valueOf(msg.reply_to.reply_to_msg_id));
-                    }
-                }
-                if (document != null) {
-                    String fileName = FileLoader.getDocumentFileName(document);
-                    if (!TextUtils.isEmpty(fileName)) {
-                        addMessageInfoRow(container, "Name", fileName, fileName);
-                    }
-                    if (filePath != null) {
-                        addMessageInfoRow(container, "File", filePath, filePath);
-                    }
-                    if (document.size > 0) {
-                        String sizeStr = AndroidUtilities.formatFileSize(document.size);
-                        addMessageInfoRow(container, "Size", sizeStr, sizeStr);
-                    }
-                    if (!TextUtils.isEmpty(document.mime_type)) {
-                        addMessageInfoRow(container, "MimeType", document.mime_type, document.mime_type);
-                    }
-                    if (document.dc_id != 0) {
-                        addMessageInfoRow(container, "DC", "DC" + document.dc_id, null);
-                    }
-                } else if (photo != null) {
-                    if (filePath != null) {
-                        addMessageInfoRow(container, "File", filePath, filePath);
-                    }
-                    if (photo.dc_id != 0) {
-                        addMessageInfoRow(container, "DC", "DC" + photo.dc_id, null);
-                    }
-                }
-
-                ScrollView scrollView = new ScrollView(getParentActivity());
-                scrollView.addView(container, LayoutHelper.createScroll(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP));
-
-                AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
-                builder.setTitle("Message Info");
-                builder.setView(scrollView);
-                builder.setNegativeButton(LocaleController.getString(R.string.Close), null);
-                showDialog(builder.create());
+                presentFragment(new MessageInfoActivity(selectedObject));
                 break;
             }
             case OPTION_COPY_DEEPLINK: {
@@ -46643,9 +46438,11 @@ public class ChatActivity extends BaseFragment implements
                     }
                 }
                 if (selectedObject != null && selectedObject.getId() > 0) {
-                    items.add("Copy Message Link");
-                    options.add(OPTION_COPY_DEEPLINK);
-                    icons.add(R.drawable.msg_link2);
+                    if (currentChat == null) {
+                        items.add("Copy Message Link");
+                        options.add(OPTION_COPY_DEEPLINK);
+                        icons.add(R.drawable.msg_link2);
+                    }
                     items.add("Message Info");
                     options.add(OPTION_MESSAGE_INFO);
                     icons.add(R.drawable.msg_info);
