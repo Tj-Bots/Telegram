@@ -14414,6 +14414,15 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         textView.setEllipsize(TextUtils.TruncateAt.END);
         btn.addView(textView, LayoutHelper.createLinear(0, LayoutHelper.WRAP_CONTENT, 1f, Gravity.CENTER_VERTICAL, 13, 0, 14, 0));
 
+        final int accountUnreadCount = NotificationsController.getInstance(account).getTotalUnreadCount();
+        if (accountUnreadCount > 0) {
+            final org.telegram.ui.Components.CounterView counterView = new org.telegram.ui.Components.CounterView(getContext(), null);
+            counterView.setColors(Theme.key_chats_unreadCounterText, Theme.key_chats_unreadCounter);
+            counterView.setGravity(Gravity.RIGHT);
+            counterView.setCount(accountUnreadCount, false);
+            btn.addView(counterView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, 24, Gravity.CENTER_VERTICAL, 0, 0, 12, 0));
+        }
+
         return btn;
     }
 
