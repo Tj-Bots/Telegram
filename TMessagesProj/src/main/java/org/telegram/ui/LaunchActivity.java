@@ -8299,7 +8299,6 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         }
     }
 
-    @Override
     private void createSideMenu() {
         LinearLayout sideMenu = new LinearLayout(this);
         sideMenu.setOrientation(LinearLayout.VERTICAL);
@@ -8362,7 +8361,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             args.putLong("user_id", UserConfig.getInstance(currentAccount).getClientUserId());
             presentFragment(new ChatActivity(args));
         });
-        addSideMenuItem(itemsLayout, R.drawable.msg_invite, LocaleController.getString(R.string.InviteFriends), () -> {
+        addSideMenuItem(itemsLayout, R.drawable.settings_invite, LocaleController.getString(R.string.InviteFriends), () -> {
             drawerLayoutContainer.closeDrawer(false);
             presentFragment(new InviteContactsActivity());
         });
@@ -8419,6 +8418,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         drawerLayoutContainer.openDrawer(true);
     }
 
+    @Override
     public void onBackPressed() {
         if (drawerLayoutContainer != null && drawerLayoutContainer.isDrawerOpened()) {
             drawerLayoutContainer.closeDrawer(false);
