@@ -1252,6 +1252,8 @@ public class ChatActivity extends BaseFragment implements
     public final static int OPTION_VIEW_STATISTICS = 115;
     public final static int OPTION_WELCOME_REVERT = 116;
     public final static int OPTION_MESSAGE_INFO = 1004;
+    public final static int OPTION_COPY_IMAGE = 1005;
+    public final static int OPTION_COPY_VIDEO_THUMB = 1006;
 
     private final static int[] allowedNotificationsDuringChatListAnimations = new int[]{
             NotificationCenter.messagesRead,
@@ -4297,13 +4299,8 @@ public class ChatActivity extends BaseFragment implements
                 audioCallIconItem = menu.lazilyAddItem(call, R.drawable.call, themeDelegate);
                 audioCallIconItem.setContentDescription(LocaleController.getString(R.string.Call));
                 userFull = getMessagesController().getUserFull(currentUser.id);
-                if (userFull != null && userFull.phone_calls_available) {
-                    showAudioCallAsIcon = !inPreviewMode;
-                    audioCallIconItem.setVisibility(View.VISIBLE);
-                } else {
-                    showAudioCallAsIcon = false;
-                    audioCallIconItem.setVisibility(View.GONE);
-                }
+                showAudioCallAsIcon = false;
+                audioCallIconItem.setVisibility(View.GONE);
             }
         }
         /*
@@ -33396,66 +33393,148 @@ public class ChatActivity extends BaseFragment implements
                 if (getParentActivity() == null || selectedObject == null || selectedObject.messageOwner == null) {
                     return;
                 }
-                TLRPC.Message msg = selectedObject.messageOwner;
-                long fromId = msg.from_id != null ? MessageObject.getPeerId(msg.from_id) : 0;
-                long peerId = msg.peer_id != null ? MessageObject.getPeerId(msg.peer_id) : 0;
-                StringBuilder info = new StringBuilder();
-                info.append("Message ID: ").append(msg.id).append('\n');
-                info.append("Chat ID: ").append(peerId).append('\n');
-                info.append("From ID: ").append(fromId).append('\n');
-                info.append("Date: ").append(LocaleController.getInstance().getFormatterStats().format((long) msg.date * 1000)).append('\n');
+                final TLRPC.Message msg = selectedObject.messageOwner;
+                final long fromId = msg.from_id != null ? MessageObject.getPeerId(msg.from_id) : 0;
+                final long peerId = msg.peer_id != null ? MessageObject.getPeerId(msg.peer_id) : 0;
+
+                TLRPC.User fromUser = fromId > 0 ? getMessagesController().getUser(fromId) : null;
+                TLRPC.Chat fromChat = fromId < 0 ? getMessagesController().getChat(-fromId) : null;
+                String fromName = fromUser != null ? UserObject.getUserName(fromUser) : (fromChat != null ? fromChat.title : null);
+                String fromUsername = fromUser != null ? fromUser.username : (fromChat != null ? fromChat.username : null);
+
+                StringBuilder fromDisplay = new StringBuilder();
+                if (fromName != null) {
+                    fromDisplay.append(fromName);
+                }
+                if (!TextUtils.isEmpty(fromUsername)) {
+                    if (fromDisplay.length() > 0) {
+                        fromDisplay.append(" @").append(fromUsername);
+                    } else {
+                        fromDisplay.append('@').append(fromUsername);
+                    }
+                }
+                if (fromDisplay.length() > 0) {
+                    fromDisplay.append(" (").append(fromId).append(')');
+                } else {
+                    fromDisplay.append(fromId);
+                }
+
+                ArrayList<String> rowLabels = new ArrayList<>();
+                ArrayList<String> rowValues = new ArrayList<>();
+                if (!TextUtils.isEmpty(msg.message)) {
+                    rowLabels.add(LocaleController.getString(R.string.Message));
+                    rowValues.add(msg.message);
+                }
+                rowLabels.add("Id");
+                rowValues.add(String.valueOf(msg.id));
+                rowLabels.add("Chat Id");
+                rowValues.add(String.valueOf(peerId));
+                rowLabels.add(LocaleController.getString(R.string.From));
+                rowValues.add(fromDisplay.toString());
+                if (!TextUtils.isEmpty(msg.post_author)) {
+                    rowLabels.add("Author");
+                    rowValues.add(msg.post_author);
+                }
+                rowLabels.add("Date");
+                rowValues.add(LocaleController.getInstance().getFormatterStats().format((long) msg.date * 1000));
                 if (msg.edit_date != 0) {
-                    info.append("Edited: ").append(LocaleController.getInstance().getFormatterStats().format((long) msg.edit_date * 1000)).append('\n');
+                    rowLabels.add("Edited");
+                    rowValues.add(LocaleController.getInstance().getFormatterStats().format((long) msg.edit_date * 1000));
                 }
                 if (msg.views != 0) {
-                    info.append("Views: ").append(msg.views).append('\n');
+                    rowLabels.add("Views");
+                    rowValues.add(String.valueOf(msg.views));
                 }
                 if (msg.forwards != 0) {
-                    info.append("Forwards: ").append(msg.forwards).append('\n');
+                    rowLabels.add("Forwards");
+                    rowValues.add(String.valueOf(msg.forwards));
                 }
                 if (msg.grouped_id != 0) {
-                    info.append("Group ID: ").append(msg.grouped_id).append('\n');
+                    rowLabels.add("Group Id");
+                    rowValues.add(String.valueOf(msg.grouped_id));
                 }
                 if (msg.reply_to != null && msg.reply_to.reply_to_msg_id != 0) {
-                    info.append("Reply to: ").append(msg.reply_to.reply_to_msg_id).append('\n');
+                    rowLabels.add("Reply to");
+                    rowValues.add(String.valueOf(msg.reply_to.reply_to_msg_id));
                 }
-                info.append("Media type: ").append(msg.media != null ? msg.media.getClass().getSimpleName() : "none").append('\n');
-                info.append("Out: ").append(msg.out).append('\n');
-                info.append("Silent: ").append(msg.silent);
+                rowLabels.add("Media type");
+                rowValues.add(msg.media != null ? msg.media.getClass().getSimpleName() : "none");
 
-                final String infoText = info.toString();
-                final long fFromId = fromId, fPeerId = peerId;
+                final long fFromId = fromId;
+                final long fPeerId = peerId;
+                final String fFromName = fromName;
+                final String fFromUsername = fromUsername;
+
+                String[] items = new String[rowLabels.size() + 1];
+                for (int i = 0; i < rowLabels.size(); i++) {
+                    items[i] = rowLabels.get(i) + ": " + rowValues.get(i);
+                }
+                items[rowLabels.size()] = "Copy as JSON";
+
                 AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
                 builder.setTitle("Message Info");
-                builder.setMessage(infoText);
-                builder.setPositiveButton("Copy as JSON", (dialog, which) -> {
-                    JSONObject json = new JSONObject();
-                    try {
-                        json.put("id", msg.id);
-                        json.put("chat_id", fPeerId);
-                        json.put("from_id", fFromId);
-                        json.put("date", msg.date);
-                        json.put("edit_date", msg.edit_date);
-                        json.put("views", msg.views);
-                        json.put("forwards", msg.forwards);
-                        json.put("grouped_id", msg.grouped_id);
-                        json.put("reply_to_msg_id", msg.reply_to != null ? msg.reply_to.reply_to_msg_id : 0);
-                        json.put("message", msg.message != null ? msg.message : "");
-                        json.put("media_type", msg.media != null ? msg.media.getClass().getSimpleName() : null);
-                        json.put("out", msg.out);
-                        json.put("silent", msg.silent);
-                        json.put("noforwards", msg.noforwards);
-                        AndroidUtilities.addToClipboard(json.toString(2));
-                        createUndoView();
-                        if (undoView != null) {
-                            undoView.showWithAction(0, UndoView.ACTION_MESSAGE_COPIED, null);
+                builder.setItems(items, (dialog, which) -> {
+                    if (which == rowLabels.size()) {
+                        JSONObject json = new JSONObject();
+                        try {
+                            json.put("id", msg.id);
+                            json.put("chat_id", fPeerId);
+                            json.put("from_id", fFromId);
+                            json.put("from_name", fFromName != null ? fFromName : "");
+                            json.put("from_username", fFromUsername != null ? fFromUsername : "");
+                            json.put("date", msg.date);
+                            json.put("edit_date", msg.edit_date);
+                            json.put("views", msg.views);
+                            json.put("forwards", msg.forwards);
+                            json.put("grouped_id", msg.grouped_id);
+                            json.put("reply_to_msg_id", msg.reply_to != null ? msg.reply_to.reply_to_msg_id : 0);
+                            json.put("message", msg.message != null ? msg.message : "");
+                            json.put("media_type", msg.media != null ? msg.media.getClass().getSimpleName() : null);
+                            json.put("out", msg.out);
+                            json.put("silent", msg.silent);
+                            json.put("noforwards", msg.noforwards);
+                            AndroidUtilities.addToClipboard(json.toString(2));
+                            createUndoView();
+                            if (undoView != null) {
+                                undoView.showWithAction(0, UndoView.ACTION_MESSAGE_COPIED, null);
+                            }
+                        } catch (Exception e) {
+                            FileLog.e(e);
                         }
-                    } catch (Exception e) {
-                        FileLog.e(e);
+                        return;
                     }
-                });
-                builder.setNeutralButton("Copy Text", (dialog, which) -> {
-                    AndroidUtilities.addToClipboard(infoText);
+                    String label = rowLabels.get(which);
+                    if (label.equals(LocaleController.getString(R.string.From))) {
+                        ArrayList<String> subLabels = new ArrayList<>();
+                        ArrayList<String> subValues = new ArrayList<>();
+                        if (!TextUtils.isEmpty(fFromName)) {
+                            subLabels.add("Name");
+                            subValues.add(fFromName);
+                        }
+                        if (!TextUtils.isEmpty(fFromUsername)) {
+                            subLabels.add("Username");
+                            subValues.add("@" + fFromUsername);
+                        }
+                        subLabels.add("Id");
+                        subValues.add(String.valueOf(fFromId));
+
+                        String[] subItems = new String[subLabels.size()];
+                        for (int i = 0; i < subLabels.size(); i++) {
+                            subItems[i] = subLabels.get(i) + ": " + subValues.get(i);
+                        }
+                        AlertDialog.Builder subBuilder = new AlertDialog.Builder(getParentActivity());
+                        subBuilder.setTitle(LocaleController.getString(R.string.From));
+                        subBuilder.setItems(subItems, (subDialog, subWhich) -> {
+                            AndroidUtilities.addToClipboard(subValues.get(subWhich));
+                            createUndoView();
+                            if (undoView != null) {
+                                undoView.showWithAction(0, UndoView.ACTION_MESSAGE_COPIED, null);
+                            }
+                        });
+                        showDialog(subBuilder.create());
+                        return;
+                    }
+                    AndroidUtilities.addToClipboard(rowValues.get(which));
                     createUndoView();
                     if (undoView != null) {
                         undoView.showWithAction(0, UndoView.ACTION_MESSAGE_COPIED, null);
@@ -33657,6 +33736,73 @@ public class ChatActivity extends BaseFragment implements
                     getParentActivity().startActivityForResult(Intent.createChooser(intent, LocaleController.getString(R.string.ShareFile)), 500);
                 } catch (Throwable ignore) {
 
+                }
+                break;
+            }
+            case OPTION_COPY_IMAGE: {
+                if (getParentActivity() == null) {
+                    return;
+                }
+                try {
+                    String path = selectedObject.messageOwner.attachPath;
+                    File f = null;
+                    if (path != null && path.length() > 0 && new File(path).exists()) {
+                        f = new File(path);
+                    } else {
+                        File loaded = getFileLoader().getPathToMessage(selectedObject.messageOwner);
+                        if (loaded != null && loaded.exists()) {
+                            f = loaded;
+                        }
+                    }
+                    if (f == null) {
+                        break;
+                    }
+                    Uri uri = FileProvider.getUriForFile(getParentActivity(), ApplicationLoader.getApplicationId() + ".provider", f);
+                    getParentActivity().grantUriPermission(getParentActivity().getPackageName(), uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    ClipData clip = ClipData.newUri(getParentActivity().getContentResolver(), "image", uri);
+                    android.content.ClipboardManager clipboardManager = (android.content.ClipboardManager) getParentActivity().getSystemService(Context.CLIPBOARD_SERVICE);
+                    if (clipboardManager != null) {
+                        clipboardManager.setPrimaryClip(clip);
+                        createUndoView();
+                        if (undoView != null) {
+                            undoView.showWithAction(0, UndoView.ACTION_MESSAGE_COPIED, null);
+                        }
+                    }
+                } catch (Exception e) {
+                    FileLog.e(e);
+                }
+                break;
+            }
+            case OPTION_COPY_VIDEO_THUMB: {
+                if (getParentActivity() == null) {
+                    return;
+                }
+                try {
+                    TLRPC.Document document = selectedObject.getDocument();
+                    if (document == null || document.thumbs.isEmpty()) {
+                        break;
+                    }
+                    TLRPC.PhotoSize thumb = FileLoader.getClosestPhotoSizeWithSize(document.thumbs, 320);
+                    if (thumb == null) {
+                        break;
+                    }
+                    File f = getFileLoader().getPathToAttach(thumb, true);
+                    if (f == null || !f.exists()) {
+                        break;
+                    }
+                    Uri uri = FileProvider.getUriForFile(getParentActivity(), ApplicationLoader.getApplicationId() + ".provider", f);
+                    getParentActivity().grantUriPermission(getParentActivity().getPackageName(), uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    ClipData clip = ClipData.newUri(getParentActivity().getContentResolver(), "image", uri);
+                    android.content.ClipboardManager clipboardManager = (android.content.ClipboardManager) getParentActivity().getSystemService(Context.CLIPBOARD_SERVICE);
+                    if (clipboardManager != null) {
+                        clipboardManager.setPrimaryClip(clip);
+                        createUndoView();
+                        if (undoView != null) {
+                            undoView.showWithAction(0, UndoView.ACTION_MESSAGE_COPIED, null);
+                        }
+                    }
+                } catch (Exception e) {
+                    FileLog.e(e);
                 }
                 break;
             }
@@ -46183,6 +46329,11 @@ public class ChatActivity extends BaseFragment implements
                                 items.add(LocaleController.getString(R.string.SaveToGallery));
                                 options.add(OPTION_SAVE_TO_GALLERY);
                                 icons.add(R.drawable.msg_gallery);
+                                if (selectedObject.getDocument() != null && !selectedObject.getDocument().thumbs.isEmpty()) {
+                                    items.add("Copy Thumbnail");
+                                    options.add(OPTION_COPY_VIDEO_THUMB);
+                                    icons.add(R.drawable.msg_copy);
+                                }
                                 items.add(LocaleController.getString(R.string.ShareFile));
                                 options.add(OPTION_SHARE);
                                 icons.add(R.drawable.msg_shareout);
@@ -46243,6 +46394,9 @@ public class ChatActivity extends BaseFragment implements
                         items.add(LocaleController.getString(R.string.SaveToGallery));
                         options.add(OPTION_SAVE_TO_GALLERY2);
                         icons.add(R.drawable.msg_gallery);
+                        items.add("Copy Image");
+                        options.add(OPTION_COPY_IMAGE);
+                        icons.add(R.drawable.msg_copy);
                         items.add(LocaleController.getString(R.string.SaveToDownloads));
                         options.add(OPTION_SAVE_TO_DOWNLOADS_OR_MUSIC);
                         icons.add(R.drawable.msg_download);

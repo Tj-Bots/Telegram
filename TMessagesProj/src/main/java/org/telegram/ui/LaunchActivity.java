@@ -67,6 +67,8 @@ import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
+import android.widget.TextView;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 import android.window.BackEvent;
@@ -310,6 +312,9 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
     private FireworksOverlay fireworksOverlay;
     private BottomSheetTabsOverlay bottomSheetTabsOverlay;
     public DrawerLayoutContainer drawerLayoutContainer;
+    private TextView sideMenuNameView;
+    private TextView sideMenuPhoneView;
+    private TextView sideMenuChatsCountView;
     private PasscodeViewDialog passcodeDialog;
     private List<PasscodeView> overlayPasscodeViews = new ArrayList<>();
     private TermsOfServiceView termsOfServiceView;
@@ -505,6 +510,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         });
         drawerLayoutContainer.setClipChildren(false);
         drawerLayoutContainer.setClipToPadding(false);
+        createSideMenu();
 
         frameLayout.addView(drawerLayoutContainer, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
 
@@ -8294,7 +8300,130 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
     }
 
     @Override
+    private void createSideMenu() {
+        LinearLayout sideMenu = new LinearLayout(this);
+        sideMenu.setOrientation(LinearLayout.VERTICAL);
+        sideMenu.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+
+        FrameLayout header = new FrameLayout(this);
+        header.setBackgroundColor(Theme.getColor(Theme.key_avatar_backgroundActionBarBlue));
+        header.setOnClickListener(v -> {
+            drawerLayoutContainer.closeDrawer(false);
+            Bundle args = new Bundle();
+            args.putLong("user_id", UserConfig.getInstance(currentAccount).getClientUserId());
+            args.putBoolean("my_profile", true);
+            presentFragment(new ProfileActivity(args, null));
+        });
+        sideMenu.addView(header, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 140));
+
+        sideMenuNameView = new TextView(this);
+        sideMenuNameView.setTextColor(0xFFFFFFFF);
+        sideMenuNameView.setTextSize(18);
+        sideMenuNameView.setTypeface(AndroidUtilities.bold());
+        sideMenuNameView.setSingleLine(true);
+        sideMenuNameView.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        header.addView(sideMenuNameView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.BOTTOM | Gravity.LEFT, 16, 0, 16, 46));
+
+        sideMenuPhoneView = new TextView(this);
+        sideMenuPhoneView.setTextColor(0xB3FFFFFF);
+        sideMenuPhoneView.setTextSize(14);
+        sideMenuPhoneView.setSingleLine(true);
+        header.addView(sideMenuPhoneView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.BOTTOM | Gravity.LEFT, 16, 0, 16, 24));
+
+        sideMenuChatsCountView = new TextView(this);
+        sideMenuChatsCountView.setTextColor(0xB3FFFFFF);
+        sideMenuChatsCountView.setTextSize(14);
+        sideMenuChatsCountView.setSingleLine(true);
+        header.addView(sideMenuChatsCountView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.BOTTOM | Gravity.LEFT, 16, 0, 16, 4));
+
+        ScrollView scrollView = new ScrollView(this);
+        LinearLayout itemsLayout = new LinearLayout(this);
+        itemsLayout.setOrientation(LinearLayout.VERTICAL);
+        scrollView.addView(itemsLayout, LayoutHelper.createScroll(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP));
+        sideMenu.addView(scrollView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 0, 1f));
+
+        addSideMenuItem(itemsLayout, R.drawable.msg_groups, LocaleController.getString(R.string.NewGroup), () -> {
+            drawerLayoutContainer.closeDrawer(false);
+            presentFragment(new GroupCreateActivity(new Bundle()));
+        });
+        addSideMenuItem(itemsLayout, R.drawable.msg_channel, LocaleController.getString(R.string.NewChannel), () -> {
+            drawerLayoutContainer.closeDrawer(false);
+            presentFragment(new ChannelCreateActivity(new Bundle()));
+        });
+        addSideMenuItem(itemsLayout, R.drawable.msg_contacts, LocaleController.getString(R.string.Contacts), () -> {
+            drawerLayoutContainer.closeDrawer(false);
+            Bundle args = new Bundle();
+            args.putBoolean("destroyAfterSelect", true);
+            presentFragment(new ContactsActivity(args));
+        });
+        addSideMenuItem(itemsLayout, R.drawable.msg_saved, LocaleController.getString(R.string.SavedMessages), () -> {
+            drawerLayoutContainer.closeDrawer(false);
+            Bundle args = new Bundle();
+            args.putLong("user_id", UserConfig.getInstance(currentAccount).getClientUserId());
+            presentFragment(new ChatActivity(args));
+        });
+        addSideMenuItem(itemsLayout, R.drawable.msg_invite, LocaleController.getString(R.string.InviteFriends), () -> {
+            drawerLayoutContainer.closeDrawer(false);
+            presentFragment(new InviteContactsActivity());
+        });
+        addSideMenuItem(itemsLayout, R.drawable.msg_settings_old, LocaleController.getString(R.string.Settings), () -> {
+            drawerLayoutContainer.closeDrawer(false);
+            presentFragment(new SettingsActivity());
+        });
+
+        drawerLayoutContainer.setDrawerLayout(sideMenu);
+    }
+
+    private void addSideMenuItem(LinearLayout container, int iconRes, String text, Runnable action) {
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setPadding(AndroidUtilities.dp(16), 0, AndroidUtilities.dp(16), 0);
+        row.setBackground(Theme.getSelectorDrawable(false));
+        row.setClickable(true);
+        row.setFocusable(true);
+        row.setOnClickListener(v -> action.run());
+
+        ImageView icon = new ImageView(this);
+        try {
+            icon.setImageResource(iconRes);
+        } catch (Exception ignored) {
+        }
+        icon.setColorFilter(Theme.getColor(Theme.key_windowBackgroundWhiteGrayIcon));
+        row.addView(icon, LayoutHelper.createLinear(24, 24, Gravity.CENTER_VERTICAL, 0, 0, 32, 0));
+
+        TextView textView = new TextView(this);
+        textView.setText(text);
+        textView.setTextSize(15);
+        textView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
+        row.addView(textView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT));
+
+        container.addView(row, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 50));
+    }
+
+    public void openSideMenu() {
+        if (drawerLayoutContainer == null) {
+            return;
+        }
+        TLRPC.User currentUser = UserConfig.getInstance(currentAccount).getCurrentUser();
+        if (sideMenuNameView != null) {
+            sideMenuNameView.setText(currentUser != null ? UserObject.getUserName(currentUser) : "");
+        }
+        if (sideMenuPhoneView != null) {
+            sideMenuPhoneView.setText(currentUser != null && currentUser.phone != null ? PhoneFormat.getInstance().format("+" + currentUser.phone) : "");
+        }
+        if (sideMenuChatsCountView != null) {
+            int count = MessagesController.getInstance(currentAccount).getTotalDialogsCount();
+            sideMenuChatsCountView.setText(LocaleController.formatPluralString("Chats", count));
+        }
+        drawerLayoutContainer.openDrawer(true);
+    }
+
     public void onBackPressed() {
+        if (drawerLayoutContainer != null && drawerLayoutContainer.isDrawerOpened()) {
+            drawerLayoutContainer.closeDrawer(false);
+            return;
+        }
         if (!onBackPressed(true)) {
             return;
         }

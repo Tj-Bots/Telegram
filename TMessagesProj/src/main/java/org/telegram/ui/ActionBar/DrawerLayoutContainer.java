@@ -8,6 +8,8 @@
 
 package org.telegram.ui.ActionBar;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
@@ -49,6 +51,71 @@ public class DrawerLayoutContainer extends FrameLayout {
 
     public boolean isDrawCurrentPreviewFragmentAbove() {
         return false;
+    }
+
+    private View drawerContentView;
+    private View drawerScrimView;
+    private boolean drawerOpened;
+    private static final int DRAWER_WIDTH_DP = 280;
+
+    public void setDrawerLayout(View view) {
+        if (drawerContentView == view) {
+            return;
+        }
+        if (drawerContentView != null && drawerContentView.getParent() == this) {
+            removeView(drawerContentView);
+        }
+        drawerContentView = view;
+        if (drawerScrimView == null) {
+            drawerScrimView = new View(getContext());
+            drawerScrimView.setBackgroundColor(0x99000000);
+            drawerScrimView.setVisibility(GONE);
+            drawerScrimView.setOnClickListener(v -> closeDrawer(true));
+            addView(drawerScrimView, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+        }
+        drawerContentView.setVisibility(GONE);
+        drawerContentView.setTranslationX(-AndroidUtilities.dp(DRAWER_WIDTH_DP));
+        addView(drawerContentView, new LayoutParams(AndroidUtilities.dp(DRAWER_WIDTH_DP), LayoutParams.MATCH_PARENT));
+        drawerContentView.bringToFront();
+    }
+
+    public boolean isDrawerOpened() {
+        return drawerOpened;
+    }
+
+    public void openDrawer(boolean fast) {
+        if (drawerContentView == null || drawerOpened) {
+            return;
+        }
+        drawerOpened = true;
+        drawerScrimView.bringToFront();
+        drawerContentView.bringToFront();
+        drawerScrimView.setAlpha(0f);
+        drawerScrimView.setVisibility(VISIBLE);
+        drawerScrimView.animate().alpha(1f).setDuration(fast ? 150 : 250).start();
+        drawerContentView.setVisibility(VISIBLE);
+        drawerContentView.animate().translationX(0).setDuration(fast ? 150 : 250).start();
+    }
+
+    public void closeDrawer(boolean fast) {
+        if (drawerContentView == null || !drawerOpened) {
+            return;
+        }
+        drawerOpened = false;
+        final View scrim = drawerScrimView;
+        scrim.animate().alpha(0f).setDuration(fast ? 150 : 250).setListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                scrim.setVisibility(GONE);
+            }
+        }).start();
+        final View content = drawerContentView;
+        content.animate().translationX(-AndroidUtilities.dp(DRAWER_WIDTH_DP)).setDuration(fast ? 150 : 250).setListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                content.setVisibility(GONE);
+            }
+        }).start();
     }
 
     public boolean onTouchEvent(MotionEvent ev) {
@@ -119,7 +186,12 @@ public class DrawerLayoutContainer extends FrameLayout {
 
             final LayoutParams lp = (LayoutParams) child.getLayoutParams();
 
-            final int contentWidthSpec = MeasureSpec.makeMeasureSpec(widthSize - lp.leftMargin - lp.rightMargin, MeasureSpec.EXACTLY);
+            final int contentWidthSpec;
+            if (lp.width > 0) {
+                contentWidthSpec = MeasureSpec.makeMeasureSpec(lp.width, MeasureSpec.EXACTLY);
+            } else {
+                contentWidthSpec = MeasureSpec.makeMeasureSpec(widthSize - lp.leftMargin - lp.rightMargin, MeasureSpec.EXACTLY);
+            }
             final int contentHeightSpec;
             if (lp.height > 0) {
                 contentHeightSpec = MeasureSpec.makeMeasureSpec(lp.height, MeasureSpec.EXACTLY);

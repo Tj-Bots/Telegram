@@ -3902,6 +3902,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                         }
                     } else if (onlySelect || folderId != 0 || communityId != 0) {
                         finishFragment();
+                    } else if (getParentActivity() instanceof LaunchActivity) {
+                        ((LaunchActivity) getParentActivity()).openSideMenu();
                     }
                 } else if (id == 1) {
                     if (getParentActivity() == null) {
