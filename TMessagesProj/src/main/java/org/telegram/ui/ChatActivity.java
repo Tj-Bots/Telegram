@@ -1641,6 +1641,7 @@ public class ChatActivity extends BaseFragment implements
     private final static int star = 22;
     private final static int jump_to_first_message = 1001;
     private final static int select_range = 1002;
+    private final static int forward_no_tag = 1003;
     private final static int edit = 23;
     private final static int add_shortcut = 24;
     private final static int save_to = 25;
@@ -3781,7 +3782,9 @@ public class ChatActivity extends BaseFragment implements
                         updateVisibleRows();
                     }
                 } else if (id == forward) {
-                    openForward(true);
+                    openForward(true, false);
+                } else if (id == forward_no_tag) {
+                    openForward(true, true);
                 } else if (id == share) {
                     share();
                 } else if (id == open_direct) {
@@ -8119,7 +8122,7 @@ public class ChatActivity extends BaseFragment implements
         }
 
         actionsButtonsLayout = new ChatActivityActionsButtonsLayout(context, resourceProvider, blurredBackgroundColorProvider, glassBackgroundDrawableFactory);
-        actionsButtonsLayout.setForwardButtonOnClickListener(v -> openForward(false));
+        actionsButtonsLayout.setForwardButtonOnClickListener(v -> openForward(false, false));
         actionsButtonsLayout.setReplyButtonOnClickListener(v -> {
             MessageObject messageObject = null;
             for (int a = 1; a >= 0; a--) {
@@ -10348,6 +10351,7 @@ public class ChatActivity extends BaseFragment implements
             actionModeViews.add(actionMode.addItemWithWidth(select_range, R.drawable.msg_select, dp(48), "Select range"));
             if (!isSavedMessages && getDialogId() != UserObject.VERIFY) {
                 actionModeViews.add(actionMode.addItemWithWidth(forward, R.drawable.msg_forward, dp(48), LocaleController.getString(R.string.Forward)));
+                actionModeViews.add(actionMode.addItemWithWidth(forward_no_tag, R.drawable.msg_forward, dp(48), LocaleController.getString(R.string.ForwardWithoutTag)));
             }
             actionModeViews.add(actionMode.addItemWithWidth(share, R.drawable.msg_shareout, dp(48), LocaleController.getString(R.string.ShareFile)));
             actionModeViews.add(actionMode.addItemWithWidth(delete, R.drawable.msg_delete, dp(48), LocaleController.getString(R.string.Delete)));
@@ -12252,7 +12256,7 @@ public class ChatActivity extends BaseFragment implements
         updateSelectedMessageReactions();
     }
 
-    private void openForward(boolean fromActionBar) {
+    private void openForward(boolean fromActionBar, boolean asCopy) {
         if (isPeerNoForwards() || hasSelectedNoforwardsMessage()) {
             // We should update text if user changed locale without re-opening chat activity
             String str;
@@ -12332,6 +12336,9 @@ public class ChatActivity extends BaseFragment implements
         args.putBoolean("canSelectTopics", true);
         DialogsActivity fragment = new DialogsActivity(args);
         fragment.setDelegate(ChatActivity.this);
+        if (asCopy) {
+            forwardingMessageAsCopy = true;
+        }
         presentFragment(fragment);
     }
 
@@ -19195,9 +19202,11 @@ public class ChatActivity extends BaseFragment implements
                 ActionBarMenuItem starItem = actionBar.createActionMode().getItem(star);
                 ActionBarMenuItem editItem = actionBar.createActionMode().getItem(edit);
                 ActionBarMenuItem forwardItem = actionBar.createActionMode().getItem(forward);
+                ActionBarMenuItem forwardNoTagItem = actionBar.createActionMode().getItem(forward_no_tag);
                 ActionBarMenuItem deleteItem = actionBar.createActionMode().getItem(delete);
                 ActionBarMenuItem tagItem = actionBar.createActionMode().getItem(tag_message);
                 ActionBarMenuItem shareItem = actionBar.createActionMode().getItem(share);
+                ActionBarMenuItem selectRangeItem = actionBar.createActionMode().getItem(select_range);
 
                 boolean noforwards = isPeerNoForwards() || hasSelectedNoforwardsMessage();
                 if (prevCantForwardCount == 0 && cantForwardMessagesCount != 0 || prevCantForwardCount != 0 && cantForwardMessagesCount == 0) {
@@ -19344,6 +19353,23 @@ public class ChatActivity extends BaseFragment implements
                         }
                     }
                     shareItem.setVisibility(show ? View.VISIBLE : View.GONE);
+                }
+
+                if (forwardNoTagItem != null) {
+                    forwardNoTagItem.setEnabled(cantForwardMessagesCount == 0 || noforwards);
+                    forwardNoTagItem.setAlpha(cantForwardMessagesCount == 0 ? 1.0f : 0.5f);
+                }
+
+                if (selectRangeItem != null) {
+                    int minId = Integer.MAX_VALUE, maxId = Integer.MIN_VALUE;
+                    int rangeSelectedCount = selectedMessagesIds[0].size();
+                    for (int b = 0; b < rangeSelectedCount; b++) {
+                        int mid = selectedMessagesIds[0].keyAt(b);
+                        minId = Math.min(minId, mid);
+                        maxId = Math.max(maxId, mid);
+                    }
+                    boolean hasGapToFill = rangeSelectedCount >= 2 && (maxId - minId + 1) > rangeSelectedCount;
+                    selectRangeItem.setVisibility(hasGapToFill ? View.VISIBLE : View.GONE);
                 }
 
                 if (tagItem != null) {
@@ -34409,7 +34435,7 @@ public class ChatActivity extends BaseFragment implements
         return null;
     }
 
-    private void sendSingleMessageAsCopy(MessageObject msg, TLRPC.InputPeer peer) {
+    private void sendSingleMessageAsCopy(MessageObject msg, TLRPC.InputPeer peer, boolean notify, int scheduleDate) {
         TLRPC.InputMedia media = getInputMediaForCopy(msg);
         String text = msg.messageOwner.message != null ? msg.messageOwner.message : "";
         ArrayList<TLRPC.MessageEntity> entities = msg.messageOwner.entities;
@@ -34421,9 +34447,14 @@ public class ChatActivity extends BaseFragment implements
             req.media = media;
             req.message = text;
             req.random_id = randomId;
+            req.silent = !notify;
             if (entities != null && !entities.isEmpty()) {
                 req.entities = entities;
                 req.flags |= 8;
+            }
+            if (scheduleDate != 0) {
+                req.schedule_date = scheduleDate;
+                req.flags |= 1024;
             }
             request = req;
         } else {
@@ -34431,18 +34462,28 @@ public class ChatActivity extends BaseFragment implements
             req.peer = peer;
             req.message = text;
             req.random_id = randomId;
+            req.silent = !notify;
             if (entities != null && !entities.isEmpty()) {
                 req.entities = entities;
                 req.flags |= 8;
+            }
+            if (scheduleDate != 0) {
+                req.schedule_date = scheduleDate;
+                req.flags |= 1024;
             }
             request = req;
         }
         getConnectionsManager().sendRequest(request, null);
     }
 
-    private void sendAlbumAsCopy(ArrayList<MessageObject> group, TLRPC.InputPeer peer) {
+    private void sendAlbumAsCopy(ArrayList<MessageObject> group, TLRPC.InputPeer peer, boolean notify, int scheduleDate) {
         TLRPC.TL_messages_sendMultiMedia req = new TLRPC.TL_messages_sendMultiMedia();
         req.peer = peer;
+        req.silent = !notify;
+        if (scheduleDate != 0) {
+            req.schedule_date = scheduleDate;
+            req.flags |= 1024;
+        }
         for (MessageObject msg : group) {
             TLRPC.InputMedia media = getInputMediaForCopy(msg);
             if (media == null) {
@@ -34465,7 +34506,7 @@ public class ChatActivity extends BaseFragment implements
         getConnectionsManager().sendRequest(req, null);
     }
 
-    private void sendMessagesAsCopy(ArrayList<MessageObject> fmessages, long did) {
+    private void sendMessagesAsCopy(ArrayList<MessageObject> fmessages, long did, boolean notify, int scheduleDate) {
         TLRPC.InputPeer peer = getMessagesController().getInputPeer(did);
         if (peer == null) {
             return;
@@ -34482,11 +34523,11 @@ public class ChatActivity extends BaseFragment implements
                 }
                 list.add(msg);
             } else {
-                sendSingleMessageAsCopy(msg, peer);
+                sendSingleMessageAsCopy(msg, peer, notify, scheduleDate);
             }
         }
         for (ArrayList<MessageObject> group : albums.values()) {
-            sendAlbumAsCopy(group, peer);
+            sendAlbumAsCopy(group, peer, notify, scheduleDate);
         }
     }
 
@@ -34527,7 +34568,12 @@ public class ChatActivity extends BaseFragment implements
             messagePreviewParams = null;
             hideFieldPanel(false);
             for (int a = 0; a < dids.size(); a++) {
-                sendMessagesAsCopy(fmessages, dids.get(a).dialogId);
+                final long did = dids.get(a).dialogId;
+                sendMessagesAsCopy(fmessages, did, notify, scheduleDate);
+                if (message != null) {
+                    final SendMessagesHelper.SendMessageParams params = SendMessagesHelper.SendMessageParams.of(message.toString(), did, null, null, null, true, null, null, null, notify, scheduleDate, scheduleRepeatPeriod, null, false);
+                    getSendMessagesHelper().sendMessage(params);
+                }
             }
             fragment.finishFragment();
             if (dids.size() == 1) {
