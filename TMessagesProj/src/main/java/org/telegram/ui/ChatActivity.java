@@ -133,6 +133,7 @@ import androidx.viewpager.widget.ViewPager;
 import com.google.android.exoplayer2.ui.AspectRatioFrameLayout;
 import com.google.zxing.common.detector.MathUtils;
 
+import org.json.JSONObject;
 import org.telegram.PhoneFormat.PhoneFormat;
 import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.AndroidUtilities;
@@ -1250,6 +1251,7 @@ public class ChatActivity extends BaseFragment implements
 
     public final static int OPTION_VIEW_STATISTICS = 115;
     public final static int OPTION_WELCOME_REVERT = 116;
+    public final static int OPTION_MESSAGE_INFO = 1004;
 
     private final static int[] allowedNotificationsDuringChatListAnimations = new int[]{
             NotificationCenter.messagesRead,
@@ -33390,6 +33392,79 @@ public class ChatActivity extends BaseFragment implements
                 processSelectedOption(OPTION_FORWARD);
                 return;
             }
+            case OPTION_MESSAGE_INFO: {
+                if (getParentActivity() == null || selectedObject == null || selectedObject.messageOwner == null) {
+                    return;
+                }
+                TLRPC.Message msg = selectedObject.messageOwner;
+                long fromId = msg.from_id != null ? MessageObject.getPeerId(msg.from_id) : 0;
+                long peerId = msg.peer_id != null ? MessageObject.getPeerId(msg.peer_id) : 0;
+                StringBuilder info = new StringBuilder();
+                info.append("Message ID: ").append(msg.id).append('\n');
+                info.append("Chat ID: ").append(peerId).append('\n');
+                info.append("From ID: ").append(fromId).append('\n');
+                info.append("Date: ").append(LocaleController.getInstance().getFormatterStats().format((long) msg.date * 1000)).append('\n');
+                if (msg.edit_date != 0) {
+                    info.append("Edited: ").append(LocaleController.getInstance().getFormatterStats().format((long) msg.edit_date * 1000)).append('\n');
+                }
+                if (msg.views != 0) {
+                    info.append("Views: ").append(msg.views).append('\n');
+                }
+                if (msg.forwards != 0) {
+                    info.append("Forwards: ").append(msg.forwards).append('\n');
+                }
+                if (msg.grouped_id != 0) {
+                    info.append("Group ID: ").append(msg.grouped_id).append('\n');
+                }
+                if (msg.reply_to != null && msg.reply_to.reply_to_msg_id != 0) {
+                    info.append("Reply to: ").append(msg.reply_to.reply_to_msg_id).append('\n');
+                }
+                info.append("Media type: ").append(msg.media != null ? msg.media.getClass().getSimpleName() : "none").append('\n');
+                info.append("Out: ").append(msg.out).append('\n');
+                info.append("Silent: ").append(msg.silent);
+
+                final String infoText = info.toString();
+                final long fFromId = fromId, fPeerId = peerId;
+                AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
+                builder.setTitle("Message Info");
+                builder.setMessage(infoText);
+                builder.setPositiveButton("Copy as JSON", (dialog, which) -> {
+                    JSONObject json = new JSONObject();
+                    try {
+                        json.put("id", msg.id);
+                        json.put("chat_id", fPeerId);
+                        json.put("from_id", fFromId);
+                        json.put("date", msg.date);
+                        json.put("edit_date", msg.edit_date);
+                        json.put("views", msg.views);
+                        json.put("forwards", msg.forwards);
+                        json.put("grouped_id", msg.grouped_id);
+                        json.put("reply_to_msg_id", msg.reply_to != null ? msg.reply_to.reply_to_msg_id : 0);
+                        json.put("message", msg.message != null ? msg.message : "");
+                        json.put("media_type", msg.media != null ? msg.media.getClass().getSimpleName() : null);
+                        json.put("out", msg.out);
+                        json.put("silent", msg.silent);
+                        json.put("noforwards", msg.noforwards);
+                        AndroidUtilities.addToClipboard(json.toString(2));
+                        createUndoView();
+                        if (undoView != null) {
+                            undoView.showWithAction(0, UndoView.ACTION_MESSAGE_COPIED, null);
+                        }
+                    } catch (Exception e) {
+                        FileLog.e(e);
+                    }
+                });
+                builder.setNeutralButton("Copy Text", (dialog, which) -> {
+                    AndroidUtilities.addToClipboard(infoText);
+                    createUndoView();
+                    if (undoView != null) {
+                        undoView.showWithAction(0, UndoView.ACTION_MESSAGE_COPIED, null);
+                    }
+                });
+                builder.setNegativeButton(LocaleController.getString(R.string.Close), null);
+                showDialog(builder.create());
+                break;
+            }
             case OPTION_FORWARD: {
                 if (getMessagesController().isFrozen()) {
                     AccountFrozenAlert.show(currentAccount);
@@ -46377,6 +46452,11 @@ public class ChatActivity extends BaseFragment implements
                     items.add(LocaleController.getString(R.string.ForwardWithoutTag));
                     options.add(OPTION_FORWARD_NO_TAG);
                     icons.add(R.drawable.msg_forward);
+                }
+                if (selectedObject != null && selectedObject.getId() > 0) {
+                    items.add("Message Info");
+                    options.add(OPTION_MESSAGE_INFO);
+                    icons.add(R.drawable.msg_info);
                 }
                 if (allowUnpin) {
                     items.add(LocaleController.getString(R.string.UnpinMessage));

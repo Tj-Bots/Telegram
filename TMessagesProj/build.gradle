@@ -162,6 +162,9 @@ android {
             def customApiHash = getProps("APP_HASH")
             buildConfigField "int", "APP_ID", (customApiId != null && customApiId.toString().length() > 0) ? customApiId.toString() : "4"
             buildConfigField "String", "APP_HASH", "\"" + ((customApiHash != null && customApiHash.toString().length() > 0) ? customApiHash.toString() : "014b35b6184100b085b0d0572f9b5103") + "\""
+
+            def ciRunNumber = System.getenv("GITHUB_RUN_NUMBER")
+            buildConfigField "String", "BUILD_TAG", "\"" + (ciRunNumber != null ? ciRunNumber : "local") + "\""
         }
 
         HA_private {

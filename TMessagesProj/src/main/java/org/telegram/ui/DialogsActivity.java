@@ -102,6 +102,7 @@ import org.telegram.messenger.AnimationNotificationsLocker;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.BirthdayController;
 import org.telegram.messenger.BotWebViewVibrationEffect;
+import org.telegram.messenger.BuildConfig;
 import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.ChatObject;
 import org.telegram.messenger.ContactsController;
@@ -3522,7 +3523,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 logoDrawable = context.getResources().getDrawable(R.drawable.telegram_logo_2).mutate();
                 logoDrawable.setBounds(0, dp(2), logoDrawable.getIntrinsicWidth(), dp(2) + logoDrawable.getIntrinsicHeight());
                 logoDrawable.setColorFilter(getThemedColor(Theme.key_telegram_color_dialogsLogo), PorterDuff.Mode.MULTIPLY);
-                SpannableStringBuilder ssb = new SpannableStringBuilder(getString(R.string.AppName));
+                SpannableStringBuilder ssb = new SpannableStringBuilder(getString(R.string.AppName) + (BuildVars.DEBUG_PRIVATE_VERSION ? " #" + BuildConfig.BUILD_TAG : ""));
                 ssb.setSpan(new ImageSpan(logoDrawable), 0, ssb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                 actionBar.setTitle(ssb, statusDrawable);
                 updateStatus(UserConfig.getInstance(currentAccount).getCurrentUser(), false);
@@ -4017,7 +4018,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 } else if (id == pin || id == read || id == delete || id == clear || id == mute || id == archive || id == block || id == archive2 || id == pin2) {
                     performSelectedDialogsAction(selectedDialogs, id, true, false);
                 } else if (id == select_all) {
-                    ArrayList<TLRPC.Dialog> archiveDialogs = getMessagesController().getDialogs(1);
+                    ArrayList<TLRPC.Dialog> archiveDialogs = getMessagesController().getDialogs(folderId);
                     for (int a = 0; a < archiveDialogs.size(); a++) {
                         long did = archiveDialogs.get(a).id;
                         if (!selectedDialogs.contains(did)) {
@@ -10018,7 +10019,15 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             }
         }
         if (selectAllItem != null) {
-            selectAllItem.setVisibility(folderId == 1 ? View.VISIBLE : View.GONE);
+            ArrayList<TLRPC.Dialog> allDialogsInFolder = getMessagesController().getDialogs(folderId);
+            boolean allSelected = !allDialogsInFolder.isEmpty();
+            for (int a = 0; a < allDialogsInFolder.size(); a++) {
+                if (!selectedDialogs.contains(allDialogsInFolder.get(a).id)) {
+                    allSelected = false;
+                    break;
+                }
+            }
+            selectAllItem.setVisibility(!allDialogsInFolder.isEmpty() && !allSelected ? View.VISIBLE : View.GONE);
         }
     }
 
