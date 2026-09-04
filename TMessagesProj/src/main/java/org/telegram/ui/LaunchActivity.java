@@ -191,6 +191,8 @@ import org.telegram.ui.Components.FolderBottomSheet;
 import org.telegram.ui.Components.Forum.ForumUtilities;
 import org.telegram.ui.Components.GroupCallPip;
 import org.telegram.ui.Components.JoinGroupAlert;
+import org.telegram.ui.Components.AvatarDrawable;
+import org.telegram.ui.Components.BackupImageView;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.PasscodeView;
 import org.telegram.ui.Components.PasscodeViewDialog;
@@ -247,6 +249,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -316,6 +319,9 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
     private TextView sideMenuPhoneView;
     private TextView sideMenuChatsCountView;
     private LinearLayout sideMenuAccountsContainer;
+    private BackupImageView sideMenuAvatarImage;
+    private View sideMenuEmojiStatusRow;
+    private View draggingAccountView;
     private PasscodeViewDialog passcodeDialog;
     private List<PasscodeView> overlayPasscodeViews = new ArrayList<>();
     private TermsOfServiceView termsOfServiceView;
@@ -8309,32 +8315,39 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         header.setBackgroundColor(Theme.getColor(Theme.key_avatar_backgroundActionBarBlue));
         header.setOnClickListener(v -> {
             drawerLayoutContainer.closeDrawer(false);
-            Bundle args = new Bundle();
-            args.putLong("user_id", UserConfig.getInstance(currentAccount).getClientUserId());
-            args.putBoolean("my_profile", true);
-            presentFragment(new ProfileActivity(args, null));
+            openMyProfile();
         });
-        sideMenu.addView(header, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 140));
+        sideMenu.addView(header, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 148));
+
+        sideMenuAvatarImage = new BackupImageView(this);
+        sideMenuAvatarImage.setRoundRadius(AndroidUtilities.dp(32));
+        header.addView(sideMenuAvatarImage, LayoutHelper.createFrame(64, 64, Gravity.TOP | Gravity.LEFT, 16, 16, 0, 0));
 
         sideMenuNameView = new TextView(this);
         sideMenuNameView.setTextColor(0xFFFFFFFF);
-        sideMenuNameView.setTextSize(18);
+        sideMenuNameView.setTextSize(16);
         sideMenuNameView.setTypeface(AndroidUtilities.bold());
         sideMenuNameView.setSingleLine(true);
         sideMenuNameView.setEllipsize(android.text.TextUtils.TruncateAt.END);
-        header.addView(sideMenuNameView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.BOTTOM | Gravity.LEFT, 16, 0, 16, 46));
+        header.addView(sideMenuNameView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.BOTTOM | Gravity.LEFT, 16, 0, 52, 44));
 
         sideMenuPhoneView = new TextView(this);
         sideMenuPhoneView.setTextColor(0xB3FFFFFF);
-        sideMenuPhoneView.setTextSize(14);
+        sideMenuPhoneView.setTextSize(13);
         sideMenuPhoneView.setSingleLine(true);
-        header.addView(sideMenuPhoneView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.BOTTOM | Gravity.LEFT, 16, 0, 16, 24));
+        header.addView(sideMenuPhoneView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.BOTTOM | Gravity.LEFT, 16, 0, 52, 24));
 
         sideMenuChatsCountView = new TextView(this);
         sideMenuChatsCountView.setTextColor(0xB3FFFFFF);
-        sideMenuChatsCountView.setTextSize(14);
+        sideMenuChatsCountView.setTextSize(13);
         sideMenuChatsCountView.setSingleLine(true);
-        header.addView(sideMenuChatsCountView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.BOTTOM | Gravity.LEFT, 16, 0, 16, 4));
+        sideMenuChatsCountView.setBackground(Theme.getSelectorDrawable(false));
+        sideMenuChatsCountView.setPadding(AndroidUtilities.dp(4), AndroidUtilities.dp(2), AndroidUtilities.dp(4), AndroidUtilities.dp(2));
+        sideMenuChatsCountView.setOnClickListener(v -> {
+            drawerLayoutContainer.closeDrawer(false);
+            presentFragment(new ChatCountersActivity());
+        });
+        header.addView(sideMenuChatsCountView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.BOTTOM | Gravity.LEFT, 12, 0, 12, 2));
 
         ScrollView scrollView = new ScrollView(this);
         LinearLayout itemsLayout = new LinearLayout(this);
@@ -8346,6 +8359,28 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         sideMenuAccountsContainer.setOrientation(LinearLayout.VERTICAL);
         itemsLayout.addView(sideMenuAccountsContainer, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
 
+        addSideMenuItem(itemsLayout, R.drawable.msg_openprofile, LocaleController.getString(R.string.TjMyProfile), () -> {
+            drawerLayoutContainer.closeDrawer(false);
+            openMyProfile();
+        });
+        sideMenuEmojiStatusRow = addSideMenuItem(itemsLayout, R.drawable.msg_smile_status, LocaleController.getString(R.string.SetEmojiStatus), () -> {
+            drawerLayoutContainer.closeDrawer(false);
+            openMyProfile();
+            // The status picker anchors to the profile header, so it can only be opened once
+            // that fragment has been laid out.
+            AndroidUtilities.runOnUIThread(() -> {
+                try {
+                    BaseFragment last = actionBarLayout == null ? null : actionBarLayout.getLastFragment();
+                    if (last instanceof ProfileActivity) {
+                        ((ProfileActivity) last).showStatusSelect();
+                    }
+                } catch (Exception e) {
+                    FileLog.e(e);
+                }
+            }, 400);
+        });
+        addSideMenuDivider(itemsLayout);
+
         addSideMenuItem(itemsLayout, R.drawable.msg_groups, LocaleController.getString(R.string.NewGroup), () -> {
             drawerLayoutContainer.closeDrawer(false);
             presentFragment(new GroupCreateActivity(new Bundle()));
@@ -8354,11 +8389,17 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             drawerLayoutContainer.closeDrawer(false);
             presentFragment(new ChannelCreateActivity(new Bundle()));
         });
+        addSideMenuDivider(itemsLayout);
+
         addSideMenuItem(itemsLayout, R.drawable.msg_contacts, LocaleController.getString(R.string.Contacts), () -> {
             drawerLayoutContainer.closeDrawer(false);
             Bundle args = new Bundle();
             args.putBoolean("destroyAfterSelect", true);
             presentFragment(new ContactsActivity(args));
+        });
+        addSideMenuItem(itemsLayout, R.drawable.msg_calls, LocaleController.getString(R.string.Calls), () -> {
+            drawerLayoutContainer.closeDrawer(false);
+            presentFragment(new CallLogActivity());
         });
         addSideMenuItem(itemsLayout, R.drawable.msg_saved, LocaleController.getString(R.string.SavedMessages), () -> {
             drawerLayoutContainer.closeDrawer(false);
@@ -8366,20 +8407,53 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             args.putLong("user_id", UserConfig.getInstance(currentAccount).getClientUserId());
             presentFragment(new ChatActivity(args));
         });
-        addSideMenuItem(itemsLayout, R.drawable.settings_invite, LocaleController.getString(R.string.InviteFriends), () -> {
+        addSideMenuItem(itemsLayout, R.drawable.msg_folders, LocaleController.getString(R.string.Filters), () -> {
             drawerLayoutContainer.closeDrawer(false);
-            presentFragment(new InviteContactsActivity());
+            presentFragment(new FiltersSetupActivity());
         });
+        addSideMenuDivider(itemsLayout);
+
         addSideMenuItem(itemsLayout, R.drawable.msg_settings_old, LocaleController.getString(R.string.Settings), () -> {
             drawerLayoutContainer.closeDrawer(false);
             presentFragment(new SettingsActivity());
         });
-        addSideMenuItem(itemsLayout, R.drawable.msg_settings, "TJ Settings", () -> {
+        addSideMenuItem(itemsLayout, R.drawable.msg_settings, LocaleController.getString(R.string.TjSettings), () -> {
             drawerLayoutContainer.closeDrawer(false);
             presentFragment(new TjSettingsActivity());
         });
 
         drawerLayoutContainer.setDrawerLayout(sideMenu);
+    }
+
+    private void openMyProfile() {
+        Bundle args = new Bundle();
+        args.putLong("user_id", UserConfig.getInstance(currentAccount).getClientUserId());
+        args.putBoolean("my_profile", true);
+        presentFragment(new ProfileActivity(args, null));
+    }
+
+    /**
+     * Accounts, ordered by the user's own saved order (drag to reorder), then by login time
+     * for any account that has not been placed yet.
+     */
+    private ArrayList<Integer> getOrderedAccounts() {
+        ArrayList<Integer> accountNumbers = new ArrayList<>();
+        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
+            if (UserConfig.getInstance(a).isClientActivated()) {
+                accountNumbers.add(a);
+            }
+        }
+        Collections.sort(accountNumbers, (o1, o2) -> {
+            int i1 = TjSettingsActivity.getAccountOrder(o1);
+            int i2 = TjSettingsActivity.getAccountOrder(o2);
+            if (i1 != i2) {
+                return i1 < i2 ? -1 : 1;
+            }
+            long l1 = UserConfig.getInstance(o1).loginTime;
+            long l2 = UserConfig.getInstance(o2).loginTime;
+            return Long.compare(l1, l2);
+        });
+        return accountNumbers;
     }
 
     private void populateSideMenuAccounts() {
@@ -8388,24 +8462,20 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         }
         sideMenuAccountsContainer.removeAllViews();
 
-        ArrayList<Integer> accountNumbers = new ArrayList<>();
-        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
-            if (UserConfig.getInstance(a).isClientActivated()) {
-                accountNumbers.add(a);
-            }
-        }
+        ArrayList<Integer> accountNumbers = getOrderedAccounts();
         for (int account : accountNumbers) {
             TLRPC.User user = UserConfig.getInstance(account).getCurrentUser();
             String name = user != null ? UserObject.getUserName(user) : ("Account " + (account + 1));
-            String phone = user != null && user.phone != null ? PhoneFormat.getInstance().format("+" + user.phone) : "";
-            boolean current = account == currentAccount;
-            addSideMenuItem(sideMenuAccountsContainer, current ? R.drawable.round_check2 : R.drawable.msg_contacts, name + (TextUtils.isEmpty(phone) ? "" : "\n" + phone), () -> {
+            View row = addSideMenuAccountRow(sideMenuAccountsContainer, user, name, account == currentAccount, () -> {
                 drawerLayoutContainer.closeDrawer(false);
-                if (!current) {
+                if (account != currentAccount) {
                     switchToAccount(account, true);
                 }
             });
+            row.setTag(account);
         }
+        setupAccountReorder(sideMenuAccountsContainer);
+
         if (UserConfig.getActivatedAccountsCount() < UserConfig.MAX_ACCOUNT_COUNT) {
             addSideMenuItem(sideMenuAccountsContainer, R.drawable.msg_addbot, LocaleController.getString(R.string.AddAccount), () -> {
                 drawerLayoutContainer.closeDrawer(false);
@@ -8424,13 +8494,110 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         addSideMenuDivider(sideMenuAccountsContainer);
     }
 
+    /**
+     * Long press an account for a moment, then drag up/down to move it; releasing saves the order.
+     */
+    private void setupAccountReorder(LinearLayout container) {
+        for (int i = 0; i < container.getChildCount(); i++) {
+            View child = container.getChildAt(i);
+            if (!(child.getTag() instanceof Integer)) {
+                continue;
+            }
+            child.setOnLongClickListener(v -> {
+                draggingAccountView = v;
+                v.setAlpha(0.7f);
+                v.setScaleX(1.03f);
+                v.setScaleY(1.03f);
+                try {
+                    v.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
+                } catch (Exception ignored) {}
+                return true;
+            });
+            child.setOnTouchListener((v, event) -> {
+                if (draggingAccountView != v) {
+                    return false;
+                }
+                if (event.getAction() == MotionEvent.ACTION_MOVE) {
+                    int index = container.indexOfChild(v);
+                    float y = event.getY();
+                    if (y < 0 && index > 0) {
+                        View above = container.getChildAt(index - 1);
+                        if (above.getTag() instanceof Integer) {
+                            container.removeViewAt(index);
+                            container.addView(v, index - 1);
+                        }
+                    } else if (y > v.getHeight() && index + 1 < container.getChildCount()) {
+                        View below = container.getChildAt(index + 1);
+                        if (below.getTag() instanceof Integer) {
+                            container.removeViewAt(index);
+                            container.addView(v, index + 1);
+                        }
+                    }
+                    return true;
+                } else if (event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL) {
+                    v.setAlpha(1f);
+                    v.setScaleX(1f);
+                    v.setScaleY(1f);
+                    draggingAccountView = null;
+                    int order = 0;
+                    for (int a = 0; a < container.getChildCount(); a++) {
+                        Object tag = container.getChildAt(a).getTag();
+                        if (tag instanceof Integer) {
+                            TjSettingsActivity.setAccountOrder((Integer) tag, order++);
+                        }
+                    }
+                    return true;
+                }
+                return false;
+            });
+        }
+    }
+
     private void addSideMenuDivider(LinearLayout container) {
         View divider = new View(this);
         divider.setBackgroundColor(Theme.getColor(Theme.key_divider));
-        container.addView(divider, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 1, 0, 4, 0, 4));
+        container.addView(divider, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 1, 0, 6, 0, 6));
     }
 
-    private void addSideMenuItem(LinearLayout container, int iconRes, String text, Runnable action) {
+    private View addSideMenuAccountRow(LinearLayout container, TLRPC.User user, String name, boolean current, Runnable action) {
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setPadding(AndroidUtilities.dp(14), 0, AndroidUtilities.dp(14), 0);
+        row.setBackground(Theme.getSelectorDrawable(false));
+        row.setClickable(true);
+        row.setFocusable(true);
+        row.setOnClickListener(v -> action.run());
+
+        BackupImageView avatar = new BackupImageView(this);
+        avatar.setRoundRadius(AndroidUtilities.dp(14));
+        if (user != null) {
+            AvatarDrawable avatarDrawable = new AvatarDrawable(user);
+            avatarDrawable.setTextSize(AndroidUtilities.dp(12));
+            avatar.setForUserOrChat(user, avatarDrawable);
+        }
+        row.addView(avatar, LayoutHelper.createLinear(28, 28, Gravity.CENTER_VERTICAL, 0, 0, 16, 0));
+
+        TextView textView = new TextView(this);
+        textView.setText(name);
+        textView.setTextSize(15);
+        textView.setSingleLine(true);
+        textView.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        textView.setTextColor(Theme.getColor(current ? Theme.key_windowBackgroundWhiteBlueText : Theme.key_windowBackgroundWhiteBlackText));
+        row.addView(textView, LayoutHelper.createLinear(0, LayoutHelper.WRAP_CONTENT, 1f, Gravity.CENTER_VERTICAL));
+
+        if (current) {
+            ImageView check = new ImageView(this);
+            check.setImageResource(R.drawable.round_check2);
+            check.setColorFilter(Theme.getColor(Theme.key_windowBackgroundWhiteBlueText));
+            row.addView(check, LayoutHelper.createLinear(20, 20, Gravity.CENTER_VERTICAL));
+        }
+
+        container.addView(row, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 48));
+        return row;
+    }
+
+    private View addSideMenuItem(LinearLayout container, int iconRes, String text, Runnable action) {
         LinearLayout row = new LinearLayout(this);
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setGravity(Gravity.CENTER_VERTICAL);
@@ -8455,6 +8622,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         row.addView(textView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT));
 
         container.addView(row, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 50));
+        return row;
     }
 
     public void openSideMenu() {
@@ -8465,12 +8633,22 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         if (sideMenuNameView != null) {
             sideMenuNameView.setText(currentUser != null ? UserObject.getUserName(currentUser) : "");
         }
+        if (sideMenuAvatarImage != null && currentUser != null) {
+            AvatarDrawable avatarDrawable = new AvatarDrawable(currentUser);
+            avatarDrawable.setTextSize(AndroidUtilities.dp(24));
+            sideMenuAvatarImage.setForUserOrChat(currentUser, avatarDrawable);
+        }
         if (sideMenuPhoneView != null) {
-            sideMenuPhoneView.setText(currentUser != null && currentUser.phone != null ? PhoneFormat.getInstance().format("+" + currentUser.phone) : "");
+            boolean hidePhone = TjSettingsActivity.isHidePhoneNumberEnabled();
+            sideMenuPhoneView.setVisibility(hidePhone ? View.GONE : View.VISIBLE);
+            sideMenuPhoneView.setText(!hidePhone && currentUser != null && currentUser.phone != null ? PhoneFormat.getInstance().format("+" + currentUser.phone) : "");
         }
         if (sideMenuChatsCountView != null) {
             int count = MessagesController.getInstance(currentAccount).getTotalDialogsCount();
             sideMenuChatsCountView.setText(LocaleController.formatPluralString("Chats", count));
+        }
+        if (sideMenuEmojiStatusRow != null) {
+            sideMenuEmojiStatusRow.setVisibility(UserConfig.getInstance(currentAccount).isPremium() ? View.VISIBLE : View.GONE);
         }
         populateSideMenuAccounts();
         drawerLayoutContainer.openDrawer(true);

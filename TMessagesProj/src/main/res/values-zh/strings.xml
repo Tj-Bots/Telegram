@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="TjSettings">TJ 设置</string>
+    <string name="TjMyProfile">我的资料</string>
+    <string name="TjMessageInfo">消息信息</string>
+    <string name="TjCopyMessageLink">复制消息链接</string>
+    <string name="TjForwardWithoutTag">无标记转发</string>
+    <string name="TjCopyImage">复制图片</string>
+    <string name="TjCopyThumbnail">复制缩略图</string>
+    <string name="TjSaveToSaved">保存到收藏夹</string>
+    <string name="TjShowPinnedMessage">显示置顶消息</string>
+    <string name="TjHidePinnedMessage">隐藏置顶消息</string>
+    <string name="TjChatCounters">聊天统计</string>
+    <string name="TjFilterMembers">筛选成员</string>
+    <string name="TjFilterAll">所有成员</string>
+    <string name="TjFilterMembersOnly">仅成员</string>
+    <string name="TjFilterContacts">仅联系人</string>
+    <string name="TjFilterBots">仅机器人</string>
+    <string name="TjFilterAdmins">仅管理员</string>
+    <string name="TjShowCallButton">在私聊中显示通话按钮</string>
+    <string name="TjShowCallButtonInfo">默认在私聊中显示搜索图标而非通话图标。</string>
+    <string name="TjHidePhoneNumber">隐藏我的手机号</string>
+    <string name="TjHidePhoneNumberInfo">在侧边菜单和个人资料中隐藏你的手机号。</string>
+    <string name="TjBotApiIds">以 bot API 格式显示聊天 ID</string>
+    <string name="TjBotApiIdsInfo">为超级群组和频道显示 ‎-100…‎ 而不是内部 ID。</string>
+    <string name="TjMessageMenuHeader">消息菜单</string>
+    <string name="TjGeneralHeader">常规</string>
+    <string name="TjTotalChats">聊天总数</string>
+    <string name="TjPrivateChats">私聊</string>
+    <string name="TjGroups">群组</string>
+    <string name="TjChannels">频道</string>
+    <string name="TjBots">机器人</string>
+    <string name="TjUnreadChats">未读聊天</string>
+    <string name="TjMutedChats">静音聊天</string>
+    <string name="TjArchivedChats">已归档聊天</string>
+    <string name="TjFoldersCount">文件夹</string>
+    <string name="TjContactsCount">联系人</string>
+    <string name="TjChatIdHeader">聊天 ID</string>
+    <string name="TjChatsHeader">聊天</string>
+    <string name="TjMessageMenuInfo">选择长按消息时显示哪些 TJ 选项。</string>
+    <string name="TjChatCountersLoading">正在统计你的聊天…</string>
+    <string name="TjChatCountersInfo">计数基于本设备上已加载的聊天。</string>
+</resources>

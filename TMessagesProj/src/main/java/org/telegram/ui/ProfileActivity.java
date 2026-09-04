@@ -659,6 +659,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     private int channelInfoRow;
     private int usernameRow;
     private int userIdRow;
+    private int groupMembersRow;
     private int groupAdministratorsRow;
     private int groupPermissionsRow;
     private int groupBlockedUsersRow;
@@ -4553,6 +4554,13 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 ChatUsersActivity fragment = new ChatUsersActivity(args);
                 fragment.setInfo(chatInfo);
                 presentFragment(fragment);
+            } else if (position == groupMembersRow) {
+                Bundle args = new Bundle();
+                args.putLong("chat_id", chatId);
+                args.putInt("type", ChatUsersActivity.TYPE_USERS);
+                ChatUsersActivity fragment = new ChatUsersActivity(args);
+                fragment.setInfo(chatInfo);
+                presentFragment(fragment);
             } else if (position == groupAdministratorsRow) {
                 Bundle args = new Bundle();
                 args.putLong("chat_id", chatId);
@@ -7341,6 +7349,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             return String.valueOf(userId);
         }
         if (chatId != 0) {
+            if (!TjSettingsActivity.isBotApiIdsEnabled()) {
+                return String.valueOf(chatId);
+            }
             if (ChatObject.isChannel(currentChat)) {
                 return "-100" + chatId;
             }
@@ -10531,6 +10542,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         birthdayRow = -1;
         setUsernameRow = -1;
         userIdRow = -1;
+        groupMembersRow = -1;
         groupAdministratorsRow = -1;
         groupPermissionsRow = -1;
         groupBlockedUsersRow = -1;
@@ -10931,7 +10943,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 sharedMediaRow = rowCount++;
             }
         } else if (chatId != 0) {
-            if (chatInfo != null && (!TextUtils.isEmpty(chatInfo.about) || chatInfo.location instanceof TLRPC.TL_channelLocation) || ChatObject.isPublic(currentChat)) {
+            // The info section always has at least the chat ID row, so it is always shown -
+            // previously a group or channel with no description had no section at all.
+            {
                 if (emptyRow < 0 && emptyRow2 < 0) {
                     if (hasMusic || peerColor != null || actionsView == null) {
                         emptyRow2 = rowCount++;
@@ -11022,6 +11036,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             }
 
             if (currentChat != null && !isTopic && (currentChat.megagroup || !ChatObject.isChannel(currentChat)) && (currentChat.creator || ChatObject.hasAdminRights(currentChat))) {
+                if (ChatObject.isChannel(currentChat)) {
+                    groupMembersRow = rowCount++;
+                }
                 groupAdministratorsRow = rowCount++;
                 if (ChatObject.canBlockUsers(currentChat)) {
                     groupPermissionsRow = rowCount++;
@@ -13696,7 +13713,15 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         TLRPC.User user = UserConfig.getInstance(currentAccount).getCurrentUser();
                         String value;
                         if (user != null && user.phone != null && user.phone.length() != 0) {
-                            value = PhoneFormat.getInstance().format("+" + user.phone);
+                            if (TjSettingsActivity.isHidePhoneNumberEnabled()) {
+                                StringBuilder hidden = new StringBuilder("+");
+                                for (int i = 0; i < user.phone.length(); i++) {
+                                    hidden.append('\u2022');
+                                }
+                                value = hidden.toString();
+                            } else {
+                                value = PhoneFormat.getInstance().format("+" + user.phone);
+                            }
                         } else {
                             value = LocaleController.getString(R.string.NumberUnknown);
                         }
@@ -13915,6 +13940,12 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                             textCell.setTextAndValueAndIcon(LocaleController.getString(R.string.ChannelBlacklist), String.format("%d", Math.max(chatInfo.banned_count, chatInfo.kicked_count)), R.drawable.msg_user_remove, position != membersSectionRow - 1);
                         } else {
                             textCell.setTextAndIcon(LocaleController.getString(R.string.ChannelBlacklist), R.drawable.msg_user_remove, position != membersSectionRow - 1);
+                        }
+                    } else if (position == groupMembersRow) {
+                        if (chatInfo != null) {
+                            textCell.setTextAndValueAndIcon(LocaleController.getString(R.string.ChannelMembers), LocaleController.formatNumber(chatInfo.participants_count, ','), R.drawable.msg_groups, true);
+                        } else {
+                            textCell.setTextAndIcon(LocaleController.getString(R.string.ChannelMembers), R.drawable.msg_groups, true);
                         }
                     } else if (position == groupAdministratorsRow) {
                         if (chatInfo != null) {
@@ -14451,7 +14482,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 return VIEW_TYPE_ABOUT_LINK;
             } else if (position == settingsTimerRow || position == settingsKeyRow || position == reportRow || position == reportReactionRow || position == deleteReactionRow ||
                     position == subscribersRow || position == subscribersRequestsRow || position == administratorsRow || position == settingsRow || position == blockedUsersRow ||
-                    position == groupAdministratorsRow || position == groupPermissionsRow || position == groupBlockedUsersRow || position == groupRecentActionsRow ||
+                    position == groupMembersRow || position == groupAdministratorsRow || position == groupPermissionsRow || position == groupBlockedUsersRow || position == groupRecentActionsRow ||
                     position == addMemberRow || position == joinRow || position == unblockRow ||
                     position == sendMessageRow || position == notificationRow || position == privacyRow ||
                     position == languageRow || position == dataRow || position == chatRow ||
@@ -15849,6 +15880,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             put(++pointer, channelInfoRow, sparseIntArray);
             put(++pointer, usernameRow, sparseIntArray);
             put(++pointer, userIdRow, sparseIntArray);
+            put(++pointer, groupMembersRow, sparseIntArray);
             put(++pointer, groupAdministratorsRow, sparseIntArray);
             put(++pointer, groupPermissionsRow, sparseIntArray);
             put(++pointer, groupBlockedUsersRow, sparseIntArray);

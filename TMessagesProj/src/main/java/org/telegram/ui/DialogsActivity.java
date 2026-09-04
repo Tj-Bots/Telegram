@@ -149,6 +149,7 @@ import org.telegram.ui.ActionBar.ActionBarMenuSubItem;
 import org.telegram.ui.ActionBar.ActionBarPopupWindow;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BackDrawable;
+import org.telegram.ui.ActionBar.DrawerLayoutContainer;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.BottomSheet;
 import org.telegram.ui.ActionBar.INavigationLayout;
@@ -563,6 +564,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     private boolean updatePullAfterScroll;
 
     private BackDrawable backDrawable;
+    private MenuDrawable menuDrawable;
 
     private final Paint actionBarDefaultPaint = new Paint();
 
@@ -3504,7 +3506,13 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             }
             actionBar.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundWhite));
         } else {
-            actionBar.setBackButtonDrawable(backDrawable = new BackDrawable(false));
+            if (searchString != null || folderId != 0 || communityId != 0) {
+                actionBar.setBackButtonDrawable(backDrawable = new BackDrawable(false));
+            } else {
+                menuDrawable = new MenuDrawable();
+                menuDrawable.setRoundCap();
+                actionBar.setBackButtonDrawable(menuDrawable);
+            }
             if (folderId != 0) {
                 actionBar.setTitle(getString(R.string.ArchivedChats));
             } else if (communityId != 0) {
@@ -3648,6 +3656,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                             actionBar.setTitle(tab.title);
                         }
                     }
+                    updateDrawerSwipeAllowed(tab.isDefault);
                 }
 
                 @Override
@@ -7066,6 +7075,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     @Override
     public void onResume() {
         super.onResume();
+        updateDrawerSwipeAllowed(filterTabsView == null || filterTabsView.getVisibility() != View.VISIBLE || filterTabsView.isFirstTabSelected());
         if (dialogStoriesCell != null) {
             dialogStoriesCell.onResume();
         }
@@ -8462,6 +8472,19 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             }
             showOrUpdateActionMode(dialog.id, view);
             return true;
+        }
+    }
+
+    /**
+     * The edge swipe opens our side menu, but only where it has nothing else to do:
+     * on the first ("All chats") tab there is no previous folder to swipe to.
+     */
+    private void updateDrawerSwipeAllowed(boolean onDefaultTab) {
+        if (getParentActivity() instanceof LaunchActivity) {
+            DrawerLayoutContainer container = ((LaunchActivity) getParentActivity()).drawerLayoutContainer;
+            if (container != null) {
+                container.setAllowDrawerSwipe(onDefaultTab && !onlySelect && folderId == 0 && communityId == 0);
+            }
         }
     }
 

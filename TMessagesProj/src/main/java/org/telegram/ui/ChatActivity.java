@@ -1258,6 +1258,7 @@ public class ChatActivity extends BaseFragment implements
     public final static int OPTION_COPY_IMAGE = 1005;
     public final static int OPTION_COPY_VIDEO_THUMB = 1006;
     public final static int OPTION_COPY_DEEPLINK = 1007;
+    public final static int OPTION_SAVE_TO_SAVED = 1009;
 
     private final static int[] allowedNotificationsDuringChatListAnimations = new int[]{
             NotificationCenter.messagesRead,
@@ -3865,13 +3866,24 @@ public class ChatActivity extends BaseFragment implements
                     jumpToDate(1);
                 } else if (id == toggle_pinned_visibility) {
                     SharedPreferences preferences = MessagesController.getNotificationsSettings(currentAccount);
-                    if (pinnedMessageView != null) {
-                        if (!pinnedMessageIds.isEmpty()) {
-                            preferences.edit().putInt("pin_" + dialog_id, pinnedMessageIds.get(0)).commit();
+                    // pinnedMessageView is created lazily and never released, so it cannot tell us
+                    // whether the bar is currently hidden - the stored pin id is the source of truth.
+                    if (!pinnedMessageIds.isEmpty()) {
+                        int topPinnedId = pinnedMessageIds.get(0);
+                        boolean isHidden = topPinnedId == preferences.getInt("pin_" + dialog_id, 0);
+                        if (isHidden) {
+                            preferences.edit().remove("pin_" + dialog_id).commit();
+                        } else {
+                            preferences.edit().putInt("pin_" + dialog_id, topPinnedId).commit();
                         }
                     } else {
                         preferences.edit().remove("pin_" + dialog_id).commit();
                     }
+                    // Recompute which pinned message the bar should carry, otherwise showing it
+                    // again does nothing until the message list is scrolled.
+                    forceNextPinnedMessageId = 0;
+                    currentPinnedMessageIndex[0] = 0;
+                    updateMessagesVisiblePart(false);
                     updatePinnedMessageView(true);
                 } else if (id == clear_history || id == delete_chat || id == auto_delete_timer) {
                     if (getParentActivity() == null) {
@@ -4494,7 +4506,7 @@ public class ChatActivity extends BaseFragment implements
                     LocaleController.getString(UserObject.isBotForum(currentUser) ? R.string.ClearAllHistory : R.string.ClearHistory));
             }
             headerItem.lazilyAddSubItem(jump_to_first_message, R.drawable.msg_go_up, "Go to first message");
-            pinnedVisibilityItem = headerItem.lazilyAddSubItem(toggle_pinned_visibility, R.drawable.msg_pin, "Toggle Pinned Message");
+            pinnedVisibilityItem = headerItem.lazilyAddSubItem(toggle_pinned_visibility, R.drawable.msg_pin, LocaleController.getString(R.string.TjHidePinnedMessage));
             headerItem.hideSubItem(toggle_pinned_visibility);
             boolean addedSettings = false;
             if (!isTopic) {
@@ -28400,7 +28412,7 @@ public class ChatActivity extends BaseFragment implements
                 headerItem.showSubItem(toggle_pinned_visibility);
                 SharedPreferences pinPrefs = MessagesController.getNotificationsSettings(currentAccount);
                 boolean isHidden = pinnedMessageIds.get(0) == pinPrefs.getInt("pin_" + dialog_id, 0);
-                String label = isHidden ? "Show Pinned Message" : "Hide Pinned Message";
+                String label = LocaleController.getString(isHidden ? R.string.TjShowPinnedMessage : R.string.TjHidePinnedMessage);
                 if (pinnedVisibilityItem != null) {
                     pinnedVisibilityItem.text = label;
                 }
@@ -33429,6 +33441,20 @@ public class ChatActivity extends BaseFragment implements
                 forwardingMessageAsCopy = true;
                 processSelectedOption(OPTION_FORWARD);
                 return;
+            }
+            case OPTION_SAVE_TO_SAVED: {
+                if (selectedObject == null) {
+                    return;
+                }
+                ArrayList<MessageObject> toSave = new ArrayList<>();
+                if (selectedObjectGroup != null) {
+                    toSave.addAll(selectedObjectGroup.messages);
+                } else {
+                    toSave.add(selectedObject);
+                }
+                getSendMessagesHelper().sendMessage(toSave, getUserConfig().getClientUserId(), false, false, true, 0, 0);
+                BulletinFactory.of(this).createSimpleBulletin(R.raw.saved_messages, LocaleController.getString(R.string.TjSaveToSaved)).show();
+                break;
             }
             case OPTION_MESSAGE_INFO: {
                 if (getParentActivity() == null || selectedObject == null || selectedObject.messageOwner == null) {
@@ -46212,8 +46238,8 @@ public class ChatActivity extends BaseFragment implements
                                 items.add(LocaleController.getString(R.string.SaveToGallery));
                                 options.add(OPTION_SAVE_TO_GALLERY);
                                 icons.add(R.drawable.msg_gallery);
-                                if (selectedObject.getDocument() != null && !selectedObject.getDocument().thumbs.isEmpty()) {
-                                    items.add("Copy Thumbnail");
+                                if (selectedObject.getDocument() != null && !selectedObject.getDocument().thumbs.isEmpty() && TjSettingsActivity.isCopyThumbnailEnabled()) {
+                                    items.add(LocaleController.getString(R.string.TjCopyThumbnail));
                                     options.add(OPTION_COPY_VIDEO_THUMB);
                                     icons.add(R.drawable.msg_copy);
                                 }
@@ -46277,9 +46303,11 @@ public class ChatActivity extends BaseFragment implements
                         items.add(LocaleController.getString(R.string.SaveToGallery));
                         options.add(OPTION_SAVE_TO_GALLERY2);
                         icons.add(R.drawable.msg_gallery);
-                        items.add("Copy Image");
-                        options.add(OPTION_COPY_IMAGE);
-                        icons.add(R.drawable.msg_copy);
+                        if (TjSettingsActivity.isCopyImageEnabled()) {
+                            items.add(LocaleController.getString(R.string.TjCopyImage));
+                            options.add(OPTION_COPY_IMAGE);
+                            icons.add(R.drawable.msg_copy);
+                        }
                         items.add(LocaleController.getString(R.string.SaveToDownloads));
                         options.add(OPTION_SAVE_TO_DOWNLOADS_OR_MUSIC);
                         icons.add(R.drawable.msg_download);
@@ -46366,9 +46394,11 @@ public class ChatActivity extends BaseFragment implements
                     items.add(LocaleController.getString(R.string.Forward));
                     options.add(OPTION_FORWARD);
                     icons.add(R.drawable.msg_forward);
-                    items.add(LocaleController.getString(R.string.ForwardWithoutTag));
-                    options.add(OPTION_FORWARD_NO_TAG);
-                    icons.add(R.drawable.msg_forward);
+                    if (TjSettingsActivity.isForwardWithoutTagEnabled()) {
+                        items.add(LocaleController.getString(R.string.ForwardWithoutTag));
+                        options.add(OPTION_FORWARD_NO_TAG);
+                        icons.add(R.drawable.msg_forward);
+                    }
                 }
                 if (allowUnpin) {
                     items.add(LocaleController.getString(R.string.UnpinMessage));
@@ -46416,15 +46446,10 @@ public class ChatActivity extends BaseFragment implements
                         icons.add(R.drawable.msg_report);
                     }
                 }
-                if (selectedObject != null && selectedObject.getId() > 0) {
-                    if (currentChat == null) {
-                        items.add("Copy Message Link");
-                        options.add(OPTION_COPY_DEEPLINK);
-                        icons.add(R.drawable.msg_link2);
-                    }
-                    items.add("Message Info");
-                    options.add(OPTION_MESSAGE_INFO);
-                    icons.add(R.drawable.msg_info);
+                if (selectedObject != null && selectedObject.getId() > 0 && currentChat == null && TjSettingsActivity.isCopyMessageLinkEnabled()) {
+                    items.add(LocaleController.getString(R.string.TjCopyMessageLink));
+                    options.add(OPTION_COPY_DEEPLINK);
+                    icons.add(R.drawable.msg_link2);
                 }
                 if (message.canDeleteMessage(chatMode == MODE_SCHEDULED, currentChat) && (threadMessageObjects == null || !threadMessageObjects.contains(message))) {
                     items.add(LocaleController.getString(chatMode == MODE_SAVED && threadMessageId != getUserConfig().getClientUserId() ? R.string.Remove : R.string.Delete));
@@ -46528,6 +46553,34 @@ public class ChatActivity extends BaseFragment implements
             options.add(OPTION_WELCOME_REVERT);
             icons.add(R.drawable.outline_revert_24);
         }
+
+        // TJ items always close the menu: message info second from the bottom, save to saved last.
+        if (message != null && message.getId() > 0 && !options.contains(OPTION_MESSAGE_INFO) && TjSettingsActivity.isMessageInfoEnabled()) {
+            items.add(LocaleController.getString(R.string.TjMessageInfo));
+            options.add(OPTION_MESSAGE_INFO);
+            icons.add(R.drawable.msg_info);
+        }
+        if (canSaveToSavedMessages(message) && !options.contains(OPTION_SAVE_TO_SAVED) && TjSettingsActivity.isSaveToSavedEnabled()) {
+            items.add(LocaleController.getString(R.string.TjSaveToSaved));
+            options.add(OPTION_SAVE_TO_SAVED);
+            icons.add(R.drawable.msg_saved);
+        }
+    }
+
+    private boolean canSaveToSavedMessages(MessageObject message) {
+        if (message == null || message.getId() <= 0 || chatMode == MODE_SCHEDULED || chatMode == MODE_SAVED) {
+            return false;
+        }
+        if (message.messageOwner == null || message.messageOwner.action != null) {
+            return false;
+        }
+        if (currentEncryptedChat != null || message.isSponsored()) {
+            return false;
+        }
+        if (getMessagesController().isChatNoForwards(currentChat) || message.messageOwner.noforwards) {
+            return false;
+        }
+        return true;
     }
 
     private boolean showWelcomeMessageRevertOption(MessageObject messageObject) {

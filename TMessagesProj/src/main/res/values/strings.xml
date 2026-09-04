@@ -11222,4 +11222,46 @@
     <string name="UnsupportedMessageTitle">Unsupported Message</string>
     <string name="UnsupportedMessageMessage">Update Telegram to view this message</string>
     <string name="UnsupportedUpdate">Update</string>
+
+    <!-- TjGram custom features -->
+    <string name="TjSettings">TJ Settings</string>
+    <string name="TjMyProfile">My Profile</string>
+    <string name="TjMessageInfo">Message Info</string>
+    <string name="TjCopyMessageLink">Copy Message Link</string>
+    <string name="TjForwardWithoutTag">Forward without tag</string>
+    <string name="TjCopyImage">Copy Image</string>
+    <string name="TjCopyThumbnail">Copy Thumbnail</string>
+    <string name="TjSaveToSaved">Save to Saved Messages</string>
+    <string name="TjShowPinnedMessage">Show pinned message</string>
+    <string name="TjHidePinnedMessage">Hide pinned message</string>
+    <string name="TjChatCounters">Chat counters</string>
+    <string name="TjFilterMembers">Filter members</string>
+    <string name="TjFilterAll">All members</string>
+    <string name="TjFilterMembersOnly">Members only</string>
+    <string name="TjFilterContacts">Contacts only</string>
+    <string name="TjFilterBots">Bots only</string>
+    <string name="TjFilterAdmins">Admins only</string>
+    <string name="TjShowCallButton">Show call button in private chats</string>
+    <string name="TjShowCallButtonInfo">By default the search icon is shown instead of the call icon in private chats.</string>
+    <string name="TjHidePhoneNumber">Hide my phone number</string>
+    <string name="TjHidePhoneNumberInfo">Hides your phone number in the side menu and on your own profile.</string>
+    <string name="TjBotApiIds">Show chat IDs in bot API format</string>
+    <string name="TjBotApiIdsInfo">Shows -100… for supergroups and channels instead of the raw internal ID.</string>
+    <string name="TjMessageMenuHeader">Message menu</string>
+    <string name="TjGeneralHeader">General</string>
+    <string name="TjTotalChats">Total chats</string>
+    <string name="TjPrivateChats">Private chats</string>
+    <string name="TjGroups">Groups</string>
+    <string name="TjChannels">Channels</string>
+    <string name="TjBots">Bots</string>
+    <string name="TjUnreadChats">Unread chats</string>
+    <string name="TjMutedChats">Muted chats</string>
+    <string name="TjArchivedChats">Archived chats</string>
+    <string name="TjFoldersCount">Folders</string>
+    <string name="TjContactsCount">Contacts</string>
+    <string name="TjChatIdHeader">Chat IDs</string>
+    <string name="TjChatsHeader">Chats</string>
+    <string name="TjMessageMenuInfo">Choose which of the TJ items appear when you long-press a message.</string>
+    <string name="TjChatCountersLoading">Counting your chats…</string>
+    <string name="TjChatCountersInfo">Counters are calculated from the chats already loaded on this device.</string>
 </resources>

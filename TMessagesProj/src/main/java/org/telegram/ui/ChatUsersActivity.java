@@ -342,7 +342,7 @@ public class ChatUsersActivity extends BaseFragment implements NotificationCente
         }
         int[] ids = new int[]{member_filter_all, member_filter_members, member_filter_contacts, member_filter_bots, member_filter_admins};
         int[] icons = new int[]{R.drawable.msg_groups, R.drawable.msg_contacts, R.drawable.msg_contact_add, R.drawable.msg_bot, R.drawable.msg_admins};
-        String[] titles = new String[]{"All members", "Members only", "Contacts only", "Bots only", "Admins only"};
+        String[] titles = new String[]{LocaleController.getString(R.string.TjFilterAll), LocaleController.getString(R.string.TjFilterMembersOnly), LocaleController.getString(R.string.TjFilterContacts), LocaleController.getString(R.string.TjFilterBots), LocaleController.getString(R.string.TjFilterAdmins)};
         for (int a = 0; a < ids.length; a++) {
             View view = memberFilterItem.getSubItem(ids[a]);
             if (view instanceof ActionBarMenuSubItem) {
@@ -746,14 +746,14 @@ public class ChatUsersActivity extends BaseFragment implements NotificationCente
         if (selectType != SELECT_TYPE_MEMBERS || type == TYPE_USERS || type == TYPE_BANNED || type == TYPE_KICKED) {
             searchListViewAdapter = new SearchAdapter(context);
             ActionBarMenu menu = actionBar.createMenu();
-            if (type == TYPE_USERS && selectType == SELECT_TYPE_MEMBERS) {
+            if (type == TYPE_USERS) {
                 memberFilterItem = menu.addItem(member_filter_button, R.drawable.menu_tag_filter);
-                memberFilterItem.setContentDescription("Filter members");
-                memberFilterItem.addSubItem(member_filter_all, R.drawable.msg_groups, "All members");
-                memberFilterItem.addSubItem(member_filter_members, R.drawable.msg_contacts, "Members only");
-                memberFilterItem.addSubItem(member_filter_contacts, R.drawable.msg_contact_add, "Contacts only");
-                memberFilterItem.addSubItem(member_filter_bots, R.drawable.msg_bot, "Bots only");
-                memberFilterItem.addSubItem(member_filter_admins, R.drawable.msg_admins, "Admins only");
+                memberFilterItem.setContentDescription(LocaleController.getString(R.string.TjFilterMembers));
+                memberFilterItem.addSubItem(member_filter_all, R.drawable.msg_groups, LocaleController.getString(R.string.TjFilterAll));
+                memberFilterItem.addSubItem(member_filter_members, R.drawable.msg_contacts, LocaleController.getString(R.string.TjFilterMembersOnly));
+                memberFilterItem.addSubItem(member_filter_contacts, R.drawable.msg_contact_add, LocaleController.getString(R.string.TjFilterContacts));
+                memberFilterItem.addSubItem(member_filter_bots, R.drawable.msg_bot, LocaleController.getString(R.string.TjFilterBots));
+                memberFilterItem.addSubItem(member_filter_admins, R.drawable.msg_admins, LocaleController.getString(R.string.TjFilterAdmins));
                 updateMemberFilterItemChecks();
             }
             searchItem = menu.addItem(search_button, R.drawable.outline_header_search).setIsSearchField(true).setActionBarMenuItemSearchListener(new ActionBarMenuItem.ActionBarMenuItemSearchListener() {

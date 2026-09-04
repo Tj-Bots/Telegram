@@ -183,6 +183,9 @@ public class MessageInfoActivity extends BaseFragment {
         if (peerId >= 0) {
             return String.valueOf(peerId);
         }
+        if (!TjSettingsActivity.isBotApiIdsEnabled()) {
+            return String.valueOf(-peerId);
+        }
         TLRPC.Chat chat = getMessagesController().getChat(-peerId);
         if (ChatObject.isChannel(chat)) {
             return "-100" + (-peerId);

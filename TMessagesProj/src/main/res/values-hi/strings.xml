@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="TjSettings">TJ सेटिंग्स</string>
+    <string name="TjMyProfile">मेरी प्रोफ़ाइल</string>
+    <string name="TjMessageInfo">संदेश जानकारी</string>
+    <string name="TjCopyMessageLink">संदेश लिंक कॉपी करें</string>
+    <string name="TjForwardWithoutTag">बिना टैग फ़ॉरवर्ड करें</string>
+    <string name="TjCopyImage">चित्र कॉपी करें</string>
+    <string name="TjCopyThumbnail">थंबनेल कॉपी करें</string>
+    <string name="TjSaveToSaved">सहेजे गए संदेशों में सहेजें</string>
+    <string name="TjShowPinnedMessage">पिन किया संदेश दिखाएँ</string>
+    <string name="TjHidePinnedMessage">पिन किया संदेश छिपाएँ</string>
+    <string name="TjChatCounters">चैट काउंटर</string>
+    <string name="TjFilterMembers">सदस्य फ़िल्टर करें</string>
+    <string name="TjFilterAll">सभी सदस्य</string>
+    <string name="TjFilterMembersOnly">केवल सदस्य</string>
+    <string name="TjFilterContacts">केवल संपर्क</string>
+    <string name="TjFilterBots">केवल बॉट</string>
+    <string name="TjFilterAdmins">केवल एडमिन</string>
+    <string name="TjShowCallButton">निजी चैट में कॉल बटन दिखाएँ</string>
+    <string name="TjShowCallButtonInfo">डिफ़ॉल्ट रूप से निजी चैट में कॉल आइकन के बजाय खोज आइकन दिखता है।</string>
+    <string name="TjHidePhoneNumber">मेरा फ़ोन नंबर छिपाएँ</string>
+    <string name="TjHidePhoneNumberInfo">साइड मेन्यू और आपकी प्रोफ़ाइल में आपका नंबर छिपाता है।</string>
+    <string name="TjBotApiIds">चैट आईडी bot API प्रारूप में दिखाएँ</string>
+    <string name="TjBotApiIdsInfo">सुपरग्रुप और चैनलों के लिए आंतरिक आईडी के बजाय ‎-100…‎ दिखाता है।</string>
+    <string name="TjMessageMenuHeader">संदेश मेन्यू</string>
+    <string name="TjGeneralHeader">सामान्य</string>
+    <string name="TjTotalChats">कुल चैट</string>
+    <string name="TjPrivateChats">निजी चैट</string>
+    <string name="TjGroups">समूह</string>
+    <string name="TjChannels">चैनल</string>
+    <string name="TjBots">बॉट</string>
+    <string name="TjUnreadChats">अपठित चैट</string>
+    <string name="TjMutedChats">म्यूट चैट</string>
+    <string name="TjArchivedChats">संग्रहित चैट</string>
+    <string name="TjFoldersCount">फ़ोल्डर</string>
+    <string name="TjContactsCount">संपर्क</string>
+    <string name="TjChatIdHeader">चैट ID</string>
+    <string name="TjChatsHeader">चैट</string>
+    <string name="TjMessageMenuInfo">चुनें कि संदेश पर देर तक दबाने पर कौन से TJ विकल्प दिखें।</string>
+    <string name="TjChatCountersLoading">आपके चैट गिने जा रहे हैं…</string>
+    <string name="TjChatCountersInfo">गणना इस डिवाइस पर पहले से लोड चैट से की जाती है।</string>
+</resources>

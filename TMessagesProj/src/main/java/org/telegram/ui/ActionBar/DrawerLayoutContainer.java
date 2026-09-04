@@ -27,6 +27,7 @@ import androidx.core.view.WindowInsetsCompat;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.FileLog;
+import org.telegram.messenger.LocaleController;
 
 public class DrawerLayoutContainer extends FrameLayout {
 
@@ -58,6 +59,12 @@ public class DrawerLayoutContainer extends FrameLayout {
     private boolean drawerOpened;
     private static final int DRAWER_WIDTH_DP = 280;
 
+    private boolean allowDrawerSwipe;
+    private boolean draggingDrawer;
+    private boolean maybeStartDragging;
+    private float startedTrackingX;
+    private float startedTrackingY;
+
     public void setDrawerLayout(View view) {
         if (drawerContentView == view) {
             return;
@@ -70,6 +77,7 @@ public class DrawerLayoutContainer extends FrameLayout {
             drawerScrimView = new View(getContext());
             drawerScrimView.setBackgroundColor(0x99000000);
             drawerScrimView.setVisibility(GONE);
+            drawerScrimView.setAlpha(0f);
             drawerScrimView.setOnClickListener(v -> closeDrawer(true));
             addView(drawerScrimView, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
         }
@@ -83,48 +91,157 @@ public class DrawerLayoutContainer extends FrameLayout {
         return drawerOpened;
     }
 
+    /**
+     * Enabled only where an edge swipe has nothing else to do - i.e. on the first
+     * ("All chats") folder tab, where there is no previous tab to swipe to.
+     */
+    public void setAllowDrawerSwipe(boolean allow) {
+        allowDrawerSwipe = allow;
+    }
+
     public void openDrawer(boolean fast) {
-        if (drawerContentView == null || drawerOpened) {
+        if (drawerContentView == null) {
             return;
         }
         drawerOpened = true;
         drawerScrimView.bringToFront();
         drawerContentView.bringToFront();
-        drawerScrimView.setAlpha(0f);
         drawerScrimView.setVisibility(VISIBLE);
-        drawerScrimView.animate().alpha(1f).setDuration(fast ? 150 : 250).start();
+        drawerScrimView.animate().setListener(null).cancel();
+        drawerScrimView.animate().alpha(1f).setDuration(fast ? 150 : 250).setListener(null).start();
         drawerContentView.setVisibility(VISIBLE);
-        drawerContentView.animate().translationX(0).setDuration(fast ? 150 : 250).start();
+        drawerContentView.animate().setListener(null).cancel();
+        drawerContentView.animate().translationX(0).setDuration(fast ? 150 : 250).setListener(null).start();
     }
 
     public void closeDrawer(boolean fast) {
-        if (drawerContentView == null || !drawerOpened) {
+        if (drawerContentView == null) {
             return;
         }
         drawerOpened = false;
         final View scrim = drawerScrimView;
+        scrim.animate().setListener(null).cancel();
         scrim.animate().alpha(0f).setDuration(fast ? 150 : 250).setListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationEnd(Animator animation) {
-                scrim.setVisibility(GONE);
+                scrim.animate().setListener(null);
+                if (!drawerOpened) {
+                    scrim.setVisibility(GONE);
+                }
             }
         }).start();
         final View content = drawerContentView;
+        content.animate().setListener(null).cancel();
         content.animate().translationX(-AndroidUtilities.dp(DRAWER_WIDTH_DP)).setDuration(fast ? 150 : 250).setListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationEnd(Animator animation) {
-                content.setVisibility(GONE);
+                content.animate().setListener(null);
+                if (!drawerOpened) {
+                    content.setVisibility(GONE);
+                }
             }
         }).start();
     }
 
+    private void setDrawerProgress(float progress) {
+        if (drawerContentView == null) {
+            return;
+        }
+        final int width = AndroidUtilities.dp(DRAWER_WIDTH_DP);
+        drawerContentView.setVisibility(VISIBLE);
+        drawerScrimView.setVisibility(VISIBLE);
+        drawerContentView.setTranslationX(-width + width * progress);
+        drawerScrimView.setAlpha(progress);
+    }
+
+    private boolean canStartDrawerSwipe(MotionEvent ev) {
+        if (drawerContentView == null || drawerOpened) {
+            return false;
+        }
+        if (!allowDrawerSwipe) {
+            return false;
+        }
+        final float edge = AndroidUtilities.dp(20);
+        if (LocaleController.isRTL) {
+            return ev.getX() > getMeasuredWidth() - edge;
+        }
+        return ev.getX() < edge;
+    }
+
     public boolean onTouchEvent(MotionEvent ev) {
+        if (drawerContentView == null) {
+            return false;
+        }
+        final int width = AndroidUtilities.dp(DRAWER_WIDTH_DP);
+        final int action = ev.getAction();
+        if (action == MotionEvent.ACTION_DOWN) {
+            if (canStartDrawerSwipe(ev)) {
+                maybeStartDragging = true;
+                startedTrackingX = ev.getX();
+                startedTrackingY = ev.getY();
+                return true;
+            }
+            return false;
+        } else if (action == MotionEvent.ACTION_MOVE && (maybeStartDragging || draggingDrawer)) {
+            float dx = ev.getX() - startedTrackingX;
+            float dy = ev.getY() - startedTrackingY;
+            if (LocaleController.isRTL) {
+                dx = -dx;
+            }
+            if (maybeStartDragging && dx > AndroidUtilities.dp(10) && Math.abs(dx) > Math.abs(dy)) {
+                maybeStartDragging = false;
+                draggingDrawer = true;
+            }
+            if (draggingDrawer) {
+                setDrawerProgress(Math.max(0, Math.min(1, dx / width)));
+                return true;
+            }
+            return true;
+        } else if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
+            if (draggingDrawer) {
+                float dx = ev.getX() - startedTrackingX;
+                if (LocaleController.isRTL) {
+                    dx = -dx;
+                }
+                draggingDrawer = false;
+                maybeStartDragging = false;
+                if (action == MotionEvent.ACTION_UP && dx > width / 3f) {
+                    openDrawer(true);
+                } else {
+                    drawerOpened = true; // force closeDrawer to run its animation back
+                    closeDrawer(true);
+                }
+                return true;
+            }
+            maybeStartDragging = false;
+        }
         return false;
     }
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
-        return parentActionBarLayout.checkTransitionAnimation();
+        if (parentActionBarLayout != null && parentActionBarLayout.checkTransitionAnimation()) {
+            return true;
+        }
+        if (ev.getAction() == MotionEvent.ACTION_DOWN && canStartDrawerSwipe(ev)) {
+            maybeStartDragging = true;
+            startedTrackingX = ev.getX();
+            startedTrackingY = ev.getY();
+        } else if (ev.getAction() == MotionEvent.ACTION_MOVE && maybeStartDragging) {
+            float dx = ev.getX() - startedTrackingX;
+            float dy = ev.getY() - startedTrackingY;
+            if (LocaleController.isRTL) {
+                dx = -dx;
+            }
+            if (dx > AndroidUtilities.dp(10) && Math.abs(dx) > Math.abs(dy) * 1.5f) {
+                maybeStartDragging = false;
+                draggingDrawer = true;
+                return true;
+            }
+        } else if (ev.getAction() == MotionEvent.ACTION_UP || ev.getAction() == MotionEvent.ACTION_CANCEL) {
+            maybeStartDragging = false;
+        }
+        return false;
     }
 
     @Override

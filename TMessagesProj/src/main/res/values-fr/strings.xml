@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="TjSettings">Paramètres TJ</string>
+    <string name="TjMyProfile">Mon profil</string>
+    <string name="TjMessageInfo">Infos du message</string>
+    <string name="TjCopyMessageLink">Copier le lien du message</string>
+    <string name="TjForwardWithoutTag">Transférer sans mention</string>
+    <string name="TjCopyImage">Copier l\'image</string>
+    <string name="TjCopyThumbnail">Copier la miniature</string>
+    <string name="TjSaveToSaved">Enregistrer dans les messages sauvegardés</string>
+    <string name="TjShowPinnedMessage">Afficher le message épinglé</string>
+    <string name="TjHidePinnedMessage">Masquer le message épinglé</string>
+    <string name="TjChatCounters">Compteurs de discussions</string>
+    <string name="TjFilterMembers">Filtrer les membres</string>
+    <string name="TjFilterAll">Tous les membres</string>
+    <string name="TjFilterMembersOnly">Membres uniquement</string>
+    <string name="TjFilterContacts">Contacts uniquement</string>
+    <string name="TjFilterBots">Bots uniquement</string>
+    <string name="TjFilterAdmins">Administrateurs uniquement</string>
+    <string name="TjShowCallButton">Afficher le bouton d\'appel dans les discussions privées</string>
+    <string name="TjShowCallButtonInfo">Par défaut, l\'icône de recherche remplace l\'icône d\'appel dans les discussions privées.</string>
+    <string name="TjHidePhoneNumber">Masquer mon numéro de téléphone</string>
+    <string name="TjHidePhoneNumberInfo">Masque votre numéro dans le menu latéral et sur votre profil.</string>
+    <string name="TjBotApiIds">Afficher les ID au format bot API</string>
+    <string name="TjBotApiIdsInfo">Affiche ‎-100…‎ pour les supergroupes et canaux au lieu de l\'ID interne.</string>
+    <string name="TjMessageMenuHeader">Menu du message</string>
+    <string name="TjGeneralHeader">Général</string>
+    <string name="TjTotalChats">Total des discussions</string>
+    <string name="TjPrivateChats">Discussions privées</string>
+    <string name="TjGroups">Groupes</string>
+    <string name="TjChannels">Canaux</string>
+    <string name="TjBots">Bots</string>
+    <string name="TjUnreadChats">Discussions non lues</string>
+    <string name="TjMutedChats">Discussions en sourdine</string>
+    <string name="TjArchivedChats">Discussions archivées</string>
+    <string name="TjFoldersCount">Dossiers</string>
+    <string name="TjContactsCount">Contacts</string>
+    <string name="TjChatIdHeader">Identifiants de discussion</string>
+    <string name="TjChatsHeader">Discussions</string>
+    <string name="TjMessageMenuInfo">Choisissez les éléments TJ qui apparaissent lors d’un appui long sur un message.</string>
+    <string name="TjChatCountersLoading">Comptage de vos discussions…</string>
+    <string name="TjChatCountersInfo">Les compteurs sont calculés à partir des discussions déjà chargées sur cet appareil.</string>
+</resources>

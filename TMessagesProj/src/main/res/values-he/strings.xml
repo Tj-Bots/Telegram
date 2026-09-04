@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="TjSettings">הגדרות TJ</string>
+    <string name="TjMyProfile">הפרופיל שלי</string>
+    <string name="TjMessageInfo">פרטי הודעה</string>
+    <string name="TjCopyMessageLink">העתק קישור להודעה</string>
+    <string name="TjForwardWithoutTag">העברה בלי תג הועבר</string>
+    <string name="TjCopyImage">העתק תמונה</string>
+    <string name="TjCopyThumbnail">העתק תמונה ממוזערת</string>
+    <string name="TjSaveToSaved">שמור בהודעות שמורות</string>
+    <string name="TjShowPinnedMessage">הצג הודעה מוצמדת</string>
+    <string name="TjHidePinnedMessage">הסתר הודעה מוצמדת</string>
+    <string name="TjChatCounters">מוני צ׳אטים</string>
+    <string name="TjFilterMembers">סינון חברים</string>
+    <string name="TjFilterAll">כל החברים</string>
+    <string name="TjFilterMembersOnly">חברים בלבד</string>
+    <string name="TjFilterContacts">אנשי קשר בלבד</string>
+    <string name="TjFilterBots">בוטים בלבד</string>
+    <string name="TjFilterAdmins">מנהלים בלבד</string>
+    <string name="TjShowCallButton">הצג כפתור שיחה בצ׳אטים פרטיים</string>
+    <string name="TjShowCallButtonInfo">כברירת מחדל מוצג סמל חיפוש במקום סמל השיחה בצ׳אטים פרטיים.</string>
+    <string name="TjHidePhoneNumber">הסתר את מספר הטלפון שלי</string>
+    <string name="TjHidePhoneNumberInfo">מסתיר את מספר הטלפון שלך בתפריט הצד ובפרופיל שלך.</string>
+    <string name="TjBotApiIds">הצג מזהי צ׳אט בפורמט bot API</string>
+    <string name="TjBotApiIdsInfo">מציג ‎-100…‎ לסופר-גרופים וערוצים במקום המזהה הפנימי הגולמי.</string>
+    <string name="TjMessageMenuHeader">תפריט הודעה</string>
+    <string name="TjGeneralHeader">כללי</string>
+    <string name="TjTotalChats">סה״כ צ׳אטים</string>
+    <string name="TjPrivateChats">צ׳אטים פרטיים</string>
+    <string name="TjGroups">קבוצות</string>
+    <string name="TjChannels">ערוצים</string>
+    <string name="TjBots">בוטים</string>
+    <string name="TjUnreadChats">צ׳אטים שלא נקראו</string>
+    <string name="TjMutedChats">צ׳אטים מושתקים</string>
+    <string name="TjArchivedChats">צ׳אטים בארכיון</string>
+    <string name="TjFoldersCount">תיקיות</string>
+    <string name="TjContactsCount">אנשי קשר</string>
+    <string name="TjChatIdHeader">מזהי צ\'אט</string>
+    <string name="TjChatsHeader">צ\'אטים</string>
+    <string name="TjMessageMenuInfo">בחר אילו מהכפתורים של TJ יוצגו בלחיצה ארוכה על הודעה.</string>
+    <string name="TjChatCountersLoading">סופר את הצ\'אטים שלך…</string>
+    <string name="TjChatCountersInfo">המונים מחושבים מהצ\'אטים שכבר נטענו במכשיר הזה.</string>
+</resources>
