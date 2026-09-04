@@ -18279,7 +18279,7 @@ public class ChatActivity extends BaseFragment implements
                     SimpleTextView textView = avatarContainer.getTitleTextView();
                     int textWidth = (int) textView.getPaint().measureText(textView.getText(), 0, textView.getText().length());
                     if (widthSize - AndroidUtilities.dp(96 + 56) > textWidth + AndroidUtilities.dp(10)) {
-                        showSearchAsIcon = !showAudioCallAsIcon;
+                        showSearchAsIcon = true;
                     } else {
                         showSearchAsIcon = false;
                     }

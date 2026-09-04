@@ -4024,7 +4024,23 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                             selectedDialogs.add(did);
                         }
                     }
-                    updateVisibleRows(0);
+                    if (viewPages != null) {
+                        for (ViewPage viewPage : viewPages) {
+                            if (viewPage == null || viewPage.listView == null) {
+                                continue;
+                            }
+                            int count = viewPage.listView.getChildCount();
+                            for (int a = 0; a < count; a++) {
+                                View child = viewPage.listView.getChildAt(a);
+                                if (child instanceof DialogCell) {
+                                    DialogCell cell = (DialogCell) child;
+                                    if (selectedDialogs.contains(cell.getDialogId())) {
+                                        cell.setChecked(true, true);
+                                    }
+                                }
+                            }
+                        }
+                    }
                     updateCounters(false);
                     if (selectedDialogsCountTextView != null) {
                         selectedDialogsCountTextView.setNumber(selectedDialogs.size(), true);

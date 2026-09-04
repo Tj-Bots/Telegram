@@ -119,13 +119,7 @@ public class TranslateController extends BaseController {
     }
 
     public boolean isContextTranslateEnabled() {
-        if (!getMessagesController().isTranslationsManualEnabled()) {
-            return false;
-        }
-        if (contextTranslateEnabled == null) {
-            contextTranslateEnabled = messagesController.getMainSettings().getBoolean("translate_button", MessagesController.getGlobalMainSettings().getBoolean("translate_button", false));
-        }
-        return contextTranslateEnabled;
+        return true;
     }
 
     public void setContextTranslateEnabled(boolean enable) {
