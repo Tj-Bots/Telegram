@@ -8441,12 +8441,43 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 onArchiveLongPress(view);
                 return false;
             }
-            if (actionBar.isActionModeShowed() && isDialogPinned(dialog)) {
-                return false;
+            if (actionBar.isActionModeShowed()) {
+                if (isDialogPinned(dialog)) {
+                    return false;
+                }
+                showOrUpdateActionMode(dialog.id, view);
+                return true;
+            }
+            if (view instanceof DialogCell) {
+                showDialogQuickActions(dialog, (DialogCell) view);
+                return true;
             }
             showOrUpdateActionMode(dialog.id, view);
             return true;
         }
+    }
+
+    private void showDialogQuickActions(TLRPC.Dialog dialog, DialogCell cell) {
+        try {
+            cell.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
+        } catch (Exception ignored) {}
+        final boolean pinned = isDialogPinned(dialog);
+        final boolean unread = dialog.unread_count > 0 || dialog.unread_mark;
+        ItemOptions options = ItemOptions.makeOptions(this, cell);
+        options.add(pinned ? R.drawable.chats_unpin : R.drawable.chats_pin, LocaleController.getString(pinned ? R.string.UnpinFromTop : R.string.PinToTop), () -> {
+            pinDialog(dialog.id, !pinned, null, 0, true);
+        });
+        options.add(unread ? R.drawable.msg_markread : R.drawable.msg_markunread, LocaleController.getString(unread ? R.string.MarkAsRead : R.string.MarkAsUnread), () -> {
+            if (unread) {
+                markAsRead(dialog.id);
+            } else {
+                getMessagesController().markDialogAsUnread(dialog.id, null, 0);
+            }
+        });
+        options.add(R.drawable.msg_select, LocaleController.getString(R.string.Select), () -> {
+            showOrUpdateActionMode(dialog.id, cell);
+        });
+        options.setGravity(Gravity.LEFT).show();
     }
 
     private void onArchiveLongPress(View view) {
