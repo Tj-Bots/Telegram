@@ -6865,6 +6865,12 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             return;
         }
         MessagesController.DialogFilter filter = getMessagesController().getDialogFilters().get(viewPages[a].selectedType);
+        // Both the tap-a-tab and the swipe-between-folders paths settle here, but only the tap
+        // path fires FilterTabsView's onPageSelected, so the drawer swipe gate has to be
+        // refreshed here too - otherwise it keeps the value it had on the All tab and the drawer
+        // opens on every folder. The filter is the authoritative source; FilterTabsView's own
+        // selectedTabId is not updated by the swipe path until later.
+        updateDrawerSwipeAllowed(filter.isDefault());
         if (filter.isDefault()) {
             viewPages[a].dialogsType = initialDialogsType;
             viewPages[a].listView.updatePullState();

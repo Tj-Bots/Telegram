@@ -523,7 +523,6 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         });
         drawerLayoutContainer.setClipChildren(false);
         drawerLayoutContainer.setClipToPadding(false);
-        createSideMenu();
 
         frameLayout.addView(drawerLayoutContainer, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
 
@@ -556,6 +555,10 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             }
         });
         setupActionBarLayout();
+        // The drawer has to be added after the content. DrawerLayoutContainer.drawChild reorders
+        // drawing so the drawer paints on top either way, but touch dispatch goes by child order,
+        // so a drawer added first sits under the content and every tap falls through to it.
+        createSideMenu();
         drawerLayoutContainer.setParentActionBarLayout(actionBarLayout);
         actionBarLayout.setDrawerLayoutContainer(drawerLayoutContainer);
         actionBarLayout.setFragmentStack(mainFragmentsStack);
