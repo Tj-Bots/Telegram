@@ -624,4 +624,9 @@ public class SideMenultItemAnimator extends SimpleItemAnimator {
     public boolean canReuseUpdatedViewHolder(RecyclerView.ViewHolder viewHolder, List<Object> payloads) {
         return !payloads.isEmpty() || super.canReuseUpdatedViewHolder(viewHolder, payloads);
     }
+
+    @Override
+    public void listenToAnimationUpdates(Runnable listener) {
+        // NO-OP, same as DialogsItemAnimator
+    }
 }

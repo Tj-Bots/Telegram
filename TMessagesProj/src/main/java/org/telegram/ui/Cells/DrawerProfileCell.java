@@ -52,6 +52,7 @@ import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
 import org.telegram.messenger.Utilities;
 import org.telegram.tgnet.TLRPC;
+import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.DrawerLayoutContainer;
 import org.telegram.ui.ActionBar.SimpleTextView;
 import org.telegram.ui.ActionBar.Theme;
@@ -229,12 +230,11 @@ public class DrawerProfileCell extends FrameLayout implements NotificationCenter
             darkThemeView.playAnimation();
             switchTheme(themeInfo, toDark);
 
-            if (drawerLayoutContainer != null ) {
-                FrameLayout layout = drawerLayoutContainer.getParent() instanceof FrameLayout ? (FrameLayout) drawerLayoutContainer.getParent() : null;
-                Theme.turnOffAutoNight(layout, () -> {
-                    drawerLayoutContainer.closeDrawer(false);
-                    drawerLayoutContainer.presentFragment(new ThemeActivity(ThemeActivity.THEME_TYPE_NIGHT));
-                });
+            if (drawerLayoutContainer != null && drawerLayoutContainer.getParentActionBarLayout() != null) {
+                BaseFragment lastFragment = drawerLayoutContainer.getParentActionBarLayout().getLastFragment();
+                if (lastFragment != null) {
+                    Theme.turnOffAutoNight(lastFragment);
+                }
             }
         });
         darkThemeView.setOnLongClickListener(e -> {
@@ -327,7 +327,7 @@ public class DrawerProfileCell extends FrameLayout implements NotificationCenter
                         (int) ((getMeasuredHeight() + renderedEffectsSize) / 2f)
                     );
                     effect.draw(canvas);
-                    if (effect.done()) {
+                    if (effect.isDone()) {
                         effect.removeView(this);
                         animations.remove(effect);
                     }
@@ -643,7 +643,7 @@ public class DrawerProfileCell extends FrameLayout implements NotificationCenter
         setArrowState(false);
         CharSequence text = UserObject.getUserName(user);
         try {
-            text = Emoji.replaceEmoji(text, nameTextView.getPaint().getFontMetricsInt(), AndroidUtilities.dp(22), false);
+            text = Emoji.replaceEmoji(text, nameTextView.getPaint().getFontMetricsInt(), false);
         } catch (Exception ignore) {}
 
         drawPremium = false;//user.premium;

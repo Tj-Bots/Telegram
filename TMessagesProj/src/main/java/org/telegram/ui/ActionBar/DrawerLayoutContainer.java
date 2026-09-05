@@ -207,16 +207,6 @@ public class DrawerLayoutContainer extends FrameLayout {
         if (drawerLayout.getVisibility() != newVisibility) {
             drawerLayout.setVisibility(newVisibility);
         }
-        if (!parentActionBarLayout.getFragmentStack().isEmpty()) {
-            BaseFragment currentFragment = parentActionBarLayout.getFragmentStack().get(0);
-            if (drawerPosition == drawerLayout.getMeasuredWidth()) {
-                currentFragment.setProgressToDrawerOpened(1f);
-            } else if (drawerPosition == 0) {
-                currentFragment.setProgressToDrawerOpened(0);
-            } else {
-                currentFragment.setProgressToDrawerOpened(drawerPosition / drawerLayout.getMeasuredWidth());
-            }
-        }
         setScrimOpacity(drawerPosition / (float) drawerLayout.getMeasuredWidth());
     }
 
