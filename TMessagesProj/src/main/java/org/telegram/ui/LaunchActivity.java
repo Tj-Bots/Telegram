@@ -8340,6 +8340,11 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         sideMenu.setAdapter(drawerLayoutAdapter = new DrawerLayoutAdapter(this, sideMenuItemAnimator, drawerLayoutContainer));
         sideMenuContainer.addView(sideMenu, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
         drawerLayoutContainer.setDrawerLayout(sideMenuContainer, sideMenu);
+        // The real container refuses to open unless this is switched on, and it defaults to off.
+        // Upstream toggles it from a dozen fragment-stack callbacks; here the drawer is only ever
+        // reachable from the root screen anyway - the swipe path already requires a fragment stack
+        // of one, and the hamburger only exists on the Chats tab - so it can simply stay on.
+        drawerLayoutContainer.setAllowOpenDrawer(true, false);
 
         FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) sideMenuContainer.getLayoutParams();
         Point screenSize = AndroidUtilities.getRealScreenSize();
@@ -8456,6 +8461,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         if (drawerLayoutAdapter != null) {
             drawerLayoutAdapter.notifyDataSetChanged();
         }
+        drawerLayoutContainer.setAllowOpenDrawer(true, false);
         drawerLayoutContainer.openDrawer(false);
     }
 
