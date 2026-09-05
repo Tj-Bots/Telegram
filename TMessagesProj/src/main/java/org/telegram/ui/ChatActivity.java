@@ -178,6 +178,7 @@ import org.telegram.messenger.MessagesStorage;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.NotificationsController;
 import org.telegram.messenger.R;
+import org.telegram.messenger.TjLocale;
 import org.telegram.messenger.SecretChatHelper;
 import org.telegram.messenger.SendMessagesHelper;
 import org.telegram.messenger.SharedConfig;
@@ -4506,7 +4507,7 @@ public class ChatActivity extends BaseFragment implements
                     LocaleController.getString(UserObject.isBotForum(currentUser) ? R.string.ClearAllHistory : R.string.ClearHistory));
             }
             headerItem.lazilyAddSubItem(jump_to_first_message, R.drawable.msg_go_up, "Go to first message");
-            pinnedVisibilityItem = headerItem.lazilyAddSubItem(toggle_pinned_visibility, R.drawable.msg_pin, LocaleController.getString(R.string.TjHidePinnedMessage));
+            pinnedVisibilityItem = headerItem.lazilyAddSubItem(toggle_pinned_visibility, R.drawable.msg_pin, TjLocale.getString(R.string.TjHidePinnedMessage));
             headerItem.hideSubItem(toggle_pinned_visibility);
             boolean addedSettings = false;
             if (!isTopic) {
@@ -10380,7 +10381,7 @@ public class ChatActivity extends BaseFragment implements
             actionModeViews.add(actionMode.addItemWithWidth(select_range, R.drawable.msg_select, dp(48), "Select range"));
             if (!isSavedMessages && getDialogId() != UserObject.VERIFY) {
                 actionModeViews.add(actionMode.addItemWithWidth(forward, R.drawable.msg_forward, dp(48), LocaleController.getString(R.string.Forward)));
-                actionModeViews.add(actionMode.addItemWithWidth(forward_no_tag, R.drawable.msg_forward, dp(48), LocaleController.getString(R.string.ForwardWithoutTag)));
+                actionModeViews.add(actionMode.addItemWithWidth(forward_no_tag, R.drawable.msg_forward, dp(48), TjLocale.getString(R.string.ForwardWithoutTag)));
             }
             actionModeViews.add(actionMode.addItemWithWidth(share, R.drawable.msg_shareout, dp(48), LocaleController.getString(R.string.ShareFile)));
             actionModeViews.add(actionMode.addItemWithWidth(delete, R.drawable.msg_delete, dp(48), LocaleController.getString(R.string.Delete)));
@@ -28412,7 +28413,7 @@ public class ChatActivity extends BaseFragment implements
                 headerItem.showSubItem(toggle_pinned_visibility);
                 SharedPreferences pinPrefs = MessagesController.getNotificationsSettings(currentAccount);
                 boolean isHidden = pinnedMessageIds.get(0) == pinPrefs.getInt("pin_" + dialog_id, 0);
-                String label = LocaleController.getString(isHidden ? R.string.TjShowPinnedMessage : R.string.TjHidePinnedMessage);
+                String label = TjLocale.getString(isHidden ? R.string.TjShowPinnedMessage : R.string.TjHidePinnedMessage);
                 if (pinnedVisibilityItem != null) {
                     pinnedVisibilityItem.text = label;
                 }
@@ -33453,7 +33454,7 @@ public class ChatActivity extends BaseFragment implements
                     toSave.add(selectedObject);
                 }
                 getSendMessagesHelper().sendMessage(toSave, getUserConfig().getClientUserId(), false, false, true, 0, 0);
-                BulletinFactory.of(this).createSimpleBulletin(R.raw.saved_messages, LocaleController.getString(R.string.TjSaveToSaved)).show();
+                BulletinFactory.of(this).createSimpleBulletin(R.raw.saved_messages, TjLocale.getString(R.string.TjSaveToSaved)).show();
                 break;
             }
             case OPTION_MESSAGE_INFO: {
@@ -46239,7 +46240,7 @@ public class ChatActivity extends BaseFragment implements
                                 options.add(OPTION_SAVE_TO_GALLERY);
                                 icons.add(R.drawable.msg_gallery);
                                 if (selectedObject.getDocument() != null && !selectedObject.getDocument().thumbs.isEmpty() && TjSettingsActivity.isCopyThumbnailEnabled()) {
-                                    items.add(LocaleController.getString(R.string.TjCopyThumbnail));
+                                    items.add(TjLocale.getString(R.string.TjCopyThumbnail));
                                     options.add(OPTION_COPY_VIDEO_THUMB);
                                     icons.add(R.drawable.msg_copy);
                                 }
@@ -46271,6 +46272,13 @@ public class ChatActivity extends BaseFragment implements
                                 items.add(LocaleController.getString(R.string.SaveToGallery));
                                 options.add(OPTION_SAVE_TO_GALLERY);
                                 icons.add(R.drawable.msg_gallery);
+                                // A photo sent as a photo lands here; type 6 only covers images
+                                // sent as files, so Copy Image has to be offered in both places.
+                                if (TjSettingsActivity.isCopyImageEnabled()) {
+                                    items.add(TjLocale.getString(R.string.TjCopyImage));
+                                    options.add(OPTION_COPY_IMAGE);
+                                    icons.add(R.drawable.msg_copy);
+                                }
                             }
                         }
                     }
@@ -46304,7 +46312,7 @@ public class ChatActivity extends BaseFragment implements
                         options.add(OPTION_SAVE_TO_GALLERY2);
                         icons.add(R.drawable.msg_gallery);
                         if (TjSettingsActivity.isCopyImageEnabled()) {
-                            items.add(LocaleController.getString(R.string.TjCopyImage));
+                            items.add(TjLocale.getString(R.string.TjCopyImage));
                             options.add(OPTION_COPY_IMAGE);
                             icons.add(R.drawable.msg_copy);
                         }
@@ -46395,7 +46403,7 @@ public class ChatActivity extends BaseFragment implements
                     options.add(OPTION_FORWARD);
                     icons.add(R.drawable.msg_forward);
                     if (TjSettingsActivity.isForwardWithoutTagEnabled()) {
-                        items.add(LocaleController.getString(R.string.ForwardWithoutTag));
+                        items.add(TjLocale.getString(R.string.ForwardWithoutTag));
                         options.add(OPTION_FORWARD_NO_TAG);
                         icons.add(R.drawable.msg_forward);
                     }
@@ -46447,7 +46455,7 @@ public class ChatActivity extends BaseFragment implements
                     }
                 }
                 if (selectedObject != null && selectedObject.getId() > 0 && currentChat == null && TjSettingsActivity.isCopyMessageLinkEnabled()) {
-                    items.add(LocaleController.getString(R.string.TjCopyMessageLink));
+                    items.add(TjLocale.getString(R.string.TjCopyMessageLink));
                     options.add(OPTION_COPY_DEEPLINK);
                     icons.add(R.drawable.msg_link2);
                 }
@@ -46556,12 +46564,12 @@ public class ChatActivity extends BaseFragment implements
 
         // TJ items always close the menu: message info second from the bottom, save to saved last.
         if (message != null && message.getId() > 0 && !options.contains(OPTION_MESSAGE_INFO) && TjSettingsActivity.isMessageInfoEnabled()) {
-            items.add(LocaleController.getString(R.string.TjMessageInfo));
+            items.add(TjLocale.getString(R.string.TjMessageInfo));
             options.add(OPTION_MESSAGE_INFO);
             icons.add(R.drawable.msg_info);
         }
         if (canSaveToSavedMessages(message) && !options.contains(OPTION_SAVE_TO_SAVED) && TjSettingsActivity.isSaveToSavedEnabled()) {
-            items.add(LocaleController.getString(R.string.TjSaveToSaved));
+            items.add(TjLocale.getString(R.string.TjSaveToSaved));
             options.add(OPTION_SAVE_TO_SAVED);
             icons.add(R.drawable.msg_saved);
         }

@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
+import org.telegram.messenger.TjLocale;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
@@ -174,7 +175,7 @@ public class TjSettingsActivity extends BaseFragment {
     public View createView(Context context) {
         actionBar.setBackButtonImage(R.drawable.ic_ab_back);
         actionBar.setAllowOverlayTitle(true);
-        actionBar.setTitle(LocaleController.getString(R.string.TjSettings));
+        actionBar.setTitle(TjLocale.getString(R.string.TjSettings));
         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(int id) {
@@ -213,23 +214,23 @@ public class TjSettingsActivity extends BaseFragment {
 
     private void updateItems() {
         items.clear();
-        items.add(new Item(VIEW_TYPE_HEADER, 0, LocaleController.getString(R.string.TjGeneralHeader)));
-        items.add(new Item(VIEW_TYPE_CHECK, ID_HIDE_PHONE, LocaleController.getString(R.string.TjHidePhoneNumber)));
-        items.add(new Item(VIEW_TYPE_SHADOW, 0, LocaleController.getString(R.string.TjHidePhoneNumberInfo)));
-        items.add(new Item(VIEW_TYPE_HEADER, 0, LocaleController.getString(R.string.TjChatIdHeader)));
-        items.add(new Item(VIEW_TYPE_CHECK, ID_BOT_API_IDS, LocaleController.getString(R.string.TjBotApiIds)));
-        items.add(new Item(VIEW_TYPE_SHADOW, 0, LocaleController.getString(R.string.TjBotApiIdsInfo)));
-        items.add(new Item(VIEW_TYPE_HEADER, 0, LocaleController.getString(R.string.TjChatsHeader)));
-        items.add(new Item(VIEW_TYPE_CHECK, ID_SHOW_CALL_BUTTON, LocaleController.getString(R.string.TjShowCallButton)));
-        items.add(new Item(VIEW_TYPE_SHADOW, 0, LocaleController.getString(R.string.TjShowCallButtonInfo)));
-        items.add(new Item(VIEW_TYPE_HEADER, 0, LocaleController.getString(R.string.TjMessageMenuHeader)));
-        items.add(new Item(VIEW_TYPE_CHECK, ID_MENU_MESSAGE_INFO, LocaleController.getString(R.string.TjMessageInfo)));
-        items.add(new Item(VIEW_TYPE_CHECK, ID_MENU_SAVE_TO_SAVED, LocaleController.getString(R.string.TjSaveToSaved)));
-        items.add(new Item(VIEW_TYPE_CHECK, ID_MENU_COPY_LINK, LocaleController.getString(R.string.TjCopyMessageLink)));
-        items.add(new Item(VIEW_TYPE_CHECK, ID_MENU_COPY_IMAGE, LocaleController.getString(R.string.TjCopyImage)));
-        items.add(new Item(VIEW_TYPE_CHECK, ID_MENU_COPY_THUMB, LocaleController.getString(R.string.TjCopyThumbnail)));
-        items.add(new Item(VIEW_TYPE_CHECK, ID_MENU_FORWARD_NO_TAG, LocaleController.getString(R.string.TjForwardWithoutTag)));
-        items.add(new Item(VIEW_TYPE_SHADOW, 0, LocaleController.getString(R.string.TjMessageMenuInfo)));
+        items.add(new Item(VIEW_TYPE_HEADER, 0, TjLocale.getString(R.string.TjGeneralHeader)));
+        items.add(new Item(VIEW_TYPE_CHECK, ID_HIDE_PHONE, TjLocale.getString(R.string.TjHidePhoneNumber)));
+        items.add(new Item(VIEW_TYPE_SHADOW, 0, TjLocale.getString(R.string.TjHidePhoneNumberInfo)));
+        items.add(new Item(VIEW_TYPE_HEADER, 0, TjLocale.getString(R.string.TjChatIdHeader)));
+        items.add(new Item(VIEW_TYPE_CHECK, ID_BOT_API_IDS, TjLocale.getString(R.string.TjBotApiIds)));
+        items.add(new Item(VIEW_TYPE_SHADOW, 0, TjLocale.getString(R.string.TjBotApiIdsInfo)));
+        items.add(new Item(VIEW_TYPE_HEADER, 0, TjLocale.getString(R.string.TjChatsHeader)));
+        items.add(new Item(VIEW_TYPE_CHECK, ID_SHOW_CALL_BUTTON, TjLocale.getString(R.string.TjShowCallButton)));
+        items.add(new Item(VIEW_TYPE_SHADOW, 0, TjLocale.getString(R.string.TjShowCallButtonInfo)));
+        items.add(new Item(VIEW_TYPE_HEADER, 0, TjLocale.getString(R.string.TjMessageMenuHeader)));
+        items.add(new Item(VIEW_TYPE_CHECK, ID_MENU_MESSAGE_INFO, TjLocale.getString(R.string.TjMessageInfo)));
+        items.add(new Item(VIEW_TYPE_CHECK, ID_MENU_SAVE_TO_SAVED, TjLocale.getString(R.string.TjSaveToSaved)));
+        items.add(new Item(VIEW_TYPE_CHECK, ID_MENU_COPY_LINK, TjLocale.getString(R.string.TjCopyMessageLink)));
+        items.add(new Item(VIEW_TYPE_CHECK, ID_MENU_COPY_IMAGE, TjLocale.getString(R.string.TjCopyImage)));
+        items.add(new Item(VIEW_TYPE_CHECK, ID_MENU_COPY_THUMB, TjLocale.getString(R.string.TjCopyThumbnail)));
+        items.add(new Item(VIEW_TYPE_CHECK, ID_MENU_FORWARD_NO_TAG, TjLocale.getString(R.string.TjForwardWithoutTag)));
+        items.add(new Item(VIEW_TYPE_SHADOW, 0, TjLocale.getString(R.string.TjMessageMenuInfo)));
     }
 
     private class ListAdapter extends RecyclerListView.SelectionAdapter {

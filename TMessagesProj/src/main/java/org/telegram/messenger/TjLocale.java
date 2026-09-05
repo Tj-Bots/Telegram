@@ -1,0 +1,348 @@
+package org.telegram.messenger;
+
+import android.text.TextUtils;
+
+import androidx.annotation.StringRes;
+
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * Translations for the strings this fork adds.
+ *
+ * Telegram resolves UI text through its own cloud language packs and only falls back to Android
+ * string resources for keys the server does not know about - which is every key we add. That
+ * fallback goes through the application context's resource configuration, which is not a reliable
+ * way to pick a values-xx folder here: the in-app language is chosen independently of the device
+ * locale, and Java still reports Hebrew as the obsolete code "iw", so values-he was never matched
+ * and every string we added rendered in English.
+ *
+ * So we do the lookup ourselves, keyed off the language the user actually picked inside the app.
+ */
+public class TjLocale {
+
+    private static final Map<String, Map<String, String>> TRANSLATIONS = new HashMap<>();
+
+    static {
+        Map<String, String> m;
+
+        m = new HashMap<>();
+        m.put("TjArchivedChats", "\u05e6\u05f3\u05d0\u05d8\u05d9\u05dd \u05d1\u05d0\u05e8\u05db\u05d9\u05d5\u05df");
+        m.put("TjBotApiIds", "\u05d4\u05e6\u05d2 \u05de\u05d6\u05d4\u05d9 \u05e6\u05f3\u05d0\u05d8 \u05d1\u05e4\u05d5\u05e8\u05de\u05d8 bot API");
+        m.put("TjBotApiIdsInfo", "\u05de\u05e6\u05d9\u05d2 \u200e-100\u2026\u200e \u05dc\u05e1\u05d5\u05e4\u05e8-\u05d2\u05e8\u05d5\u05e4\u05d9\u05dd \u05d5\u05e2\u05e8\u05d5\u05e6\u05d9\u05dd \u05d1\u05de\u05e7\u05d5\u05dd \u05d4\u05de\u05d6\u05d4\u05d4 \u05d4\u05e4\u05e0\u05d9\u05de\u05d9 \u05d4\u05d2\u05d5\u05dc\u05de\u05d9.");
+        m.put("TjBots", "\u05d1\u05d5\u05d8\u05d9\u05dd");
+        m.put("TjChannels", "\u05e2\u05e8\u05d5\u05e6\u05d9\u05dd");
+        m.put("TjChatCounters", "\u05de\u05d5\u05e0\u05d9 \u05e6\u05f3\u05d0\u05d8\u05d9\u05dd");
+        m.put("TjChatCountersInfo", "\u05d4\u05de\u05d5\u05e0\u05d9\u05dd \u05de\u05d7\u05d5\u05e9\u05d1\u05d9\u05dd \u05de\u05d4\u05e6'\u05d0\u05d8\u05d9\u05dd \u05e9\u05db\u05d1\u05e8 \u05e0\u05d8\u05e2\u05e0\u05d5 \u05d1\u05de\u05db\u05e9\u05d9\u05e8 \u05d4\u05d6\u05d4.");
+        m.put("TjChatCountersLoading", "\u05e1\u05d5\u05e4\u05e8 \u05d0\u05ea \u05d4\u05e6'\u05d0\u05d8\u05d9\u05dd \u05e9\u05dc\u05da\u2026");
+        m.put("TjChatIdHeader", "\u05de\u05d6\u05d4\u05d9 \u05e6'\u05d0\u05d8");
+        m.put("TjChatsHeader", "\u05e6'\u05d0\u05d8\u05d9\u05dd");
+        m.put("TjContactsCount", "\u05d0\u05e0\u05e9\u05d9 \u05e7\u05e9\u05e8");
+        m.put("TjCopyImage", "\u05d4\u05e2\u05ea\u05e7 \u05ea\u05de\u05d5\u05e0\u05d4");
+        m.put("TjCopyMessageLink", "\u05d4\u05e2\u05ea\u05e7 \u05e7\u05d9\u05e9\u05d5\u05e8 \u05dc\u05d4\u05d5\u05d3\u05e2\u05d4");
+        m.put("TjCopyThumbnail", "\u05d4\u05e2\u05ea\u05e7 \u05ea\u05de\u05d5\u05e0\u05d4 \u05de\u05de\u05d5\u05d6\u05e2\u05e8\u05ea");
+        m.put("TjFilterAdmins", "\u05de\u05e0\u05d4\u05dc\u05d9\u05dd \u05d1\u05dc\u05d1\u05d3");
+        m.put("TjFilterAll", "\u05db\u05dc \u05d4\u05d7\u05d1\u05e8\u05d9\u05dd");
+        m.put("TjFilterBots", "\u05d1\u05d5\u05d8\u05d9\u05dd \u05d1\u05dc\u05d1\u05d3");
+        m.put("TjFilterContacts", "\u05d0\u05e0\u05e9\u05d9 \u05e7\u05e9\u05e8 \u05d1\u05dc\u05d1\u05d3");
+        m.put("TjFilterMembers", "\u05e1\u05d9\u05e0\u05d5\u05df \u05d7\u05d1\u05e8\u05d9\u05dd");
+        m.put("TjFilterMembersOnly", "\u05d7\u05d1\u05e8\u05d9\u05dd \u05d1\u05dc\u05d1\u05d3");
+        m.put("TjFoldersCount", "\u05ea\u05d9\u05e7\u05d9\u05d5\u05ea");
+        m.put("TjForwardWithoutTag", "\u05d4\u05e2\u05d1\u05e8\u05d4 \u05d1\u05dc\u05d9 \u05ea\u05d2 \u05d4\u05d5\u05e2\u05d1\u05e8");
+        m.put("TjGeneralHeader", "\u05db\u05dc\u05dc\u05d9");
+        m.put("TjGroups", "\u05e7\u05d1\u05d5\u05e6\u05d5\u05ea");
+        m.put("TjHidePhoneNumber", "\u05d4\u05e1\u05ea\u05e8 \u05d0\u05ea \u05de\u05e1\u05e4\u05e8 \u05d4\u05d8\u05dc\u05e4\u05d5\u05df \u05e9\u05dc\u05d9");
+        m.put("TjHidePhoneNumberInfo", "\u05de\u05e1\u05ea\u05d9\u05e8 \u05d0\u05ea \u05de\u05e1\u05e4\u05e8 \u05d4\u05d8\u05dc\u05e4\u05d5\u05df \u05e9\u05dc\u05da \u05d1\u05ea\u05e4\u05e8\u05d9\u05d8 \u05d4\u05e6\u05d3 \u05d5\u05d1\u05e4\u05e8\u05d5\u05e4\u05d9\u05dc \u05e9\u05dc\u05da.");
+        m.put("TjHidePinnedMessage", "\u05d4\u05e1\u05ea\u05e8 \u05d4\u05d5\u05d3\u05e2\u05d4 \u05de\u05d5\u05e6\u05de\u05d3\u05ea");
+        m.put("TjMessageInfo", "\u05e4\u05e8\u05d8\u05d9 \u05d4\u05d5\u05d3\u05e2\u05d4");
+        m.put("TjMessageMenuHeader", "\u05ea\u05e4\u05e8\u05d9\u05d8 \u05d4\u05d5\u05d3\u05e2\u05d4");
+        m.put("TjMessageMenuInfo", "\u05d1\u05d7\u05e8 \u05d0\u05d9\u05dc\u05d5 \u05de\u05d4\u05db\u05e4\u05ea\u05d5\u05e8\u05d9\u05dd \u05e9\u05dc TJ \u05d9\u05d5\u05e6\u05d2\u05d5 \u05d1\u05dc\u05d7\u05d9\u05e6\u05d4 \u05d0\u05e8\u05d5\u05db\u05d4 \u05e2\u05dc \u05d4\u05d5\u05d3\u05e2\u05d4.");
+        m.put("TjMutedChats", "\u05e6\u05f3\u05d0\u05d8\u05d9\u05dd \u05de\u05d5\u05e9\u05ea\u05e7\u05d9\u05dd");
+        m.put("TjMyProfile", "\u05d4\u05e4\u05e8\u05d5\u05e4\u05d9\u05dc \u05e9\u05dc\u05d9");
+        m.put("TjPrivateChats", "\u05e6\u05f3\u05d0\u05d8\u05d9\u05dd \u05e4\u05e8\u05d8\u05d9\u05d9\u05dd");
+        m.put("TjSaveToSaved", "\u05e9\u05de\u05d5\u05e8 \u05d1\u05d4\u05d5\u05d3\u05e2\u05d5\u05ea \u05e9\u05de\u05d5\u05e8\u05d5\u05ea");
+        m.put("TjSettings", "\u05d4\u05d2\u05d3\u05e8\u05d5\u05ea TJ");
+        m.put("TjShowCallButton", "\u05d4\u05e6\u05d2 \u05db\u05e4\u05ea\u05d5\u05e8 \u05e9\u05d9\u05d7\u05d4 \u05d1\u05e6\u05f3\u05d0\u05d8\u05d9\u05dd \u05e4\u05e8\u05d8\u05d9\u05d9\u05dd");
+        m.put("TjShowCallButtonInfo", "\u05db\u05d1\u05e8\u05d9\u05e8\u05ea \u05de\u05d7\u05d3\u05dc \u05de\u05d5\u05e6\u05d2 \u05e1\u05de\u05dc \u05d7\u05d9\u05e4\u05d5\u05e9 \u05d1\u05de\u05e7\u05d5\u05dd \u05e1\u05de\u05dc \u05d4\u05e9\u05d9\u05d7\u05d4 \u05d1\u05e6\u05f3\u05d0\u05d8\u05d9\u05dd \u05e4\u05e8\u05d8\u05d9\u05d9\u05dd.");
+        m.put("TjShowPinnedMessage", "\u05d4\u05e6\u05d2 \u05d4\u05d5\u05d3\u05e2\u05d4 \u05de\u05d5\u05e6\u05de\u05d3\u05ea");
+        m.put("TjTotalChats", "\u05e1\u05d4\u05f4\u05db \u05e6\u05f3\u05d0\u05d8\u05d9\u05dd");
+        m.put("TjUnreadChats", "\u05e6\u05f3\u05d0\u05d8\u05d9\u05dd \u05e9\u05dc\u05d0 \u05e0\u05e7\u05e8\u05d0\u05d5");
+        TRANSLATIONS.put("he", m);
+
+        m = new HashMap<>();
+        m.put("TjArchivedChats", "\u0627\u0644\u062f\u0631\u062f\u0634\u0627\u062a \u0627\u0644\u0645\u0624\u0631\u0634\u0641\u0629");
+        m.put("TjBotApiIds", "\u0625\u0638\u0647\u0627\u0631 \u0645\u0639\u0631\u0641\u0627\u062a \u0627\u0644\u062f\u0631\u062f\u0634\u0629 \u0628\u062a\u0646\u0633\u064a\u0642 bot API");
+        m.put("TjBotApiIdsInfo", "\u064a\u0639\u0631\u0636 \u200e-100\u2026\u200e \u0644\u0644\u0645\u062c\u0645\u0648\u0639\u0627\u062a \u0627\u0644\u0643\u0628\u064a\u0631\u0629 \u0648\u0627\u0644\u0642\u0646\u0648\u0627\u062a \u0628\u062f\u0644\u0627\u064b \u0645\u0646 \u0627\u0644\u0645\u0639\u0631\u0641 \u0627\u0644\u062f\u0627\u062e\u0644\u064a.");
+        m.put("TjBots", "\u0627\u0644\u0628\u0648\u062a\u0627\u062a");
+        m.put("TjChannels", "\u0627\u0644\u0642\u0646\u0648\u0627\u062a");
+        m.put("TjChatCounters", "\u0639\u062f\u0627\u062f\u0627\u062a \u0627\u0644\u062f\u0631\u062f\u0634\u0629");
+        m.put("TjChatCountersInfo", "\u064a\u062a\u0645 \u062d\u0633\u0627\u0628 \u0627\u0644\u0623\u0631\u0642\u0627\u0645 \u0645\u0646 \u0627\u0644\u0645\u062d\u0627\u062f\u062b\u0627\u062a \u0627\u0644\u0645\u062d\u0645\u0651\u0644\u0629 \u0639\u0644\u0649 \u0647\u0630\u0627 \u0627\u0644\u062c\u0647\u0627\u0632.");
+        m.put("TjChatCountersLoading", "\u062c\u0627\u0631\u064d \u062d\u0633\u0627\u0628 \u0645\u062d\u0627\u062f\u062b\u0627\u062a\u0643\u2026");
+        m.put("TjChatIdHeader", "\u0645\u0639\u0631\u0651\u0641\u0627\u062a \u0627\u0644\u0645\u062d\u0627\u062f\u062b\u0627\u062a");
+        m.put("TjChatsHeader", "\u0627\u0644\u0645\u062d\u0627\u062f\u062b\u0627\u062a");
+        m.put("TjContactsCount", "\u062c\u0647\u0627\u062a \u0627\u0644\u0627\u062a\u0635\u0627\u0644");
+        m.put("TjCopyImage", "\u0646\u0633\u062e \u0627\u0644\u0635\u0648\u0631\u0629");
+        m.put("TjCopyMessageLink", "\u0646\u0633\u062e \u0631\u0627\u0628\u0637 \u0627\u0644\u0631\u0633\u0627\u0644\u0629");
+        m.put("TjCopyThumbnail", "\u0646\u0633\u062e \u0627\u0644\u0635\u0648\u0631\u0629 \u0627\u0644\u0645\u0635\u063a\u0631\u0629");
+        m.put("TjFilterAdmins", "\u0627\u0644\u0645\u0634\u0631\u0641\u0648\u0646 \u0641\u0642\u0637");
+        m.put("TjFilterAll", "\u0643\u0644 \u0627\u0644\u0623\u0639\u0636\u0627\u0621");
+        m.put("TjFilterBots", "\u0627\u0644\u0628\u0648\u062a\u0627\u062a \u0641\u0642\u0637");
+        m.put("TjFilterContacts", "\u062c\u0647\u0627\u062a \u0627\u0644\u0627\u062a\u0635\u0627\u0644 \u0641\u0642\u0637");
+        m.put("TjFilterMembers", "\u062a\u0635\u0641\u064a\u0629 \u0627\u0644\u0623\u0639\u0636\u0627\u0621");
+        m.put("TjFilterMembersOnly", "\u0627\u0644\u0623\u0639\u0636\u0627\u0621 \u0641\u0642\u0637");
+        m.put("TjFoldersCount", "\u0627\u0644\u0645\u062c\u0644\u062f\u0627\u062a");
+        m.put("TjForwardWithoutTag", "\u0625\u0639\u0627\u062f\u0629 \u062a\u0648\u062c\u064a\u0647 \u0628\u062f\u0648\u0646 \u0639\u0644\u0627\u0645\u0629");
+        m.put("TjGeneralHeader", "\u0639\u0627\u0645");
+        m.put("TjGroups", "\u0627\u0644\u0645\u062c\u0645\u0648\u0639\u0627\u062a");
+        m.put("TjHidePhoneNumber", "\u0625\u062e\u0641\u0627\u0621 \u0631\u0642\u0645 \u0647\u0627\u062a\u0641\u064a");
+        m.put("TjHidePhoneNumberInfo", "\u064a\u062e\u0641\u064a \u0631\u0642\u0645 \u0647\u0627\u062a\u0641\u0643 \u0641\u064a \u0627\u0644\u0642\u0627\u0626\u0645\u0629 \u0627\u0644\u062c\u0627\u0646\u0628\u064a\u0629 \u0648\u0641\u064a \u0645\u0644\u0641\u0643 \u0627\u0644\u0634\u062e\u0635\u064a.");
+        m.put("TjHidePinnedMessage", "\u0625\u062e\u0641\u0627\u0621 \u0627\u0644\u0631\u0633\u0627\u0644\u0629 \u0627\u0644\u0645\u062b\u0628\u062a\u0629");
+        m.put("TjMessageInfo", "\u0645\u0639\u0644\u0648\u0645\u0627\u062a \u0627\u0644\u0631\u0633\u0627\u0644\u0629");
+        m.put("TjMessageMenuHeader", "\u0642\u0627\u0626\u0645\u0629 \u0627\u0644\u0631\u0633\u0627\u0644\u0629");
+        m.put("TjMessageMenuInfo", "\u0627\u062e\u062a\u0631 \u0639\u0646\u0627\u0635\u0631 TJ \u0627\u0644\u062a\u064a \u062a\u0638\u0647\u0631 \u0639\u0646\u062f \u0627\u0644\u0636\u063a\u0637 \u0645\u0637\u0648\u0644\u0627\u064b \u0639\u0644\u0649 \u0631\u0633\u0627\u0644\u0629.");
+        m.put("TjMutedChats", "\u0627\u0644\u062f\u0631\u062f\u0634\u0627\u062a \u0627\u0644\u0645\u0643\u062a\u0648\u0645\u0629");
+        m.put("TjMyProfile", "\u0645\u0644\u0641\u064a \u0627\u0644\u0634\u062e\u0635\u064a");
+        m.put("TjPrivateChats", "\u0627\u0644\u062f\u0631\u062f\u0634\u0627\u062a \u0627\u0644\u062e\u0627\u0635\u0629");
+        m.put("TjSaveToSaved", "\u062d\u0641\u0638 \u0641\u064a \u0627\u0644\u0631\u0633\u0627\u0626\u0644 \u0627\u0644\u0645\u062d\u0641\u0648\u0638\u0629");
+        m.put("TjSettings", "\u0625\u0639\u062f\u0627\u062f\u0627\u062a TJ");
+        m.put("TjShowCallButton", "\u0625\u0638\u0647\u0627\u0631 \u0632\u0631 \u0627\u0644\u0627\u062a\u0635\u0627\u0644 \u0641\u064a \u0627\u0644\u0645\u062d\u0627\u062f\u062b\u0627\u062a \u0627\u0644\u062e\u0627\u0635\u0629");
+        m.put("TjShowCallButtonInfo", "\u0627\u0641\u062a\u0631\u0627\u0636\u064a\u064b\u0627 \u064a\u0638\u0647\u0631 \u0631\u0645\u0632 \u0627\u0644\u0628\u062d\u062b \u0628\u062f\u0644\u0627\u064b \u0645\u0646 \u0631\u0645\u0632 \u0627\u0644\u0627\u062a\u0635\u0627\u0644 \u0641\u064a \u0627\u0644\u0645\u062d\u0627\u062f\u062b\u0627\u062a \u0627\u0644\u062e\u0627\u0635\u0629.");
+        m.put("TjShowPinnedMessage", "\u0625\u0638\u0647\u0627\u0631 \u0627\u0644\u0631\u0633\u0627\u0644\u0629 \u0627\u0644\u0645\u062b\u0628\u062a\u0629");
+        m.put("TjTotalChats", "\u0625\u062c\u0645\u0627\u0644\u064a \u0627\u0644\u062f\u0631\u062f\u0634\u0627\u062a");
+        m.put("TjUnreadChats", "\u0627\u0644\u062f\u0631\u062f\u0634\u0627\u062a \u063a\u064a\u0631 \u0627\u0644\u0645\u0642\u0631\u0648\u0621\u0629");
+        TRANSLATIONS.put("ar", m);
+
+        m = new HashMap<>();
+        m.put("TjArchivedChats", "\u0410\u0440\u0445\u0438\u0432\u043d\u044b\u0435 \u0447\u0430\u0442\u044b");
+        m.put("TjBotApiIds", "\u041f\u043e\u043a\u0430\u0437\u044b\u0432\u0430\u0442\u044c ID \u0447\u0430\u0442\u043e\u0432 \u0432 \u0444\u043e\u0440\u043c\u0430\u0442\u0435 bot API");
+        m.put("TjBotApiIdsInfo", "\u041f\u043e\u043a\u0430\u0437\u044b\u0432\u0430\u0435\u0442 \u200e-100\u2026\u200e \u0434\u043b\u044f \u0441\u0443\u043f\u0435\u0440\u0433\u0440\u0443\u043f\u043f \u0438 \u043a\u0430\u043d\u0430\u043b\u043e\u0432 \u0432\u043c\u0435\u0441\u0442\u043e \u0432\u043d\u0443\u0442\u0440\u0435\u043d\u043d\u0435\u0433\u043e ID.");
+        m.put("TjBots", "\u0411\u043e\u0442\u044b");
+        m.put("TjChannels", "\u041a\u0430\u043d\u0430\u043b\u044b");
+        m.put("TjChatCounters", "\u0421\u0447\u0451\u0442\u0447\u0438\u043a\u0438 \u0447\u0430\u0442\u043e\u0432");
+        m.put("TjChatCountersInfo", "\u0421\u0447\u0451\u0442\u0447\u0438\u043a\u0438 \u0441\u0447\u0438\u0442\u0430\u044e\u0442\u0441\u044f \u043f\u043e \u0447\u0430\u0442\u0430\u043c, \u0443\u0436\u0435 \u0437\u0430\u0433\u0440\u0443\u0436\u0435\u043d\u043d\u044b\u043c \u043d\u0430 \u044d\u0442\u043e\u043c \u0443\u0441\u0442\u0440\u043e\u0439\u0441\u0442\u0432\u0435.");
+        m.put("TjChatCountersLoading", "\u0421\u0447\u0438\u0442\u0430\u0435\u043c \u0432\u0430\u0448\u0438 \u0447\u0430\u0442\u044b\u2026");
+        m.put("TjChatIdHeader", "ID \u0447\u0430\u0442\u043e\u0432");
+        m.put("TjChatsHeader", "\u0427\u0430\u0442\u044b");
+        m.put("TjContactsCount", "\u041a\u043e\u043d\u0442\u0430\u043a\u0442\u044b");
+        m.put("TjCopyImage", "\u041a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u0438\u0437\u043e\u0431\u0440\u0430\u0436\u0435\u043d\u0438\u0435");
+        m.put("TjCopyMessageLink", "\u0421\u043a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u0441\u0441\u044b\u043b\u043a\u0443 \u043d\u0430 \u0441\u043e\u043e\u0431\u0449\u0435\u043d\u0438\u0435");
+        m.put("TjCopyThumbnail", "\u041a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u043c\u0438\u043d\u0438\u0430\u0442\u044e\u0440\u0443");
+        m.put("TjFilterAdmins", "\u0422\u043e\u043b\u044c\u043a\u043e \u0430\u0434\u043c\u0438\u043d\u0438\u0441\u0442\u0440\u0430\u0442\u043e\u0440\u044b");
+        m.put("TjFilterAll", "\u0412\u0441\u0435 \u0443\u0447\u0430\u0441\u0442\u043d\u0438\u043a\u0438");
+        m.put("TjFilterBots", "\u0422\u043e\u043b\u044c\u043a\u043e \u0431\u043e\u0442\u044b");
+        m.put("TjFilterContacts", "\u0422\u043e\u043b\u044c\u043a\u043e \u043a\u043e\u043d\u0442\u0430\u043a\u0442\u044b");
+        m.put("TjFilterMembers", "\u0424\u0438\u043b\u044c\u0442\u0440 \u0443\u0447\u0430\u0441\u0442\u043d\u0438\u043a\u043e\u0432");
+        m.put("TjFilterMembersOnly", "\u0422\u043e\u043b\u044c\u043a\u043e \u0443\u0447\u0430\u0441\u0442\u043d\u0438\u043a\u0438");
+        m.put("TjFoldersCount", "\u041f\u0430\u043f\u043a\u0438");
+        m.put("TjForwardWithoutTag", "\u041f\u0435\u0440\u0435\u0441\u043b\u0430\u0442\u044c \u0431\u0435\u0437 \u043c\u0435\u0442\u043a\u0438");
+        m.put("TjGeneralHeader", "\u041e\u0441\u043d\u043e\u0432\u043d\u044b\u0435");
+        m.put("TjGroups", "\u0413\u0440\u0443\u043f\u043f\u044b");
+        m.put("TjHidePhoneNumber", "\u0421\u043a\u0440\u044b\u0442\u044c \u043c\u043e\u0439 \u043d\u043e\u043c\u0435\u0440 \u0442\u0435\u043b\u0435\u0444\u043e\u043d\u0430");
+        m.put("TjHidePhoneNumberInfo", "\u0421\u043a\u0440\u044b\u0432\u0430\u0435\u0442 \u0432\u0430\u0448 \u043d\u043e\u043c\u0435\u0440 \u0432 \u0431\u043e\u043a\u043e\u0432\u043e\u043c \u043c\u0435\u043d\u044e \u0438 \u0432 \u0432\u0430\u0448\u0435\u043c \u043f\u0440\u043e\u0444\u0438\u043b\u0435.");
+        m.put("TjHidePinnedMessage", "\u0421\u043a\u0440\u044b\u0442\u044c \u0437\u0430\u043a\u0440\u0435\u043f\u043b\u0451\u043d\u043d\u043e\u0435 \u0441\u043e\u043e\u0431\u0449\u0435\u043d\u0438\u0435");
+        m.put("TjMessageInfo", "\u0418\u043d\u0444\u043e\u0440\u043c\u0430\u0446\u0438\u044f \u043e \u0441\u043e\u043e\u0431\u0449\u0435\u043d\u0438\u0438");
+        m.put("TjMessageMenuHeader", "\u041c\u0435\u043d\u044e \u0441\u043e\u043e\u0431\u0449\u0435\u043d\u0438\u044f");
+        m.put("TjMessageMenuInfo", "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435, \u043a\u0430\u043a\u0438\u0435 \u043f\u0443\u043d\u043a\u0442\u044b TJ \u043f\u043e\u043a\u0430\u0437\u044b\u0432\u0430\u0442\u044c \u043f\u0440\u0438 \u0434\u043e\u043b\u0433\u043e\u043c \u043d\u0430\u0436\u0430\u0442\u0438\u0438 \u043d\u0430 \u0441\u043e\u043e\u0431\u0449\u0435\u043d\u0438\u0435.");
+        m.put("TjMutedChats", "\u041e\u0442\u043a\u043b\u044e\u0447\u0451\u043d\u043d\u044b\u0435 \u0447\u0430\u0442\u044b");
+        m.put("TjMyProfile", "\u041c\u043e\u0439 \u043f\u0440\u043e\u0444\u0438\u043b\u044c");
+        m.put("TjPrivateChats", "\u041b\u0438\u0447\u043d\u044b\u0435 \u0447\u0430\u0442\u044b");
+        m.put("TjSaveToSaved", "\u0421\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c \u0432 \u0418\u0437\u0431\u0440\u0430\u043d\u043d\u043e\u0435");
+        m.put("TjSettings", "\u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438 TJ");
+        m.put("TjShowCallButton", "\u041f\u043e\u043a\u0430\u0437\u044b\u0432\u0430\u0442\u044c \u043a\u043d\u043e\u043f\u043a\u0443 \u0437\u0432\u043e\u043d\u043a\u0430 \u0432 \u043b\u0438\u0447\u043d\u044b\u0445 \u0447\u0430\u0442\u0430\u0445");
+        m.put("TjShowCallButtonInfo", "\u041f\u043e \u0443\u043c\u043e\u043b\u0447\u0430\u043d\u0438\u044e \u0432 \u043b\u0438\u0447\u043d\u044b\u0445 \u0447\u0430\u0442\u0430\u0445 \u043f\u043e\u043a\u0430\u0437\u044b\u0432\u0430\u0435\u0442\u0441\u044f \u0437\u043d\u0430\u0447\u043e\u043a \u043f\u043e\u0438\u0441\u043a\u0430 \u0432\u043c\u0435\u0441\u0442\u043e \u0437\u043d\u0430\u0447\u043a\u0430 \u0437\u0432\u043e\u043d\u043a\u0430.");
+        m.put("TjShowPinnedMessage", "\u041f\u043e\u043a\u0430\u0437\u0430\u0442\u044c \u0437\u0430\u043a\u0440\u0435\u043f\u043b\u0451\u043d\u043d\u043e\u0435 \u0441\u043e\u043e\u0431\u0449\u0435\u043d\u0438\u0435");
+        m.put("TjTotalChats", "\u0412\u0441\u0435\u0433\u043e \u0447\u0430\u0442\u043e\u0432");
+        m.put("TjUnreadChats", "\u041d\u0435\u043f\u0440\u043e\u0447\u0438\u0442\u0430\u043d\u043d\u044b\u0435 \u0447\u0430\u0442\u044b");
+        TRANSLATIONS.put("ru", m);
+
+        m = new HashMap<>();
+        m.put("TjArchivedChats", "Discussions archiv\u00e9es");
+        m.put("TjBotApiIds", "Afficher les ID au format bot API");
+        m.put("TjBotApiIdsInfo", "Affiche \u200e-100\u2026\u200e pour les supergroupes et canaux au lieu de l'ID interne.");
+        m.put("TjBots", "Bots");
+        m.put("TjChannels", "Canaux");
+        m.put("TjChatCounters", "Compteurs de discussions");
+        m.put("TjChatCountersInfo", "Les compteurs sont calcul\u00e9s \u00e0 partir des discussions d\u00e9j\u00e0 charg\u00e9es sur cet appareil.");
+        m.put("TjChatCountersLoading", "Comptage de vos discussions\u2026");
+        m.put("TjChatIdHeader", "Identifiants de discussion");
+        m.put("TjChatsHeader", "Discussions");
+        m.put("TjContactsCount", "Contacts");
+        m.put("TjCopyImage", "Copier l'image");
+        m.put("TjCopyMessageLink", "Copier le lien du message");
+        m.put("TjCopyThumbnail", "Copier la miniature");
+        m.put("TjFilterAdmins", "Administrateurs uniquement");
+        m.put("TjFilterAll", "Tous les membres");
+        m.put("TjFilterBots", "Bots uniquement");
+        m.put("TjFilterContacts", "Contacts uniquement");
+        m.put("TjFilterMembers", "Filtrer les membres");
+        m.put("TjFilterMembersOnly", "Membres uniquement");
+        m.put("TjFoldersCount", "Dossiers");
+        m.put("TjForwardWithoutTag", "Transf\u00e9rer sans mention");
+        m.put("TjGeneralHeader", "G\u00e9n\u00e9ral");
+        m.put("TjGroups", "Groupes");
+        m.put("TjHidePhoneNumber", "Masquer mon num\u00e9ro de t\u00e9l\u00e9phone");
+        m.put("TjHidePhoneNumberInfo", "Masque votre num\u00e9ro dans le menu lat\u00e9ral et sur votre profil.");
+        m.put("TjHidePinnedMessage", "Masquer le message \u00e9pingl\u00e9");
+        m.put("TjMessageInfo", "Infos du message");
+        m.put("TjMessageMenuHeader", "Menu du message");
+        m.put("TjMessageMenuInfo", "Choisissez les \u00e9l\u00e9ments TJ qui apparaissent lors d\u2019un appui long sur un message.");
+        m.put("TjMutedChats", "Discussions en sourdine");
+        m.put("TjMyProfile", "Mon profil");
+        m.put("TjPrivateChats", "Discussions priv\u00e9es");
+        m.put("TjSaveToSaved", "Enregistrer dans les messages sauvegard\u00e9s");
+        m.put("TjSettings", "Param\u00e8tres TJ");
+        m.put("TjShowCallButton", "Afficher le bouton d'appel dans les discussions priv\u00e9es");
+        m.put("TjShowCallButtonInfo", "Par d\u00e9faut, l'ic\u00f4ne de recherche remplace l'ic\u00f4ne d'appel dans les discussions priv\u00e9es.");
+        m.put("TjShowPinnedMessage", "Afficher le message \u00e9pingl\u00e9");
+        m.put("TjTotalChats", "Total des discussions");
+        m.put("TjUnreadChats", "Discussions non lues");
+        TRANSLATIONS.put("fr", m);
+
+        m = new HashMap<>();
+        m.put("TjArchivedChats", "\u5df2\u5f52\u6863\u804a\u5929");
+        m.put("TjBotApiIds", "\u4ee5 bot API \u683c\u5f0f\u663e\u793a\u804a\u5929 ID");
+        m.put("TjBotApiIdsInfo", "\u4e3a\u8d85\u7ea7\u7fa4\u7ec4\u548c\u9891\u9053\u663e\u793a \u200e-100\u2026\u200e \u800c\u4e0d\u662f\u5185\u90e8 ID\u3002");
+        m.put("TjBots", "\u673a\u5668\u4eba");
+        m.put("TjChannels", "\u9891\u9053");
+        m.put("TjChatCounters", "\u804a\u5929\u7edf\u8ba1");
+        m.put("TjChatCountersInfo", "\u8ba1\u6570\u57fa\u4e8e\u672c\u8bbe\u5907\u4e0a\u5df2\u52a0\u8f7d\u7684\u804a\u5929\u3002");
+        m.put("TjChatCountersLoading", "\u6b63\u5728\u7edf\u8ba1\u4f60\u7684\u804a\u5929\u2026");
+        m.put("TjChatIdHeader", "\u804a\u5929 ID");
+        m.put("TjChatsHeader", "\u804a\u5929");
+        m.put("TjContactsCount", "\u8054\u7cfb\u4eba");
+        m.put("TjCopyImage", "\u590d\u5236\u56fe\u7247");
+        m.put("TjCopyMessageLink", "\u590d\u5236\u6d88\u606f\u94fe\u63a5");
+        m.put("TjCopyThumbnail", "\u590d\u5236\u7f29\u7565\u56fe");
+        m.put("TjFilterAdmins", "\u4ec5\u7ba1\u7406\u5458");
+        m.put("TjFilterAll", "\u6240\u6709\u6210\u5458");
+        m.put("TjFilterBots", "\u4ec5\u673a\u5668\u4eba");
+        m.put("TjFilterContacts", "\u4ec5\u8054\u7cfb\u4eba");
+        m.put("TjFilterMembers", "\u7b5b\u9009\u6210\u5458");
+        m.put("TjFilterMembersOnly", "\u4ec5\u6210\u5458");
+        m.put("TjFoldersCount", "\u6587\u4ef6\u5939");
+        m.put("TjForwardWithoutTag", "\u65e0\u6807\u8bb0\u8f6c\u53d1");
+        m.put("TjGeneralHeader", "\u5e38\u89c4");
+        m.put("TjGroups", "\u7fa4\u7ec4");
+        m.put("TjHidePhoneNumber", "\u9690\u85cf\u6211\u7684\u624b\u673a\u53f7");
+        m.put("TjHidePhoneNumberInfo", "\u5728\u4fa7\u8fb9\u83dc\u5355\u548c\u4e2a\u4eba\u8d44\u6599\u4e2d\u9690\u85cf\u4f60\u7684\u624b\u673a\u53f7\u3002");
+        m.put("TjHidePinnedMessage", "\u9690\u85cf\u7f6e\u9876\u6d88\u606f");
+        m.put("TjMessageInfo", "\u6d88\u606f\u4fe1\u606f");
+        m.put("TjMessageMenuHeader", "\u6d88\u606f\u83dc\u5355");
+        m.put("TjMessageMenuInfo", "\u9009\u62e9\u957f\u6309\u6d88\u606f\u65f6\u663e\u793a\u54ea\u4e9b TJ \u9009\u9879\u3002");
+        m.put("TjMutedChats", "\u9759\u97f3\u804a\u5929");
+        m.put("TjMyProfile", "\u6211\u7684\u8d44\u6599");
+        m.put("TjPrivateChats", "\u79c1\u804a");
+        m.put("TjSaveToSaved", "\u4fdd\u5b58\u5230\u6536\u85cf\u5939");
+        m.put("TjSettings", "TJ \u8bbe\u7f6e");
+        m.put("TjShowCallButton", "\u5728\u79c1\u804a\u4e2d\u663e\u793a\u901a\u8bdd\u6309\u94ae");
+        m.put("TjShowCallButtonInfo", "\u9ed8\u8ba4\u5728\u79c1\u804a\u4e2d\u663e\u793a\u641c\u7d22\u56fe\u6807\u800c\u975e\u901a\u8bdd\u56fe\u6807\u3002");
+        m.put("TjShowPinnedMessage", "\u663e\u793a\u7f6e\u9876\u6d88\u606f");
+        m.put("TjTotalChats", "\u804a\u5929\u603b\u6570");
+        m.put("TjUnreadChats", "\u672a\u8bfb\u804a\u5929");
+        TRANSLATIONS.put("zh", m);
+
+        m = new HashMap<>();
+        m.put("TjArchivedChats", "\u0938\u0902\u0917\u094d\u0930\u0939\u093f\u0924 \u091a\u0948\u091f");
+        m.put("TjBotApiIds", "\u091a\u0948\u091f \u0906\u0908\u0921\u0940 bot API \u092a\u094d\u0930\u093e\u0930\u0942\u092a \u092e\u0947\u0902 \u0926\u093f\u0916\u093e\u090f\u0901");
+        m.put("TjBotApiIdsInfo", "\u0938\u0941\u092a\u0930\u0917\u094d\u0930\u0941\u092a \u0914\u0930 \u091a\u0948\u0928\u0932\u094b\u0902 \u0915\u0947 \u0932\u093f\u090f \u0906\u0902\u0924\u0930\u093f\u0915 \u0906\u0908\u0921\u0940 \u0915\u0947 \u092c\u091c\u093e\u092f \u200e-100\u2026\u200e \u0926\u093f\u0916\u093e\u0924\u093e \u0939\u0948\u0964");
+        m.put("TjBots", "\u092c\u0949\u091f");
+        m.put("TjChannels", "\u091a\u0948\u0928\u0932");
+        m.put("TjChatCounters", "\u091a\u0948\u091f \u0915\u093e\u0909\u0902\u091f\u0930");
+        m.put("TjChatCountersInfo", "\u0917\u0923\u0928\u093e \u0907\u0938 \u0921\u093f\u0935\u093e\u0907\u0938 \u092a\u0930 \u092a\u0939\u0932\u0947 \u0938\u0947 \u0932\u094b\u0921 \u091a\u0948\u091f \u0938\u0947 \u0915\u0940 \u091c\u093e\u0924\u0940 \u0939\u0948\u0964");
+        m.put("TjChatCountersLoading", "\u0906\u092a\u0915\u0947 \u091a\u0948\u091f \u0917\u093f\u0928\u0947 \u091c\u093e \u0930\u0939\u0947 \u0939\u0948\u0902\u2026");
+        m.put("TjChatIdHeader", "\u091a\u0948\u091f ID");
+        m.put("TjChatsHeader", "\u091a\u0948\u091f");
+        m.put("TjContactsCount", "\u0938\u0902\u092a\u0930\u094d\u0915");
+        m.put("TjCopyImage", "\u091a\u093f\u0924\u094d\u0930 \u0915\u0949\u092a\u0940 \u0915\u0930\u0947\u0902");
+        m.put("TjCopyMessageLink", "\u0938\u0902\u0926\u0947\u0936 \u0932\u093f\u0902\u0915 \u0915\u0949\u092a\u0940 \u0915\u0930\u0947\u0902");
+        m.put("TjCopyThumbnail", "\u0925\u0902\u092c\u0928\u0947\u0932 \u0915\u0949\u092a\u0940 \u0915\u0930\u0947\u0902");
+        m.put("TjFilterAdmins", "\u0915\u0947\u0935\u0932 \u090f\u0921\u092e\u093f\u0928");
+        m.put("TjFilterAll", "\u0938\u092d\u0940 \u0938\u0926\u0938\u094d\u092f");
+        m.put("TjFilterBots", "\u0915\u0947\u0935\u0932 \u092c\u0949\u091f");
+        m.put("TjFilterContacts", "\u0915\u0947\u0935\u0932 \u0938\u0902\u092a\u0930\u094d\u0915");
+        m.put("TjFilterMembers", "\u0938\u0926\u0938\u094d\u092f \u092b\u093c\u093f\u0932\u094d\u091f\u0930 \u0915\u0930\u0947\u0902");
+        m.put("TjFilterMembersOnly", "\u0915\u0947\u0935\u0932 \u0938\u0926\u0938\u094d\u092f");
+        m.put("TjFoldersCount", "\u092b\u093c\u094b\u0932\u094d\u0921\u0930");
+        m.put("TjForwardWithoutTag", "\u092c\u093f\u0928\u093e \u091f\u0948\u0917 \u092b\u093c\u0949\u0930\u0935\u0930\u094d\u0921 \u0915\u0930\u0947\u0902");
+        m.put("TjGeneralHeader", "\u0938\u093e\u092e\u093e\u0928\u094d\u092f");
+        m.put("TjGroups", "\u0938\u092e\u0942\u0939");
+        m.put("TjHidePhoneNumber", "\u092e\u0947\u0930\u093e \u092b\u093c\u094b\u0928 \u0928\u0902\u092c\u0930 \u091b\u093f\u092a\u093e\u090f\u0901");
+        m.put("TjHidePhoneNumberInfo", "\u0938\u093e\u0907\u0921 \u092e\u0947\u0928\u094d\u092f\u0942 \u0914\u0930 \u0906\u092a\u0915\u0940 \u092a\u094d\u0930\u094b\u092b\u093c\u093e\u0907\u0932 \u092e\u0947\u0902 \u0906\u092a\u0915\u093e \u0928\u0902\u092c\u0930 \u091b\u093f\u092a\u093e\u0924\u093e \u0939\u0948\u0964");
+        m.put("TjHidePinnedMessage", "\u092a\u093f\u0928 \u0915\u093f\u092f\u093e \u0938\u0902\u0926\u0947\u0936 \u091b\u093f\u092a\u093e\u090f\u0901");
+        m.put("TjMessageInfo", "\u0938\u0902\u0926\u0947\u0936 \u091c\u093e\u0928\u0915\u093e\u0930\u0940");
+        m.put("TjMessageMenuHeader", "\u0938\u0902\u0926\u0947\u0936 \u092e\u0947\u0928\u094d\u092f\u0942");
+        m.put("TjMessageMenuInfo", "\u091a\u0941\u0928\u0947\u0902 \u0915\u093f \u0938\u0902\u0926\u0947\u0936 \u092a\u0930 \u0926\u0947\u0930 \u0924\u0915 \u0926\u092c\u093e\u0928\u0947 \u092a\u0930 \u0915\u094c\u0928 \u0938\u0947 TJ \u0935\u093f\u0915\u0932\u094d\u092a \u0926\u093f\u0916\u0947\u0902\u0964");
+        m.put("TjMutedChats", "\u092e\u094d\u092f\u0942\u091f \u091a\u0948\u091f");
+        m.put("TjMyProfile", "\u092e\u0947\u0930\u0940 \u092a\u094d\u0930\u094b\u092b\u093c\u093e\u0907\u0932");
+        m.put("TjPrivateChats", "\u0928\u093f\u091c\u0940 \u091a\u0948\u091f");
+        m.put("TjSaveToSaved", "\u0938\u0939\u0947\u091c\u0947 \u0917\u090f \u0938\u0902\u0926\u0947\u0936\u094b\u0902 \u092e\u0947\u0902 \u0938\u0939\u0947\u091c\u0947\u0902");
+        m.put("TjSettings", "TJ \u0938\u0947\u091f\u093f\u0902\u0917\u094d\u0938");
+        m.put("TjShowCallButton", "\u0928\u093f\u091c\u0940 \u091a\u0948\u091f \u092e\u0947\u0902 \u0915\u0949\u0932 \u092c\u091f\u0928 \u0926\u093f\u0916\u093e\u090f\u0901");
+        m.put("TjShowCallButtonInfo", "\u0921\u093f\u092b\u093c\u0949\u0932\u094d\u091f \u0930\u0942\u092a \u0938\u0947 \u0928\u093f\u091c\u0940 \u091a\u0948\u091f \u092e\u0947\u0902 \u0915\u0949\u0932 \u0906\u0907\u0915\u0928 \u0915\u0947 \u092c\u091c\u093e\u092f \u0916\u094b\u091c \u0906\u0907\u0915\u0928 \u0926\u093f\u0916\u0924\u093e \u0939\u0948\u0964");
+        m.put("TjShowPinnedMessage", "\u092a\u093f\u0928 \u0915\u093f\u092f\u093e \u0938\u0902\u0926\u0947\u0936 \u0926\u093f\u0916\u093e\u090f\u0901");
+        m.put("TjTotalChats", "\u0915\u0941\u0932 \u091a\u0948\u091f");
+        m.put("TjUnreadChats", "\u0905\u092a\u0920\u093f\u0924 \u091a\u0948\u091f");
+        TRANSLATIONS.put("hi", m);
+    }
+
+    /** Language the user picked inside Telegram, normalised to a plain lowercase code. */
+    private static String currentLanguage() {
+        String code = null;
+        try {
+            LocaleController.LocaleInfo info = LocaleController.getInstance().getCurrentLocaleInfo();
+            if (info != null) {
+                code = !TextUtils.isEmpty(info.pluralLangCode) ? info.pluralLangCode
+                     : !TextUtils.isEmpty(info.baseLangCode) ? info.baseLangCode
+                     : info.shortName;
+            }
+        } catch (Exception ignore) {
+        }
+        if (TextUtils.isEmpty(code)) {
+            return null;
+        }
+        code = code.toLowerCase();
+        int cut = code.indexOf('_');
+        if (cut < 0) {
+            cut = code.indexOf('-');
+        }
+        if (cut > 0) {
+            code = code.substring(0, cut);
+        }
+        // Java keeps the obsolete ISO codes for these three languages.
+        if ("iw".equals(code)) return "he";
+        if ("in".equals(code)) return "id";
+        if ("ji".equals(code)) return "yi";
+        return code;
+    }
+
+    public static String getString(@StringRes int res) {
+        String key = null;
+        try {
+            key = ApplicationLoader.applicationContext.getResources().getResourceEntryName(res);
+        } catch (Exception ignore) {
+        }
+        if (key != null) {
+            String lang = currentLanguage();
+            if (lang != null) {
+                Map<String, String> map = TRANSLATIONS.get(lang);
+                if (map != null) {
+                    String value = map.get(key);
+                    if (value != null) {
+                        return value;
+                    }
+                }
+            }
+        }
+        return LocaleController.getString(res);
+    }
+
+    public static String formatString(@StringRes int res, Object... args) {
+        String format = getString(res);
+        try {
+            return String.format(LocaleController.getInstance().getCurrentLocale(), format, args);
+        } catch (Exception e) {
+            FileLog.e(e);
+            return format;
+        }
+    }
+}

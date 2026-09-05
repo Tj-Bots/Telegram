@@ -7344,6 +7344,15 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         presentFragment(fragment);
     }
 
+    /** "+972501234567" -> "+\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022", same length so the row does not jump. */
+    private static String maskPhoneNumber(String phone) {
+        StringBuilder masked = new StringBuilder("+");
+        for (int i = 0; i < phone.length(); i++) {
+            masked.append('\u2022');
+        }
+        return masked.toString();
+    }
+
     private String getBotApiPeerId() {
         if (userId != 0) {
             return String.valueOf(userId);
@@ -13614,6 +13623,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                             phoneNumber = null;
                         }
                         isFragmentPhoneNumber = phoneNumber != null && phoneNumber.matches("888\\d{8}");
+                        // My Profile (from the bottom tabs) shows the number here rather than on
+                        // numberRow, so the hide-my-number setting has to cover this row too.
+                        if (phoneNumber != null && userId == getUserConfig().getClientUserId() && TjSettingsActivity.isHidePhoneNumberEnabled()) {
+                            text = maskPhoneNumber(phoneNumber);
+                        }
                         detailCell.setTextAndValue(text, LocaleController.getString(isFragmentPhoneNumber ? R.string.AnonymousNumber : R.string.PhoneMobile), false);
                     } else if (position == userIdRow) {
                         int dcId = 0;
@@ -13714,11 +13728,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         String value;
                         if (user != null && user.phone != null && user.phone.length() != 0) {
                             if (TjSettingsActivity.isHidePhoneNumberEnabled()) {
-                                StringBuilder hidden = new StringBuilder("+");
-                                for (int i = 0; i < user.phone.length(); i++) {
-                                    hidden.append('\u2022');
-                                }
-                                value = hidden.toString();
+                                value = maskPhoneNumber(user.phone);
                             } else {
                                 value = PhoneFormat.getInstance().format("+" + user.phone);
                             }

@@ -15,6 +15,7 @@ import org.telegram.messenger.DialogObject;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.R;
+import org.telegram.messenger.TjLocale;
 import org.telegram.messenger.Utilities;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
@@ -75,7 +76,7 @@ public class ChatCountersActivity extends BaseFragment {
     public View createView(Context context) {
         actionBar.setBackButtonImage(R.drawable.ic_ab_back);
         actionBar.setAllowOverlayTitle(true);
-        actionBar.setTitle(LocaleController.getString(R.string.TjChatCounters));
+        actionBar.setTitle(TjLocale.getString(R.string.TjChatCounters));
         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(int id) {
@@ -185,20 +186,20 @@ public class ChatCountersActivity extends BaseFragment {
 
     private void buildItems(Counters counters) {
         items.clear();
-        items.add(new Item(VIEW_TYPE_HEADER, LocaleController.getString(R.string.TjChatCounters), null));
-        items.add(new Item(VIEW_TYPE_VALUE, LocaleController.getString(R.string.TjTotalChats), format(counters.total)));
-        items.add(new Item(VIEW_TYPE_VALUE, LocaleController.getString(R.string.TjPrivateChats), format(counters.privateChats)));
-        items.add(new Item(VIEW_TYPE_VALUE, LocaleController.getString(R.string.TjGroups), format(counters.groups)));
-        items.add(new Item(VIEW_TYPE_VALUE, LocaleController.getString(R.string.TjChannels), format(counters.channels)));
-        items.add(new Item(VIEW_TYPE_VALUE, LocaleController.getString(R.string.TjBots), format(counters.bots)));
+        items.add(new Item(VIEW_TYPE_HEADER, TjLocale.getString(R.string.TjChatCounters), null));
+        items.add(new Item(VIEW_TYPE_VALUE, TjLocale.getString(R.string.TjTotalChats), format(counters.total)));
+        items.add(new Item(VIEW_TYPE_VALUE, TjLocale.getString(R.string.TjPrivateChats), format(counters.privateChats)));
+        items.add(new Item(VIEW_TYPE_VALUE, TjLocale.getString(R.string.TjGroups), format(counters.groups)));
+        items.add(new Item(VIEW_TYPE_VALUE, TjLocale.getString(R.string.TjChannels), format(counters.channels)));
+        items.add(new Item(VIEW_TYPE_VALUE, TjLocale.getString(R.string.TjBots), format(counters.bots)));
         items.add(new Item(VIEW_TYPE_SHADOW, null, null));
-        items.add(new Item(VIEW_TYPE_VALUE, LocaleController.getString(R.string.TjUnreadChats), format(counters.unread)));
-        items.add(new Item(VIEW_TYPE_VALUE, LocaleController.getString(R.string.TjMutedChats), format(counters.muted)));
-        items.add(new Item(VIEW_TYPE_VALUE, LocaleController.getString(R.string.TjArchivedChats), format(counters.archived)));
+        items.add(new Item(VIEW_TYPE_VALUE, TjLocale.getString(R.string.TjUnreadChats), format(counters.unread)));
+        items.add(new Item(VIEW_TYPE_VALUE, TjLocale.getString(R.string.TjMutedChats), format(counters.muted)));
+        items.add(new Item(VIEW_TYPE_VALUE, TjLocale.getString(R.string.TjArchivedChats), format(counters.archived)));
         items.add(new Item(VIEW_TYPE_SHADOW, null, null));
-        items.add(new Item(VIEW_TYPE_VALUE, LocaleController.getString(R.string.TjFoldersCount), format(counters.folders)));
-        items.add(new Item(VIEW_TYPE_VALUE, LocaleController.getString(R.string.TjContactsCount), format(counters.contacts)));
-        items.add(new Item(VIEW_TYPE_SHADOW, LocaleController.getString(R.string.TjChatCountersInfo), null));
+        items.add(new Item(VIEW_TYPE_VALUE, TjLocale.getString(R.string.TjFoldersCount), format(counters.folders)));
+        items.add(new Item(VIEW_TYPE_VALUE, TjLocale.getString(R.string.TjContactsCount), format(counters.contacts)));
+        items.add(new Item(VIEW_TYPE_SHADOW, TjLocale.getString(R.string.TjChatCountersInfo), null));
     }
 
     private static String format(int value) {
