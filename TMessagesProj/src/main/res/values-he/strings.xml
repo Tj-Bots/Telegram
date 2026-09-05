@@ -40,4 +40,10 @@
     <string name="TjMessageMenuInfo">בחר אילו מהכפתורים של TJ יוצגו בלחיצה ארוכה על הודעה.</string>
     <string name="TjChatCountersLoading">סופר את הצ\'אטים שלך…</string>
     <string name="TjChatCountersInfo">המונים מחושבים מהצ\'אטים שכבר נטענו במכשיר הזה.</string>
+    <string name="TjFolderIcon">סמל התיקייה</string>
+    <string name="TjFolderTabStyle">לשוניות תיקיות</string>
+    <string name="TjFolderTabStyleInfo">בחר אם הלשוניות יציגו סמל, שם, או את שניהם.</string>
+    <string name="TjFolderTabIconAndName">סמל ושם</string>
+    <string name="TjFolderTabIconOnly">סמל בלבד</string>
+    <string name="TjFolderTabNameOnly">שם בלבד</string>
 </resources>

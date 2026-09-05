@@ -11264,4 +11264,10 @@
     <string name="TjMessageMenuInfo">Choose which of the TJ items appear when you long-press a message.</string>
     <string name="TjChatCountersLoading">Counting your chats…</string>
     <string name="TjChatCountersInfo">Counters are calculated from the chats already loaded on this device.</string>
+    <string name="TjFolderIcon">Folder icon</string>
+    <string name="TjFolderTabStyle">Folder tabs</string>
+    <string name="TjFolderTabStyleInfo">Choose whether folder tabs show an icon, a name, or both.</string>
+    <string name="TjFolderTabIconAndName">Icon and name</string>
+    <string name="TjFolderTabIconOnly">Icon only</string>
+    <string name="TjFolderTabNameOnly">Name only</string>
 </resources>

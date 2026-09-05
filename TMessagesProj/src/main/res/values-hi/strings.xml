@@ -40,4 +40,10 @@
     <string name="TjMessageMenuInfo">चुनें कि संदेश पर देर तक दबाने पर कौन से TJ विकल्प दिखें।</string>
     <string name="TjChatCountersLoading">आपके चैट गिने जा रहे हैं…</string>
     <string name="TjChatCountersInfo">गणना इस डिवाइस पर पहले से लोड चैट से की जाती है।</string>
+    <string name="TjFolderIcon">फ़ोल्डर आइकन</string>
+    <string name="TjFolderTabStyle">फ़ोल्डर टैब</string>
+    <string name="TjFolderTabStyleInfo">चुनें कि टैब पर आइकन, नाम, या दोनों दिखें।</string>
+    <string name="TjFolderTabIconAndName">आइकन और नाम</string>
+    <string name="TjFolderTabIconOnly">केवल आइकन</string>
+    <string name="TjFolderTabNameOnly">केवल नाम</string>
 </resources>

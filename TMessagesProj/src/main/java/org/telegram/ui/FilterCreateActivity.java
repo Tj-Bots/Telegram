@@ -57,6 +57,12 @@ import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
+import org.telegram.ui.Components.TjFolderIcons;
+import org.telegram.ui.ActionBar.BottomSheet;
+import org.telegram.messenger.TjLocale;
+import android.widget.ScrollView;
+import android.widget.LinearLayout;
+import android.widget.GridLayout;
 import org.telegram.messenger.support.LongSparseIntArray;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
@@ -291,6 +297,7 @@ public class FilterCreateActivity extends BaseFragment {
         }));
         nameRow = items.size();
         items.add(ItemInner.asEdit());
+        items.add(ItemInner.asButton(TjFolderIcons.getTabIcon(TjFolderIcons.getFolderEmoticon(filter)), TjLocale.getString(R.string.TjFolderIcon), false).whenClicked(v -> showFolderIconPicker()));
         items.add(ItemInner.asShadow(null));
         items.add(ItemInner.asHeader(LocaleController.getString(R.string.FilterInclude)));
         items.add(ItemInner.asButton(R.drawable.msg2_chats_add, LocaleController.getString(R.string.FilterAddChats), false).whenClicked(v -> selectChatsFor(true)));
@@ -1110,6 +1117,64 @@ public class FilterCreateActivity extends BaseFragment {
         if (onFinish != null) {
             onFinish.run();
         }
+    }
+
+    /** Grid of the folder icons; the pick is stored in our own preferences, keyed by filter id. */
+    private void showFolderIconPicker() {
+        if (getParentActivity() == null) {
+            return;
+        }
+        final String[] emoticons = TjFolderIcons.emoticons();
+        final String current = TjFolderIcons.getFolderEmoticon(filter);
+
+        LinearLayout content = new LinearLayout(getParentActivity());
+        content.setOrientation(LinearLayout.VERTICAL);
+
+        TextView titleView = new TextView(getParentActivity());
+        titleView.setText(TjLocale.getString(R.string.TjFolderIcon));
+        titleView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 20);
+        titleView.setTypeface(AndroidUtilities.bold());
+        titleView.setTextColor(Theme.getColor(Theme.key_dialogTextBlack));
+        titleView.setPadding(dp(22), dp(16), dp(22), dp(8));
+        content.addView(titleView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
+
+        final BottomSheet[] sheet = new BottomSheet[1];
+        final int columns = 8;
+        GridLayout grid = new GridLayout(getParentActivity());
+        grid.setColumnCount(columns);
+        grid.setPadding(dp(12), dp(4), dp(12), dp(16));
+        for (int i = 0; i < emoticons.length; i++) {
+            final String emoticon = emoticons[i];
+            ImageView icon = new ImageView(getParentActivity());
+            icon.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+            icon.setImageResource(TjFolderIcons.getTabIcon(emoticon));
+            boolean selected = emoticon.equals(current);
+            icon.setColorFilter(new PorterDuffColorFilter(Theme.getColor(selected ? Theme.key_dialogTextBlue : Theme.key_dialogIcon), PorterDuff.Mode.MULTIPLY));
+            icon.setBackground(Theme.createSelectorDrawable(Theme.getColor(Theme.key_listSelector), Theme.RIPPLE_MASK_CIRCLE_20DP));
+            icon.setPadding(dp(8), dp(8), dp(8), dp(8));
+            icon.setOnClickListener(v -> {
+                TjSettingsActivity.setFolderEmoticon(filter.id, emoticon);
+                if (sheet[0] != null) {
+                    sheet[0].dismiss();
+                }
+                updateRows(true);
+                NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.dialogFiltersUpdated);
+            });
+            GridLayout.LayoutParams lp = new GridLayout.LayoutParams();
+            lp.width = dp(40);
+            lp.height = dp(40);
+            lp.setMargins(dp(2), dp(2), dp(2), dp(2));
+            grid.addView(icon, lp);
+        }
+
+        ScrollView scroll = new ScrollView(getParentActivity());
+        scroll.addView(grid);
+        content.addView(scroll, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
+
+        BottomSheet.Builder builder = new BottomSheet.Builder(getParentActivity());
+        builder.setCustomView(content);
+        sheet[0] = builder.create();
+        showDialog(sheet[0]);
     }
 
     public static void saveFilterToServer(MessagesController.DialogFilter filter, int newFilterFlags, String newFilterName, ArrayList<TLRPC.MessageEntity> newFilterNameEntities, boolean newFilterNoanimate, int newFilterColor, ArrayList<Long> newAlwaysShow, ArrayList<Long> newNeverShow, LongSparseIntArray newPinned, boolean creatingNew, boolean atBegin, boolean hasUserChanged, boolean resetUnreadCounter, boolean progress, BaseFragment fragment, Runnable onFinish) {

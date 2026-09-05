@@ -40,4 +40,10 @@
     <string name="TjMessageMenuInfo">Choisissez les éléments TJ qui apparaissent lors d’un appui long sur un message.</string>
     <string name="TjChatCountersLoading">Comptage de vos discussions…</string>
     <string name="TjChatCountersInfo">Les compteurs sont calculés à partir des discussions déjà chargées sur cet appareil.</string>
+    <string name="TjFolderIcon">Icône du dossier</string>
+    <string name="TjFolderTabStyle">Onglets de dossiers</string>
+    <string name="TjFolderTabStyleInfo">Choisissez si les onglets affichent une icône, un nom, ou les deux.</string>
+    <string name="TjFolderTabIconAndName">Icône et nom</string>
+    <string name="TjFolderTabIconOnly">Icône seule</string>
+    <string name="TjFolderTabNameOnly">Nom seul</string>
 </resources>

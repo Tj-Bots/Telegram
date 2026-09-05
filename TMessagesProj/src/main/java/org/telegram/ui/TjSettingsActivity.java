@@ -12,6 +12,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
+import org.telegram.ui.Components.TjFolderIcons;
+import org.telegram.ui.Cells.TextSettingsCell;
+import org.telegram.ui.ActionBar.AlertDialog;
+import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.TjLocale;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.BaseFragment;
@@ -32,6 +36,8 @@ public class TjSettingsActivity extends BaseFragment {
     private static final String KEY_HIDE_PHONE_NUMBER = "hide_phone_number";
     private static final String KEY_BOT_API_IDS = "bot_api_ids";
     private static final String KEY_ACCOUNT_ORDER_PREFIX = "account_order_";
+    private static final String KEY_FOLDER_TAB_STYLE = "folder_tab_style";
+    private static final String KEY_FOLDER_EMOTICON_PREFIX = "folder_emoticon_";
 
     private static final String KEY_MENU_MESSAGE_INFO = "menu_message_info";
     private static final String KEY_MENU_COPY_LINK = "menu_copy_message_link";
@@ -70,6 +76,27 @@ public class TjSettingsActivity extends BaseFragment {
 
     public static void setBotApiIdsEnabled(boolean value) {
         getPrefs().edit().putBoolean(KEY_BOT_API_IDS, value).apply();
+    }
+
+    /** One of TjFolderIcons.STYLE_*. Icon plus name by default. */
+    public static int getFolderTabStyle() {
+        return getPrefs().getInt(KEY_FOLDER_TAB_STYLE, 0);
+    }
+
+    public static void setFolderTabStyle(int style) {
+        getPrefs().edit().putInt(KEY_FOLDER_TAB_STYLE, style).apply();
+    }
+
+    public static String getFolderEmoticon(int filterId) {
+        return getPrefs().getString(KEY_FOLDER_EMOTICON_PREFIX + filterId, null);
+    }
+
+    public static void setFolderEmoticon(int filterId, String emoticon) {
+        if (emoticon == null) {
+            getPrefs().edit().remove(KEY_FOLDER_EMOTICON_PREFIX + filterId).apply();
+        } else {
+            getPrefs().edit().putString(KEY_FOLDER_EMOTICON_PREFIX + filterId, emoticon).apply();
+        }
     }
 
     public static boolean isMessageInfoEnabled() {
@@ -115,6 +142,7 @@ public class TjSettingsActivity extends BaseFragment {
     private static final int VIEW_TYPE_HEADER = 0;
     private static final int VIEW_TYPE_CHECK = 1;
     private static final int VIEW_TYPE_SHADOW = 2;
+    private static final int VIEW_TYPE_SETTING = 3;
 
     private static final int ID_HIDE_PHONE = 1;
     private static final int ID_BOT_API_IDS = 2;
@@ -125,6 +153,7 @@ public class TjSettingsActivity extends BaseFragment {
     private static final int ID_MENU_COPY_THUMB = 7;
     private static final int ID_MENU_SAVE_TO_SAVED = 8;
     private static final int ID_MENU_FORWARD_NO_TAG = 9;
+    private static final int ID_FOLDER_TAB_STYLE = 10;
 
     private static class Item {
         final int viewType;
@@ -201,6 +230,10 @@ public class TjSettingsActivity extends BaseFragment {
                 return;
             }
             Item item = items.get(position);
+            if (item.id == ID_FOLDER_TAB_STYLE) {
+                showFolderTabStyleAlert();
+                return;
+            }
             if (item.viewType != VIEW_TYPE_CHECK) {
                 return;
             }
@@ -223,6 +256,9 @@ public class TjSettingsActivity extends BaseFragment {
         items.add(new Item(VIEW_TYPE_HEADER, 0, TjLocale.getString(R.string.TjChatsHeader)));
         items.add(new Item(VIEW_TYPE_CHECK, ID_SHOW_CALL_BUTTON, TjLocale.getString(R.string.TjShowCallButton)));
         items.add(new Item(VIEW_TYPE_SHADOW, 0, TjLocale.getString(R.string.TjShowCallButtonInfo)));
+        items.add(new Item(VIEW_TYPE_HEADER, 0, LocaleController.getString(R.string.Filters)));
+        items.add(new Item(VIEW_TYPE_SETTING, ID_FOLDER_TAB_STYLE, TjLocale.getString(R.string.TjFolderTabStyle)));
+        items.add(new Item(VIEW_TYPE_SHADOW, 0, TjLocale.getString(R.string.TjFolderTabStyleInfo)));
         items.add(new Item(VIEW_TYPE_HEADER, 0, TjLocale.getString(R.string.TjMessageMenuHeader)));
         items.add(new Item(VIEW_TYPE_CHECK, ID_MENU_MESSAGE_INFO, TjLocale.getString(R.string.TjMessageInfo)));
         items.add(new Item(VIEW_TYPE_CHECK, ID_MENU_SAVE_TO_SAVED, TjLocale.getString(R.string.TjSaveToSaved)));
@@ -231,6 +267,36 @@ public class TjSettingsActivity extends BaseFragment {
         items.add(new Item(VIEW_TYPE_CHECK, ID_MENU_COPY_THUMB, TjLocale.getString(R.string.TjCopyThumbnail)));
         items.add(new Item(VIEW_TYPE_CHECK, ID_MENU_FORWARD_NO_TAG, TjLocale.getString(R.string.TjForwardWithoutTag)));
         items.add(new Item(VIEW_TYPE_SHADOW, 0, TjLocale.getString(R.string.TjMessageMenuInfo)));
+    }
+
+    private static String folderTabStyleName() {
+        switch (getFolderTabStyle()) {
+            case TjFolderIcons.STYLE_ICON_ONLY: return TjLocale.getString(R.string.TjFolderTabIconOnly);
+            case TjFolderIcons.STYLE_NAME_ONLY: return TjLocale.getString(R.string.TjFolderTabNameOnly);
+            default: return TjLocale.getString(R.string.TjFolderTabIconAndName);
+        }
+    }
+
+    private void showFolderTabStyleAlert() {
+        if (getParentActivity() == null) {
+            return;
+        }
+        CharSequence[] options = new CharSequence[]{
+                TjLocale.getString(R.string.TjFolderTabIconAndName),
+                TjLocale.getString(R.string.TjFolderTabIconOnly),
+                TjLocale.getString(R.string.TjFolderTabNameOnly)
+        };
+        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
+        builder.setTitle(TjLocale.getString(R.string.TjFolderTabStyle));
+        builder.setItems(options, (dialog, which) -> {
+            setFolderTabStyle(which);
+            if (listView != null && listView.getAdapter() != null) {
+                listView.getAdapter().notifyDataSetChanged();
+            }
+            NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.dialogFiltersUpdated);
+        });
+        builder.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
+        showDialog(builder.create());
     }
 
     private class ListAdapter extends RecyclerListView.SelectionAdapter {
@@ -242,6 +308,9 @@ public class TjSettingsActivity extends BaseFragment {
                 view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
             } else if (viewType == VIEW_TYPE_CHECK) {
                 view = new TextCheckCell(parent.getContext());
+                view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+            } else if (viewType == VIEW_TYPE_SETTING) {
+                view = new TextSettingsCell(parent.getContext());
                 view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
             } else {
                 view = new TextInfoPrivacyCell(parent.getContext());
@@ -260,6 +329,8 @@ public class TjSettingsActivity extends BaseFragment {
                 ((HeaderCell) holder.itemView).setText(item.text);
             } else if (item.viewType == VIEW_TYPE_SHADOW) {
                 ((TextInfoPrivacyCell) holder.itemView).setText(item.text);
+            } else if (item.viewType == VIEW_TYPE_SETTING) {
+                ((TextSettingsCell) holder.itemView).setTextAndValue(item.text, folderTabStyleName(), false);
             } else {
                 boolean divider = position + 1 < items.size() && items.get(position + 1).viewType == VIEW_TYPE_CHECK;
                 ((TextCheckCell) holder.itemView).setTextAndCheck(item.text, isChecked(item.id), divider);
@@ -281,7 +352,8 @@ public class TjSettingsActivity extends BaseFragment {
 
         @Override
         public boolean isEnabled(RecyclerView.ViewHolder holder) {
-            return holder.getItemViewType() == VIEW_TYPE_CHECK;
+            int t = holder.getItemViewType();
+            return t == VIEW_TYPE_CHECK || t == VIEW_TYPE_SETTING;
         }
     }
 }

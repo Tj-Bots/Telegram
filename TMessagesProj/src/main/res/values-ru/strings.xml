@@ -303,4 +303,10 @@
     <string name="TjMessageMenuInfo">Выберите, какие пункты TJ показывать при долгом нажатии на сообщение.</string>
     <string name="TjChatCountersLoading">Считаем ваши чаты…</string>
     <string name="TjChatCountersInfo">Счётчики считаются по чатам, уже загруженным на этом устройстве.</string>
+    <string name="TjFolderIcon">Значок папки</string>
+    <string name="TjFolderTabStyle">Вкладки папок</string>
+    <string name="TjFolderTabStyleInfo">Выберите, показывать на вкладках значок, название или и то и другое.</string>
+    <string name="TjFolderTabIconAndName">Значок и название</string>
+    <string name="TjFolderTabIconOnly">Только значок</string>
+    <string name="TjFolderTabNameOnly">Только название</string>
 </resources>

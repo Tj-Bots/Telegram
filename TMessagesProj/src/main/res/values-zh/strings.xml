@@ -40,4 +40,10 @@
     <string name="TjMessageMenuInfo">选择长按消息时显示哪些 TJ 选项。</string>
     <string name="TjChatCountersLoading">正在统计你的聊天…</string>
     <string name="TjChatCountersInfo">计数基于本设备上已加载的聊天。</string>
+    <string name="TjFolderIcon">文件夹图标</string>
+    <string name="TjFolderTabStyle">文件夹标签</string>
+    <string name="TjFolderTabStyleInfo">选择标签显示图标、名称，还是两者都显示。</string>
+    <string name="TjFolderTabIconAndName">图标和名称</string>
+    <string name="TjFolderTabIconOnly">仅图标</string>
+    <string name="TjFolderTabNameOnly">仅名称</string>
 </resources>

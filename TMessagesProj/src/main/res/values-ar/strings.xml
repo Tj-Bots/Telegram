@@ -1283,4 +1283,10 @@
     <string name="TjMessageMenuInfo">اختر عناصر TJ التي تظهر عند الضغط مطولاً على رسالة.</string>
     <string name="TjChatCountersLoading">جارٍ حساب محادثاتك…</string>
     <string name="TjChatCountersInfo">يتم حساب الأرقام من المحادثات المحمّلة على هذا الجهاز.</string>
+    <string name="TjFolderIcon">أيقونة المجلد</string>
+    <string name="TjFolderTabStyle">تبويبات المجلدات</string>
+    <string name="TjFolderTabStyleInfo">اختر ما إذا كانت التبويبات تعرض أيقونة أو اسمًا أو كليهما.</string>
+    <string name="TjFolderTabIconAndName">أيقونة واسم</string>
+    <string name="TjFolderTabIconOnly">أيقونة فقط</string>
+    <string name="TjFolderTabNameOnly">اسم فقط</string>
 </resources>
