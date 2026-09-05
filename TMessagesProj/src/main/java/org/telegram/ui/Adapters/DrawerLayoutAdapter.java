@@ -21,6 +21,7 @@ import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.TjLocale;
+import org.telegram.ui.TjSettingsActivity;
 import org.telegram.ui.ActionBar.DrawerLayoutContainer;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.DividerCell;
@@ -154,6 +155,7 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter {
             case 0: {
                 DrawerProfileCell profileCell = (DrawerProfileCell) holder.itemView;
                 profileCell.setUser(MessagesController.getInstance(UserConfig.selectedAccount).getUser(UserConfig.getInstance(UserConfig.selectedAccount).getClientUserId()), accountsShown);
+                profileCell.updateColors();
                 break;
             }
             case 3: {
@@ -255,6 +257,8 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter {
         int settingsIcon = R.drawable.msg_settings_old;
 
         // TjGram menu. `null` is a divider row.
+        items.add(new Item(104, TjLocale.getString(TjSettingsActivity.isGhostModeEnabled() ? R.string.TjGhostModeOff : R.string.TjGhostModeOn), R.drawable.msg_secret));
+        items.add(null);
         items.add(new Item(100, TjLocale.getString(R.string.TjMyProfile), R.drawable.msg_openprofile));
         UserConfig me = UserConfig.getInstance(UserConfig.selectedAccount);
         if (me != null && me.isPremium()) {

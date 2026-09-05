@@ -3648,15 +3648,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                     switchToCurrentSelectedMode(true);
                     animatingForward = forward;
 
-                    if (folderId == 0 && communityId == 0 && logoDrawable != null && statusDrawable != null) {
-                        if (tab.isDefault) {
-                            SpannableStringBuilder ssb = new SpannableStringBuilder(getString(R.string.AppName) + (BuildVars.DEBUG_PRIVATE_VERSION ? " #" + BuildConfig.BUILD_TAG : ""));
-                            ssb.setSpan(new ImageSpan(logoDrawable), 0, ssb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                            actionBar.setTitle(ssb, statusDrawable);
-                        } else {
-                            actionBar.setTitle(tab.title);
-                        }
-                    }
+                    updateTitleForTab(tab.isDefault, tab.title);
                     updateDrawerSwipeAllowed(tab.isDefault);
                 }
 
@@ -6871,6 +6863,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         // opens on every folder. The filter is the authoritative source; FilterTabsView's own
         // selectedTabId is not updated by the swipe path until later.
         updateDrawerSwipeAllowed(filter.isDefault());
+        updateTitleForTab(filter.isDefault(), filter.name);
         if (filter.isDefault()) {
             viewPages[a].dialogsType = initialDialogsType;
             viewPages[a].listView.updatePullState();
@@ -8486,6 +8479,20 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
      * The edge swipe opens our side menu, but only where it has nothing else to do:
      * on the first ("All chats") tab there is no previous folder to swipe to.
      */
+    /** Folder name in the action bar. Called from both the tap and the swipe path. */
+    private void updateTitleForTab(boolean isDefaultTab, CharSequence tabTitle) {
+        if (folderId != 0 || communityId != 0 || logoDrawable == null || statusDrawable == null || actionBar == null) {
+            return;
+        }
+        if (isDefaultTab) {
+            SpannableStringBuilder ssb = new SpannableStringBuilder(getString(R.string.AppName) + (BuildVars.DEBUG_PRIVATE_VERSION ? " #" + BuildConfig.BUILD_TAG : ""));
+            ssb.setSpan(new ImageSpan(logoDrawable), 0, ssb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            actionBar.setTitle(ssb, statusDrawable);
+        } else {
+            actionBar.setTitle(tabTitle);
+        }
+    }
+
     private void updateDrawerSwipeAllowed(boolean onDefaultTab) {
         if (getParentActivity() instanceof LaunchActivity) {
             DrawerLayoutContainer container = ((LaunchActivity) getParentActivity()).drawerLayoutContainer;

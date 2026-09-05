@@ -46,4 +46,15 @@
     <string name="TjFolderTabIconAndName">आइकन और नाम</string>
     <string name="TjFolderTabIconOnly">केवल आइकन</string>
     <string name="TjFolderTabNameOnly">केवल नाम</string>
+    <string name="TjGoToFirstMessage">पहले संदेश पर जाएँ</string>
+    <string name="TjGhostMode">घोस्ट मोड</string>
+    <string name="TjGhostModeOn">घोस्ट मोड चालू करें</string>
+    <string name="TjGhostModeOff">घोस्ट मोड बंद करें</string>
+    <string name="TjGhostTyping">यह न दिखाएँ कि मैं टाइप कर रहा हूँ</string>
+    <string name="TjGhostOnline">ऑफ़लाइन रहें</string>
+    <string name="TjGhostRead">पढ़ने की रसीदें न भेजें</string>
+    <string name="TjGhostModeInfo">घोस्ट मोड आपकी गतिविधि दूसरों से छिपाता है। चुनें कि इसमें क्या शामिल हो।</string>
+    <string name="TjGhostWarning">घोस्ट मोड Telegram की आधिकारिक सुविधा नहीं है। Telegram इसे असामान्य व्यवहार मान सकता है, इसलिए अपने जोखिम पर उपयोग करें।</string>
+    <string name="TjGhostDontWarnAgain">इसे दोबारा न दिखाएँ</string>
+    <string name="TjChatCountersUpdated">अंतिम अपडेट: %1$s</string>
 </resources>

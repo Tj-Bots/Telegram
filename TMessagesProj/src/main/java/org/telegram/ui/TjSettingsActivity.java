@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
+import org.telegram.messenger.UserConfig;
 import org.telegram.ui.Components.TjFolderIcons;
 import org.telegram.ui.Cells.TextSettingsCell;
 import org.telegram.ui.ActionBar.AlertDialog;
@@ -36,6 +37,12 @@ public class TjSettingsActivity extends BaseFragment {
     private static final String KEY_HIDE_PHONE_NUMBER = "hide_phone_number";
     private static final String KEY_BOT_API_IDS = "bot_api_ids";
     private static final String KEY_ACCOUNT_ORDER_PREFIX = "account_order_";
+    private static final String KEY_GHOST_MODE = "ghost_mode";
+    private static final String KEY_GHOST_TYPING = "ghost_hide_typing";
+    private static final String KEY_GHOST_ONLINE = "ghost_hide_online";
+    private static final String KEY_GHOST_READ = "ghost_hide_read";
+    private static final String KEY_GHOST_WARNED = "ghost_warning_dismissed";
+
     private static final String KEY_FOLDER_TAB_STYLE = "folder_tab_style";
     private static final String KEY_FOLDER_EMOTICON_PREFIX = "folder_emoticon_";
 
@@ -79,6 +86,39 @@ public class TjSettingsActivity extends BaseFragment {
     }
 
     /** One of TjFolderIcons.STYLE_*. Icon plus name by default. */
+    /**
+     * Ghost mode. The master switch is what the drawer toggles; the three sub-switches say what it
+     * actually suppresses, and all three are on by default so the master switch alone does the
+     * expected thing.
+     */
+    public static boolean isGhostModeEnabled() {
+        return getPrefs().getBoolean(KEY_GHOST_MODE, false);
+    }
+
+    public static void setGhostModeEnabled(boolean value) {
+        getPrefs().edit().putBoolean(KEY_GHOST_MODE, value).apply();
+    }
+
+    public static boolean isGhostHideTyping() {
+        return isGhostModeEnabled() && getPrefs().getBoolean(KEY_GHOST_TYPING, true);
+    }
+
+    public static boolean isGhostHideOnline() {
+        return isGhostModeEnabled() && getPrefs().getBoolean(KEY_GHOST_ONLINE, true);
+    }
+
+    public static boolean isGhostHideReadReceipts() {
+        return isGhostModeEnabled() && getPrefs().getBoolean(KEY_GHOST_READ, true);
+    }
+
+    public static boolean isGhostWarningDismissed() {
+        return getPrefs().getBoolean(KEY_GHOST_WARNED, false);
+    }
+
+    public static void setGhostWarningDismissed(boolean value) {
+        getPrefs().edit().putBoolean(KEY_GHOST_WARNED, value).apply();
+    }
+
     public static int getFolderTabStyle() {
         return getPrefs().getInt(KEY_FOLDER_TAB_STYLE, 0);
     }
@@ -154,6 +194,10 @@ public class TjSettingsActivity extends BaseFragment {
     private static final int ID_MENU_SAVE_TO_SAVED = 8;
     private static final int ID_MENU_FORWARD_NO_TAG = 9;
     private static final int ID_FOLDER_TAB_STYLE = 10;
+    private static final int ID_GHOST_MODE = 11;
+    private static final int ID_GHOST_TYPING = 12;
+    private static final int ID_GHOST_ONLINE = 13;
+    private static final int ID_GHOST_READ = 14;
 
     private static class Item {
         final int viewType;
@@ -178,6 +222,10 @@ public class TjSettingsActivity extends BaseFragment {
             case ID_MENU_COPY_THUMB: return isCopyThumbnailEnabled();
             case ID_MENU_SAVE_TO_SAVED: return isSaveToSavedEnabled();
             case ID_MENU_FORWARD_NO_TAG: return isForwardWithoutTagEnabled();
+            case ID_GHOST_MODE: return isGhostModeEnabled();
+            case ID_GHOST_TYPING: return getPrefs().getBoolean(KEY_GHOST_TYPING, true);
+            case ID_GHOST_ONLINE: return getPrefs().getBoolean(KEY_GHOST_ONLINE, true);
+            case ID_GHOST_READ: return getPrefs().getBoolean(KEY_GHOST_READ, true);
         }
         return false;
     }
@@ -194,6 +242,10 @@ public class TjSettingsActivity extends BaseFragment {
             case ID_MENU_COPY_THUMB: key = KEY_MENU_COPY_THUMB; break;
             case ID_MENU_SAVE_TO_SAVED: key = KEY_MENU_SAVE_TO_SAVED; break;
             case ID_MENU_FORWARD_NO_TAG: key = KEY_MENU_FORWARD_NO_TAG; break;
+            case ID_GHOST_MODE: key = KEY_GHOST_MODE; break;
+            case ID_GHOST_TYPING: key = KEY_GHOST_TYPING; break;
+            case ID_GHOST_ONLINE: key = KEY_GHOST_ONLINE; break;
+            case ID_GHOST_READ: key = KEY_GHOST_READ; break;
         }
         if (key != null) {
             getPrefs().edit().putBoolean(key, value).apply();
@@ -256,6 +308,12 @@ public class TjSettingsActivity extends BaseFragment {
         items.add(new Item(VIEW_TYPE_HEADER, 0, TjLocale.getString(R.string.TjChatsHeader)));
         items.add(new Item(VIEW_TYPE_CHECK, ID_SHOW_CALL_BUTTON, TjLocale.getString(R.string.TjShowCallButton)));
         items.add(new Item(VIEW_TYPE_SHADOW, 0, TjLocale.getString(R.string.TjShowCallButtonInfo)));
+        items.add(new Item(VIEW_TYPE_HEADER, 0, TjLocale.getString(R.string.TjGhostMode)));
+        items.add(new Item(VIEW_TYPE_CHECK, ID_GHOST_MODE, TjLocale.getString(R.string.TjGhostMode)));
+        items.add(new Item(VIEW_TYPE_CHECK, ID_GHOST_TYPING, TjLocale.getString(R.string.TjGhostTyping)));
+        items.add(new Item(VIEW_TYPE_CHECK, ID_GHOST_ONLINE, TjLocale.getString(R.string.TjGhostOnline)));
+        items.add(new Item(VIEW_TYPE_CHECK, ID_GHOST_READ, TjLocale.getString(R.string.TjGhostRead)));
+        items.add(new Item(VIEW_TYPE_SHADOW, 0, TjLocale.getString(R.string.TjGhostModeInfo)));
         items.add(new Item(VIEW_TYPE_HEADER, 0, LocaleController.getString(R.string.Filters)));
         items.add(new Item(VIEW_TYPE_SETTING, ID_FOLDER_TAB_STYLE, TjLocale.getString(R.string.TjFolderTabStyle)));
         items.add(new Item(VIEW_TYPE_SHADOW, 0, TjLocale.getString(R.string.TjFolderTabStyleInfo)));
@@ -293,7 +351,13 @@ public class TjSettingsActivity extends BaseFragment {
             if (listView != null && listView.getAdapter() != null) {
                 listView.getAdapter().notifyDataSetChanged();
             }
-            NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.dialogFiltersUpdated);
+            // dialogFiltersUpdated is account-scoped - posting it on the global instance reaches
+            // nobody, which is why the style only took effect after an app restart.
+            for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
+                if (UserConfig.getInstance(a).isClientActivated()) {
+                    NotificationCenter.getInstance(a).postNotificationName(NotificationCenter.dialogFiltersUpdated);
+                }
+            }
         });
         builder.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
         showDialog(builder.create());

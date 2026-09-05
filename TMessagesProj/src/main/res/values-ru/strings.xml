@@ -309,4 +309,15 @@
     <string name="TjFolderTabIconAndName">Значок и название</string>
     <string name="TjFolderTabIconOnly">Только значок</string>
     <string name="TjFolderTabNameOnly">Только название</string>
+    <string name="TjGoToFirstMessage">К первому сообщению</string>
+    <string name="TjGhostMode">Режим призрака</string>
+    <string name="TjGhostModeOn">Включить режим призрака</string>
+    <string name="TjGhostModeOff">Выключить режим призрака</string>
+    <string name="TjGhostTyping">Не показывать, что я печатаю</string>
+    <string name="TjGhostOnline">Оставаться не в сети</string>
+    <string name="TjGhostRead">Не отправлять отметки о прочтении</string>
+    <string name="TjGhostModeInfo">Режим призрака скрывает вашу активность от других. Выберите, что он охватывает.</string>
+    <string name="TjGhostWarning">Режим призрака — неофициальная функция. Telegram может счесть это необычным поведением, используйте на свой риск.</string>
+    <string name="TjGhostDontWarnAgain">Больше не показывать</string>
+    <string name="TjChatCountersUpdated">Обновлено: %1$s</string>
 </resources>

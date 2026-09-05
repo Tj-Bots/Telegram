@@ -4330,9 +4330,17 @@ public class ChatActivity extends BaseFragment implements
                 if (TjSettingsActivity.isShowCallButtonEnabled() && userFull != null && userFull.phone_calls_available) {
                     showAudioCallAsIcon = !inPreviewMode;
                     audioCallIconItem.setVisibility(View.VISIBLE);
+                    // The call icon takes the search icon's place rather than sitting next to it.
+                    // Search is still reachable from the overflow menu.
+                    if (searchIconItem != null) {
+                        searchIconItem.setVisibility(View.GONE);
+                    }
                 } else {
                     showAudioCallAsIcon = false;
                     audioCallIconItem.setVisibility(View.GONE);
+                    if (searchIconItem != null) {
+                        searchIconItem.setVisibility(View.VISIBLE);
+                    }
                 }
             }
         }
@@ -4506,7 +4514,7 @@ public class ChatActivity extends BaseFragment implements
                 clearHistoryItem = headerItem.lazilyAddSubItem(clear_history, R.drawable.msg_clear,
                     LocaleController.getString(UserObject.isBotForum(currentUser) ? R.string.ClearAllHistory : R.string.ClearHistory));
             }
-            headerItem.lazilyAddSubItem(jump_to_first_message, R.drawable.msg_go_up, "Go to first message");
+            headerItem.lazilyAddSubItem(jump_to_first_message, R.drawable.msg_go_up, TjLocale.getString(R.string.TjGoToFirstMessage));
             pinnedVisibilityItem = headerItem.lazilyAddSubItem(toggle_pinned_visibility, R.drawable.msg_pin, TjLocale.getString(R.string.TjHidePinnedMessage));
             headerItem.hideSubItem(toggle_pinned_visibility);
             boolean addedSettings = false;
@@ -10381,7 +10389,7 @@ public class ChatActivity extends BaseFragment implements
             actionModeViews.add(actionMode.addItemWithWidth(select_range, R.drawable.msg_select, dp(48), "Select range"));
             if (!isSavedMessages && getDialogId() != UserObject.VERIFY) {
                 actionModeViews.add(actionMode.addItemWithWidth(forward, R.drawable.msg_forward, dp(48), LocaleController.getString(R.string.Forward)));
-                actionModeViews.add(actionMode.addItemWithWidth(forward_no_tag, R.drawable.msg_forward, dp(48), TjLocale.getString(R.string.ForwardWithoutTag)));
+                actionModeViews.add(actionMode.addItemWithWidth(forward_no_tag, R.drawable.msg_forward, dp(48), TjLocale.getString(R.string.TjForwardWithoutTag)));
             }
             actionModeViews.add(actionMode.addItemWithWidth(share, R.drawable.msg_shareout, dp(48), LocaleController.getString(R.string.ShareFile)));
             actionModeViews.add(actionMode.addItemWithWidth(delete, R.drawable.msg_delete, dp(48), LocaleController.getString(R.string.Delete)));
@@ -46403,7 +46411,7 @@ public class ChatActivity extends BaseFragment implements
                     options.add(OPTION_FORWARD);
                     icons.add(R.drawable.msg_forward);
                     if (TjSettingsActivity.isForwardWithoutTagEnabled()) {
-                        items.add(TjLocale.getString(R.string.ForwardWithoutTag));
+                        items.add(TjLocale.getString(R.string.TjForwardWithoutTag));
                         options.add(OPTION_FORWARD_NO_TAG);
                         icons.add(R.drawable.msg_forward);
                     }
@@ -46494,6 +46502,11 @@ public class ChatActivity extends BaseFragment implements
                         items.add(LocaleController.getString(R.string.SaveToGallery));
                         options.add(OPTION_SAVE_TO_GALLERY);
                         icons.add(R.drawable.msg_gallery);
+                        if (selectedObject.getDocument() != null && !selectedObject.getDocument().thumbs.isEmpty() && TjSettingsActivity.isCopyThumbnailEnabled()) {
+                            items.add(TjLocale.getString(R.string.TjCopyThumbnail));
+                            options.add(OPTION_COPY_VIDEO_THUMB);
+                            icons.add(R.drawable.msg_copy);
+                        }
                         items.add(LocaleController.getString(R.string.ShareFile));
                         options.add(OPTION_SHARE);
                         icons.add(R.drawable.msg_shareout);
@@ -46515,6 +46528,11 @@ public class ChatActivity extends BaseFragment implements
                         items.add(LocaleController.getString(R.string.SaveToGallery));
                         options.add(OPTION_SAVE_TO_GALLERY);
                         icons.add(R.drawable.msg_gallery);
+                        if (TjSettingsActivity.isCopyImageEnabled()) {
+                            items.add(TjLocale.getString(R.string.TjCopyImage));
+                            options.add(OPTION_COPY_IMAGE);
+                            icons.add(R.drawable.msg_copy);
+                        }
                     }
                 } else if (type == 5) {
                     items.add(LocaleController.getString(R.string.ApplyLocalizationFile));

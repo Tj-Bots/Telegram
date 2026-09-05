@@ -11270,4 +11270,15 @@
     <string name="TjFolderTabIconAndName">Icon and name</string>
     <string name="TjFolderTabIconOnly">Icon only</string>
     <string name="TjFolderTabNameOnly">Name only</string>
+    <string name="TjGoToFirstMessage">Go to first message</string>
+    <string name="TjGhostMode">Ghost mode</string>
+    <string name="TjGhostModeOn">Enable ghost mode</string>
+    <string name="TjGhostModeOff">Disable ghost mode</string>
+    <string name="TjGhostTyping">Don\'t show that I\'m typing</string>
+    <string name="TjGhostOnline">Stay offline</string>
+    <string name="TjGhostRead">Don\'t send read receipts</string>
+    <string name="TjGhostModeInfo">Ghost mode hides your activity from other people. Choose what it covers.</string>
+    <string name="TjGhostWarning">Ghost mode is not an official Telegram feature. Telegram may treat it as unusual behaviour, so use it at your own risk.</string>
+    <string name="TjGhostDontWarnAgain">Don\'t show this again</string>
+    <string name="TjChatCountersUpdated">Last updated: %1$s</string>
 </resources>

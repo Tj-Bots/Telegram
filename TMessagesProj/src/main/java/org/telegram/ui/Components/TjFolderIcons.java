@@ -143,6 +143,9 @@ public class TjFolderIcons {
         if (emoticon == null && style == STYLE_ICON_AND_NAME) {
             return title;
         }
+        if (emoticon == null) {
+            emoticon = "\uD83D\uDCAC";
+        }
         try {
             ColoredImageSpan span = new ColoredImageSpan(getTabIcon(emoticon), ColoredImageSpan.ALIGN_CENTER);
             span.setSize(AndroidUtilities.dp(18));

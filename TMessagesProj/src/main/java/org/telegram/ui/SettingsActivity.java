@@ -535,12 +535,18 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
         avatarView.setForUserOrChat(user, avatarDrawable);
         titleView.setText(UserObject.getUserName(user));
         final StringBuilder sb = new StringBuilder();
-        if (user != null) {
+        final String username = UserObject.getPublicUsername(user);
+        // With hide-my-number on, keep the number out of this header - it is the part that shows
+        // up in screen recordings. The row you tap to change it still spells it out.
+        final boolean hidePhone = TjSettingsActivity.isHidePhoneNumberEnabled();
+        if (user != null && !hidePhone) {
             sb.append(PhoneFormat.getInstance().format("+" + user.phone));
         }
-        final String username = UserObject.getPublicUsername(user);
         if (username != null) {
-            sb.append(" • @").append(username);
+            if (sb.length() > 0) {
+                sb.append(" • ");
+            }
+            sb.append("@").append(username);
         }
         subtitleView.setText(sb);
 

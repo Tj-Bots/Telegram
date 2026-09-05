@@ -46,6 +46,7 @@ public class ChatCountersActivity extends BaseFragment {
 
     private final ArrayList<Item> items = new ArrayList<>();
     private boolean loaded;
+    private long countedAt;
 
     private static class Item {
         final int viewType;
@@ -113,6 +114,7 @@ public class ChatCountersActivity extends BaseFragment {
                 if (isFinishing() || listView == null) {
                     return;
                 }
+                countedAt = System.currentTimeMillis();
                 buildItems(counters);
                 loaded = true;
                 progressView.setVisibility(View.GONE);
@@ -199,7 +201,9 @@ public class ChatCountersActivity extends BaseFragment {
         items.add(new Item(VIEW_TYPE_SHADOW, null, null));
         items.add(new Item(VIEW_TYPE_VALUE, TjLocale.getString(R.string.TjFoldersCount), format(counters.folders)));
         items.add(new Item(VIEW_TYPE_VALUE, TjLocale.getString(R.string.TjContactsCount), format(counters.contacts)));
-        items.add(new Item(VIEW_TYPE_SHADOW, TjLocale.getString(R.string.TjChatCountersInfo), null));
+        String when = LocaleController.getInstance().getFormatterStats().format(countedAt);
+        items.add(new Item(VIEW_TYPE_SHADOW,
+                TjLocale.formatString(R.string.TjChatCountersUpdated, when) + "\n" + TjLocale.getString(R.string.TjChatCountersInfo), null));
     }
 
     private static String format(int value) {

@@ -1289,4 +1289,15 @@
     <string name="TjFolderTabIconAndName">أيقونة واسم</string>
     <string name="TjFolderTabIconOnly">أيقونة فقط</string>
     <string name="TjFolderTabNameOnly">اسم فقط</string>
+    <string name="TjGoToFirstMessage">الانتقال إلى أول رسالة</string>
+    <string name="TjGhostMode">الوضع الخفي</string>
+    <string name="TjGhostModeOn">تفعيل الوضع الخفي</string>
+    <string name="TjGhostModeOff">إيقاف الوضع الخفي</string>
+    <string name="TjGhostTyping">لا تُظهر أنني أكتب</string>
+    <string name="TjGhostOnline">ابقَ غير متصل</string>
+    <string name="TjGhostRead">لا ترسل إشعارات القراءة</string>
+    <string name="TjGhostModeInfo">يخفي الوضع الخفي نشاطك عن الآخرين. اختر ما يشمله.</string>
+    <string name="TjGhostWarning">الوضع الخفي ليس ميزة رسمية في تيليجرام. قد يعتبره تيليجرام سلوكًا غير معتاد، فاستخدمه على مسؤوليتك.</string>
+    <string name="TjGhostDontWarnAgain">لا تعرض هذا مرة أخرى</string>
+    <string name="TjChatCountersUpdated">آخر تحديث: %1$s</string>
 </resources>

@@ -1158,7 +1158,7 @@ public class FilterCreateActivity extends BaseFragment {
                     sheet[0].dismiss();
                 }
                 updateRows(true);
-                NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.dialogFiltersUpdated);
+                getNotificationCenter().postNotificationName(NotificationCenter.dialogFiltersUpdated);
             });
             GridLayout.LayoutParams lp = new GridLayout.LayoutParams();
             lp.width = dp(40);

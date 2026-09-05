@@ -46,4 +46,15 @@
     <string name="TjFolderTabIconAndName">Icône et nom</string>
     <string name="TjFolderTabIconOnly">Icône seule</string>
     <string name="TjFolderTabNameOnly">Nom seul</string>
+    <string name="TjGoToFirstMessage">Aller au premier message</string>
+    <string name="TjGhostMode">Mode fantôme</string>
+    <string name="TjGhostModeOn">Activer le mode fantôme</string>
+    <string name="TjGhostModeOff">Désactiver le mode fantôme</string>
+    <string name="TjGhostTyping">Ne pas montrer que j’écris</string>
+    <string name="TjGhostOnline">Rester hors ligne</string>
+    <string name="TjGhostRead">Ne pas envoyer d’accusés de lecture</string>
+    <string name="TjGhostModeInfo">Le mode fantôme masque votre activité aux autres. Choisissez ce qu’il couvre.</string>
+    <string name="TjGhostWarning">Le mode fantôme n’est pas une fonctionnalité officielle de Telegram. Telegram pourrait le considérer comme un comportement inhabituel : à utiliser à vos risques.</string>
+    <string name="TjGhostDontWarnAgain">Ne plus afficher</string>
+    <string name="TjChatCountersUpdated">Dernière mise à jour : %1$s</string>
 </resources>

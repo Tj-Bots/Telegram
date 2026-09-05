@@ -269,6 +269,7 @@ import org.telegram.ui.Cells.DrawerProfileCell;
 import org.telegram.ui.Cells.DrawerUserCell;
 import org.telegram.ui.Components.RecyclerListView;
 import org.telegram.ui.Components.SideMenultItemAnimator;
+import org.telegram.ui.Cells.CheckBoxCell;
 
 public class LaunchActivity extends BasePermissionsActivity implements INavigationLayout.INavigationLayoutDelegate, NotificationCenter.NotificationCenterDelegate, DialogsActivity.DialogsActivityDelegate, IPipActivity {
     public final static String EXTRA_FORCE_NOT_INTERNAL_APPS = "force_not_internal_apps";
@@ -1132,6 +1133,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
     }
 
     public void checkSystemBarColors(boolean useCurrentFragment, boolean checkStatusBar, boolean checkNavigationBar) {
+        updateSideMenu();
         BaseFragment currentFragment = !mainFragmentsStack.isEmpty() ? mainFragmentsStack.get(mainFragmentsStack.size() - 1) : null;
         if (currentFragment != null && (currentFragment.isRemovingFromStack() || currentFragment.isInPreviewMode())) {
             currentFragment = mainFragmentsStack.size() > 1 ? mainFragmentsStack.get(mainFragmentsStack.size() - 2) : null;
@@ -7322,6 +7324,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                 }
             }
             rebuildAllFragments(last);
+            updateSideMenu();
         } else if (id == NotificationCenter.suggestedLangpack) {
             showLanguageAlert(false);
         } else if (id == NotificationCenter.openArticle) {
@@ -7444,6 +7447,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                                 darkThemeView.setVisibility(View.VISIBLE);
                             }
                             DialogsActivity.switchingTheme = false;
+                            DrawerProfileCell.switchingTheme = false;
                         }
                     });
                     if (rippleAbove != null) {
@@ -7466,12 +7470,14 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                         themeSwitchImageView.setImageDrawable(null);
                         frameLayout.removeView(themeSwitchImageView);
                         DialogsActivity.switchingTheme = false;
+                            DrawerProfileCell.switchingTheme = false;
                     } catch (Exception e2) {
                         FileLog.e(e2);
                     }
                 }
             } else {
                 DialogsActivity.switchingTheme = false;
+                            DrawerProfileCell.switchingTheme = false;
             }
             Theme.ThemeInfo theme = (Theme.ThemeInfo) args[0];
             boolean nightTheme = (Boolean) args[1];
@@ -8434,6 +8440,9 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                     drawerLayoutContainer.closeDrawer(false);
                     openMyProfile();
                     break;
+                case 104:
+                    toggleGhostMode();
+                    break;
                 case 101:
                     drawerLayoutContainer.closeDrawer(false);
                     presentFragment(new FiltersSetupActivity());
@@ -8450,6 +8459,41 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         });
     }
 
+    /** Ghost mode from the drawer. Turning it on warns once, unless that was dismissed. */
+    private void toggleGhostMode() {
+        if (TjSettingsActivity.isGhostModeEnabled()) {
+            TjSettingsActivity.setGhostModeEnabled(false);
+            updateSideMenu();
+            return;
+        }
+        if (TjSettingsActivity.isGhostWarningDismissed()) {
+            TjSettingsActivity.setGhostModeEnabled(true);
+            updateSideMenu();
+            return;
+        }
+        LinearLayout content = new LinearLayout(this);
+        content.setOrientation(LinearLayout.VERTICAL);
+        CheckBoxCell dontAsk = new CheckBoxCell(this, 1);
+        dontAsk.setText(TjLocale.getString(R.string.TjGhostDontWarnAgain), "", false, false);
+        dontAsk.setPadding(LocaleController.isRTL ? AndroidUtilities.dp(8) : AndroidUtilities.dp(16), 0, LocaleController.isRTL ? AndroidUtilities.dp(16) : AndroidUtilities.dp(8), 0);
+        dontAsk.setOnClickListener(v -> dontAsk.setChecked(!dontAsk.isChecked(), true));
+        content.addView(dontAsk, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 48));
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(TjLocale.getString(R.string.TjGhostMode));
+        builder.setMessage(TjLocale.getString(R.string.TjGhostWarning));
+        builder.setView(content);
+        builder.setPositiveButton(LocaleController.getString(R.string.OK), (dialog, which) -> {
+            if (dontAsk.isChecked()) {
+                TjSettingsActivity.setGhostWarningDismissed(true);
+            }
+            TjSettingsActivity.setGhostModeEnabled(true);
+            updateSideMenu();
+        });
+        builder.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
+        builder.show();
+    }
+
     private void openMyProfile() {
         Bundle args = new Bundle();
         args.putLong("user_id", UserConfig.getInstance(currentAccount).getClientUserId());
@@ -8457,13 +8501,31 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         presentFragment(new ProfileActivity(args, null));
     }
 
-    public void openSideMenu() {
-        if (drawerLayoutContainer == null) {
+    /**
+     * The drawer builds its rows once, in the adapter constructor, so nothing in it followed a
+     * language or theme change until the app was restarted. Upstream refreshes it from a handful
+     * of notification points; this is that refresh, in one place.
+     */
+    public void updateSideMenu() {
+        if (sideMenu == null) {
             return;
+        }
+        sideMenu.setBackgroundColor(Theme.getColor(Theme.key_chats_menuBackground));
+        if (sideMenuContainer != null) {
+            sideMenuContainer.setBackgroundColor(Theme.getColor(Theme.key_chats_menuBackground));
         }
         if (drawerLayoutAdapter != null) {
             drawerLayoutAdapter.notifyDataSetChanged();
         }
+        sideMenu.invalidateViews();
+        sideMenu.invalidate();
+    }
+
+    public void openSideMenu() {
+        if (drawerLayoutContainer == null) {
+            return;
+        }
+        updateSideMenu();
         drawerLayoutContainer.setAllowOpenDrawer(true, false);
         drawerLayoutContainer.openDrawer(false);
     }
