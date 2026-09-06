@@ -3646,7 +3646,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                     switchToCurrentSelectedMode(true);
                     animatingForward = forward;
 
-                    updateTitleForTab(tab.isDefault, tab.title);
+                    ArrayList<MessagesController.DialogFilter> titleFilters = getMessagesController().getDialogFilters();
+                    updateTitleForTab(tab.isDefault, tab.id >= 0 && tab.id < titleFilters.size() ? titleFilters.get(tab.id).name : null);
                     updateDrawerSwipeAllowed(tab.isDefault);
                 }
 
@@ -6930,10 +6931,10 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 filterTabsView.removeTabs();
                 for (int a = 0, N = filters.size(); a < N; a++) {
                     if (filters.get(a).isDefault()) {
-                        filterTabsView.addTab(a, 0, TjFolderIcons.decorate(LocaleController.getString(R.string.FilterAllChats), filters.get(a)), false, true, filters.get(a).locked);
+                        filterTabsView.addTab(a, 0, TjFolderIcons.tabTitle(LocaleController.getString(R.string.FilterAllChats)), TjFolderIcons.getFolderEmoticon(filters.get(a)), false, true, filters.get(a).locked);
                     } else {
                         final MessagesController.DialogFilter filter = filters.get(a);
-                        filterTabsView.addTab(a, filter.localId, TjFolderIcons.decorate(filter.name, filter), filter.title_noanimate, false, filters.get(a).locked);
+                        filterTabsView.addTab(a, filter.localId, TjFolderIcons.tabTitle(filter.name), TjFolderIcons.getFolderEmoticon(filter), filter.title_noanimate, false, filters.get(a).locked);
                     }
                 }
                 if (stableId >= 0) {
@@ -8490,7 +8491,10 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             return;
         }
         if (!isDefaultTab) {
-            actionBar.setTitle(tabTitle);
+            // callers that only want the badge refreshed pass no name; leave the title alone then
+            if (tabTitle != null) {
+                actionBar.setTitle(tabTitle);
+            }
             return;
         }
         SpannableStringBuilder ssb = new SpannableStringBuilder();
@@ -10886,6 +10890,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             }
         } else if (id == NotificationCenter.dialogFiltersUpdated) {
             updateFilterTabs(true, true);
+            // also covers the ghost badge, which rides on the title
+            updateTitleForTab(filterTabsView == null || filterTabsView.getVisibility() != View.VISIBLE || filterTabsView.isFirstTabSelected(), null);
         } else if (id == NotificationCenter.filterSettingsUpdated) {
             showFiltersHint();
         } else if (id == NotificationCenter.newSuggestionsAvailable) {

@@ -138,30 +138,29 @@ public class TjFolderIcons {
      * measuring, animation and drawing in FilterTabsView keep working untouched, and the span
      * takes the paint's colour so the icon fades with the tab's selected state.
      */
-    public static CharSequence decorate(CharSequence title, MessagesController.DialogFilter filter) {
-        int style = TjSettingsActivity.getFolderTabStyle();
-        if (style == STYLE_NAME_ONLY) {
-            return title;
+    /** Icon side, in pixels. A touch larger than the text so the tabs read clearly. */
+    public static int getIconSize() {
+        return AndroidUtilities.dp(22);
+    }
+
+    public static boolean showsTitle() {
+        return TjSettingsActivity.getFolderTabStyle() != STYLE_ICON_ONLY;
+    }
+
+    public static boolean showsIcon() {
+        return TjSettingsActivity.getFolderTabStyle() != STYLE_NAME_ONLY;
+    }
+
+    /** Width this folder's icon needs inside a tab, gap included. Zero when it has none. */
+    public static int getTotalIconWidth(String emoticon) {
+        if (emoticon == null || !showsIcon()) {
+            return 0;
         }
-        String emoticon = getFolderEmoticon(filter);
-        if (emoticon == null && style == STYLE_ICON_AND_NAME) {
-            return title;
-        }
-        if (emoticon == null) {
-            emoticon = "\uD83D\uDCAC";
-        }
-        try {
-            ColoredImageSpan span = new ColoredImageSpan(getTabIcon(emoticon), ColoredImageSpan.ALIGN_CENTER);
-            span.setSize(AndroidUtilities.dp(18));
-            SpannableStringBuilder sb = new SpannableStringBuilder();
-            sb.append("\u200b");
-            sb.setSpan(span, 0, 1, SpannableStringBuilder.SPAN_EXCLUSIVE_EXCLUSIVE);
-            if (style == STYLE_ICON_AND_NAME && !TextUtils.isEmpty(title)) {
-                sb.append("  ").append(title);
-            }
-            return sb;
-        } catch (Exception e) {
-            return title;
-        }
+        return getIconSize() + (showsTitle() ? AndroidUtilities.dp(6) : 0);
+    }
+
+    /** Tab label: the folder name, or nothing at all in icon-only mode. */
+    public static CharSequence tabTitle(CharSequence name) {
+        return showsTitle() ? name : "";
     }
 }

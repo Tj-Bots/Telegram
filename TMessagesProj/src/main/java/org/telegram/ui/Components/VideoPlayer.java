@@ -681,23 +681,24 @@ public class VideoPlayer implements Player.Listener, VideoListener, AnalyticsLis
         }
     }
 
+    /** Tracks are named by language where the file gives one; the label is only a fallback. */
     private static String describeTrack(Format format, int fallbackNumber) {
-        String label = format.label;
-        if (label == null || label.isEmpty()) {
-            String lang = format.language;
-            if (lang != null && !lang.isEmpty() && !"und".equals(lang)) {
-                try {
-                    String display = new java.util.Locale(lang).getDisplayLanguage(LocaleController.getInstance().getCurrentLocale());
-                    label = display != null && !display.isEmpty() ? display : lang;
-                } catch (Exception e) {
-                    label = lang;
+        String lang = format.language;
+        if (lang != null && !lang.isEmpty() && !"und".equals(lang)) {
+            try {
+                String display = new java.util.Locale(lang).getDisplayLanguage(LocaleController.getInstance().getCurrentLocale());
+                if (display != null && !display.isEmpty()) {
+                    return display.substring(0, 1).toUpperCase() + display.substring(1);
                 }
+            } catch (Exception ignore) {
             }
+            return lang;
         }
-        if (label == null || label.isEmpty()) {
-            label = "#" + fallbackNumber;
+        String label = format.label;
+        if (label != null && !label.isEmpty()) {
+            return label;
         }
-        return label;
+        return "#" + fallbackNumber;
     }
 
     private ArrayList<TjTrack> getTracksOfType(int trackType) {

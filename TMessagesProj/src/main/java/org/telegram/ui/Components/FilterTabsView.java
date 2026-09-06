@@ -71,6 +71,7 @@ import org.telegram.ui.Stories.recorder.HintView2;
 
 import java.util.ArrayList;
 import java.util.Map;
+import org.telegram.messenger.FileLog;
 
 @SuppressLint("ViewConstructor")
 public class FilterTabsView extends FrameLayout {
@@ -119,6 +120,9 @@ public class FilterTabsView extends FrameLayout {
     public class Tab {
         public int id;
         public CharSequence title;
+        /** Folder icon, drawn as a real drawable - an ImageSpan is invisible to the width measure. */
+        public String emoticon;
+        public int iconWidth;
         public int titleWidth;
         public int counter;
         public boolean isDefault;
@@ -132,7 +136,8 @@ public class FilterTabsView extends FrameLayout {
         }
 
         public int getWidth(boolean store) {
-            int width = titleWidth = (int) Math.ceil(HintView2.measureCorrectly(title, textPaint));
+            iconWidth = TjFolderIcons.getTotalIconWidth(emoticon);
+            int width = (titleWidth = (int) Math.ceil(HintView2.measureCorrectly(title, textPaint))) + iconWidth;
             int c;
             if (store) {
                 c = delegate.getTabCounter(id);
@@ -386,8 +391,9 @@ public class FilterTabsView extends FrameLayout {
             }
 
             tabCounterVisible = (countWidth != 0 && !animateCounterRemove) ? (counterText != null ? 1.0f : editingStartAnimationProgress) : 0;
-            tabWidth = currentTab.titleWidth + ((countWidth != 0 && !animateCounterRemove) ? countWidth + dp(-2 * (counterText != null ? 1.0f : editingStartAnimationProgress)) : 0);
-            float textX = (getMeasuredWidth() - tabWidth) / 2f;
+            tabWidth = currentTab.iconWidth + currentTab.titleWidth + ((countWidth != 0 && !animateCounterRemove) ? countWidth + dp(-2 * (counterText != null ? 1.0f : editingStartAnimationProgress)) : 0);
+            float tabStartX = (getMeasuredWidth() - tabWidth) / 2f;
+            float textX = tabStartX + currentTab.iconWidth;
             if (animateTextX) {
                 textX = textX * changeProgress + animateFromTextX * (1f - changeProgress);
             }
@@ -400,6 +406,20 @@ public class FilterTabsView extends FrameLayout {
                 textOffsetX = (int) -textLayout.getLineLeft(0);
             }
 
+
+            if (currentTab.iconWidth > 0) {
+                try {
+                    Drawable tabIcon = getResources().getDrawable(TjFolderIcons.getTabIcon(currentTab.emoticon)).mutate();
+                    int size = TjFolderIcons.getIconSize();
+                    int iconLeft = (int) tabStartX;
+                    int iconTop = (getMeasuredHeight() - size) / 2;
+                    tabIcon.setBounds(iconLeft, iconTop, iconLeft + size, iconTop + size);
+                    tabIcon.setColorFilter(new PorterDuffColorFilter(textPaint.getColor(), PorterDuff.Mode.SRC_IN));
+                    tabIcon.draw(canvas);
+                } catch (Exception e) {
+                    FileLog.e(e);
+                }
+            }
 
             float titleOffsetX = 0;
             if (animateTextChange) {
@@ -1276,6 +1296,16 @@ public class FilterTabsView extends FrameLayout {
         tab.isLocked = isLocked;
         allTabsWidth += tab.getWidth(true) + dp(TAB_PADDING_WIDTH);
         tabs.add(tab);
+    }
+
+    public void addTab(int id, int stableId, CharSequence text, String emoticon, boolean noanimate, boolean isDefault, boolean isLocked) {
+        addTab(id, stableId, text, noanimate, isDefault, isLocked);
+        if (!tabs.isEmpty()) {
+            Tab tab = tabs.get(tabs.size() - 1);
+            tab.emoticon = emoticon;
+            allTabsWidth -= tab.getWidth(false) + dp(TAB_PADDING_WIDTH);
+            allTabsWidth += tab.getWidth(true) + dp(TAB_PADDING_WIDTH);
+        }
     }
 
     public void addTab(int id, int stableId, CharSequence text, boolean noanimate, boolean isDefault, boolean isLocked) {

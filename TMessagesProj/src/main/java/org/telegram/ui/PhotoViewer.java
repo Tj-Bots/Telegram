@@ -900,7 +900,8 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
     private ActionBarMenuItem videoItem;
     private ActionBarMenuSubItem allMediaItem;
     private ActionBarMenuSlider.SpeedSlider speedItem;
-    private ActionBarMenuSubItem audioTrackItem;
+    private LinearLayout audioTrackLayout;
+    private int selectedAudioTrack = -1;
     private ActionBarMenuSubItem loopItem;
     private ActionBarMenuSubItem galleryButton;
     private ActionBarPopupWindow.GapView galleryGap;
@@ -2195,7 +2196,6 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
     private final static int gallery_menu_chromecast = 24;
     private final static int gallery_menu_create_sticker = 25;
     private final static int gallery_menu_delete2 = 26;
-    private final static int gallery_menu_audio_track = 27;
 
 
 
@@ -5738,8 +5738,6 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
                         menuItem.hideSubItem(gallery_menu_hide_translation);
                     }, 32);
                     updateCaptionTranslated();
-                } else if (id == gallery_menu_audio_track) {
-                    showAudioTrackPicker();
                 } else if (id == gallery_menu_loop) {
                     playerLooping = !playerLooping;
                     VideoPlayer.saveLooping(playerLooping, currentMessageObject);
@@ -5815,9 +5813,10 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
         videoQualityLayout = new LinearLayout(activityContext);
         videoQualityLayout.setOrientation(LinearLayout.VERTICAL);
         videoItem.getPopupLayout().addView(videoQualityLayout);
-        audioTrackItem = videoItem.addSubItem(gallery_menu_audio_track, R.drawable.msg_msgbubble3, TjLocale.getString(R.string.TjAudioTrack));
-        audioTrackItem.setSelectorColor(0x0fffffff);
-        audioTrackItem.setVisibility(View.GONE);
+        audioTrackLayout = new LinearLayout(activityContext);
+        audioTrackLayout.setOrientation(LinearLayout.VERTICAL);
+        audioTrackLayout.setVisibility(View.GONE);
+        videoItem.getPopupLayout().addView(audioTrackLayout);
         loopItem = videoItem.addSubItem(gallery_menu_loop, R.drawable.menu_video_loop, LocaleController.getString(R.string.VideoPlayerLoop));
         loopItem.setSelectorColor(0x0fffffff);
         castItemButton = new CastMediaRouteButton(activityContext) {
@@ -10232,7 +10231,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
         }
         if (playbackState == ExoPlayer.STATE_READY) {
             // Tracks are only known once the player is ready.
-            updateAudioTrackItemVisibility();
+            updateAudioTracksLayout();
             if (aspectRatioFrameLayout != null && aspectRatioFrameLayout.getVisibility() != View.VISIBLE) {
                 aspectRatioFrameLayout.setVisibility(View.VISIBLE);
             }
@@ -23190,43 +23189,58 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
         });
     }
 
-    /** Shown only for videos that actually carry more than one audio track. */
-    private void updateAudioTrackItemVisibility() {
-        if (audioTrackItem == null) {
+    /**
+     * Audio tracks, listed inside the player menu the same way the quality list is: a header plus
+     * checkable rows. Hidden entirely for videos with a single track.
+     */
+    private void updateAudioTracksLayout() {
+        if (audioTrackLayout == null) {
             return;
         }
-        int count = 0;
+        java.util.ArrayList<VideoPlayer.TjTrack> tracks = null;
         try {
             if (videoPlayer != null) {
-                count = videoPlayer.getAudioTracks().size();
+                tracks = videoPlayer.getAudioTracks();
             }
         } catch (Exception e) {
             FileLog.e(e);
         }
-        audioTrackItem.setVisibility(count > 1 ? View.VISIBLE : View.GONE);
-    }
+        if (tracks == null || tracks.size() < 2) {
+            audioTrackLayout.setVisibility(View.GONE);
+            audioTrackLayout.removeAllViews();
+            selectedAudioTrack = -1;
+            return;
+        }
+        audioTrackLayout.setVisibility(View.VISIBLE);
+        audioTrackLayout.removeAllViews();
 
-    private void showAudioTrackPicker() {
-        if (videoPlayer == null || parentActivity == null) {
-            return;
-        }
-        final java.util.ArrayList<VideoPlayer.TjTrack> tracks = videoPlayer.getAudioTracks();
-        if (tracks.isEmpty()) {
-            return;
-        }
-        CharSequence[] labels = new CharSequence[tracks.size()];
+        final TextView header = new TextView(activityContext);
+        header.setText(TjLocale.getString(R.string.TjAudioTrack));
+        header.setTypeface(AndroidUtilities.bold());
+        header.setPadding(dp(16), dp(9), dp(16), dp(8));
+        header.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
+        header.setTextColor(0xFFFFFFFF);
+        audioTrackLayout.addView(header, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
+
         for (int a = 0; a < tracks.size(); a++) {
-            labels[a] = tracks.get(a).label;
+            final VideoPlayer.TjTrack track = tracks.get(a);
+            final int index = a;
+            ActionBarMenuSubItem item = ActionBarMenuItem.addItem(audioTrackLayout, 0, track.label, true, null);
+            item.setChecked(index == (selectedAudioTrack < 0 ? 0 : selectedAudioTrack));
+            item.setColors(0xfffafafa, 0xfffafafa);
+            item.setSelectorColor(0x0fffffff);
+            item.setOnClickListener(v -> {
+                if (videoPlayer != null) {
+                    selectedAudioTrack = index;
+                    videoPlayer.selectAudioTrack(track);
+                    updateAudioTracksLayout();
+                }
+            });
         }
-        AlertDialog.Builder builder = new AlertDialog.Builder(parentActivity, resourcesProvider);
-        builder.setTitle(TjLocale.getString(R.string.TjAudioTrack));
-        builder.setItems(labels, (dialog, which) -> {
-            if (videoPlayer != null && which >= 0 && which < tracks.size()) {
-                videoPlayer.selectAudioTrack(tracks.get(which));
-            }
-        });
-        builder.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
-        showAlertDialog(builder);
+        ActionBarPopupWindow.GapView gap = new ActionBarPopupWindow.GapView(activityContext, resourcesProvider, Theme.key_actionBarDefaultSubmenuSeparator);
+        gap.setTag(R.id.fit_width_tag, 1);
+        gap.setColor(0xff181818);
+        audioTrackLayout.addView(gap, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 8));
     }
 
     private void chooseSpeed(float speed, boolean isFinal, boolean closeMenu) {

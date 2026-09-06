@@ -8460,15 +8460,26 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
     }
 
     /** Ghost mode from the drawer. Turning it on warns once, unless that was dismissed. */
+    /** The chat list draws the ghost badge, so it has to be told. Account-scoped notification. */
+    private void notifyGhostModeChanged() {
+        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
+            if (UserConfig.getInstance(a).isClientActivated()) {
+                NotificationCenter.getInstance(a).postNotificationName(NotificationCenter.dialogFiltersUpdated);
+            }
+        }
+    }
+
     private void toggleGhostMode() {
         if (TjSettingsActivity.isGhostModeEnabled()) {
             TjSettingsActivity.setGhostModeEnabled(false);
             updateSideMenu();
+            notifyGhostModeChanged();
             return;
         }
         if (TjSettingsActivity.isGhostWarningDismissed()) {
             TjSettingsActivity.setGhostModeEnabled(true);
             updateSideMenu();
+            notifyGhostModeChanged();
             return;
         }
         LinearLayout content = new LinearLayout(this);
@@ -8489,6 +8500,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             }
             TjSettingsActivity.setGhostModeEnabled(true);
             updateSideMenu();
+            notifyGhostModeChanged();
         });
         builder.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
         builder.show();
