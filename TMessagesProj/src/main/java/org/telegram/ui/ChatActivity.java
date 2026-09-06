@@ -3901,7 +3901,7 @@ public class ChatActivity extends BaseFragment implements
                     if (ghostChatItem != null) {
                         ghostChatItem.text = ghostChatItemLabel();
                     }
-                    BulletinFactory.of(this).createSimpleBulletin(R.raw.info, TjLocale.getString(turningOn ? R.string.TjGhostModeOnBulletin : R.string.TjGhostModeOffBulletin)).show();
+                    BulletinFactory.of(ChatActivity.this).createSimpleBulletin(R.raw.info, TjLocale.getString(turningOn ? R.string.TjGhostModeOnBulletin : R.string.TjGhostModeOffBulletin)).show();
                 } else if (id == clear_history || id == delete_chat || id == auto_delete_timer) {
                     if (getParentActivity() == null) {
                         return;
