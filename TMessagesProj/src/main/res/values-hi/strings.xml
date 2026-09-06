@@ -77,4 +77,6 @@
     <string name="TjSubtitleDirAuto">स्वचालित</string>
     <string name="TjSubtitleDirRtl">दाएँ-से-बाएँ बाध्य करें</string>
     <string name="TjSubtitleDirNone">दिशा चिह्नों के बिना</string>
+    <string name="TjReplyPrivately">निजी में उत्तर दें</string>
+    <string name="TjSubtitleCopyRaw">सबटाइटल टेक्स्ट कॉपी करें (निदान)</string>
 </resources>

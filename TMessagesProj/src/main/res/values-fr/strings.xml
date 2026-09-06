@@ -77,4 +77,6 @@
     <string name="TjSubtitleDirAuto">Automatique</string>
     <string name="TjSubtitleDirRtl">Forcer de droite à gauche</string>
     <string name="TjSubtitleDirNone">Sans marques de direction</string>
+    <string name="TjReplyPrivately">Répondre en privé</string>
+    <string name="TjSubtitleCopyRaw">Copier le texte des sous-titres (diagnostic)</string>
 </resources>

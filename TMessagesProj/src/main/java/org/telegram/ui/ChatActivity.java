@@ -1260,6 +1260,7 @@ public class ChatActivity extends BaseFragment implements
     public final static int OPTION_COPY_VIDEO_THUMB = 1006;
     public final static int OPTION_COPY_DEEPLINK = 1007;
     public final static int OPTION_SAVE_TO_SAVED = 1009;
+    public final static int OPTION_TJ_REPLY_PRIVATELY = 1010;
 
     private final static int[] allowedNotificationsDuringChatListAnimations = new int[]{
             NotificationCenter.messagesRead,
@@ -33449,6 +33450,31 @@ public class ChatActivity extends BaseFragment implements
                 processSelectedOption(OPTION_FORWARD);
                 return;
             }
+            case OPTION_TJ_REPLY_PRIVATELY: {
+                final MessageObject replyTo = selectedObject;
+                if (replyTo == null) {
+                    break;
+                }
+                final long author = DialogObject.getPeerDialogId(replyTo.getFromPeer());
+                if (author <= 0) {
+                    break;
+                }
+                // The same handoff the "reply in another chat" picker performs once a dialog is
+                // chosen, with the author's private chat as the destination instead of a picker.
+                final Bundle args = new Bundle();
+                args.putLong("user_id", author);
+                if (!getMessagesController().checkCanOpenChat(args, this)) {
+                    break;
+                }
+                replyingMessageObject = replyTo;
+                replyingQuote = null;
+                replyingQuoteGroup = getGroup(replyTo.getGroupId());
+                final ChatActivity privateChat = new ChatActivity(args);
+                if (presentFragment(privateChat, false)) {
+                    privateChat.showFieldPanelForReplyQuote(replyTo, null);
+                }
+                break;
+            }
             case OPTION_SAVE_TO_SAVED: {
                 if (selectedObject == null) {
                     return;
@@ -46573,6 +46599,11 @@ public class ChatActivity extends BaseFragment implements
         }
 
         // TJ items always close the menu: message info second from the bottom, save to saved last.
+        if (canReplyPrivately(message) && !options.contains(OPTION_TJ_REPLY_PRIVATELY) && TjSettingsActivity.isReplyPrivatelyEnabled()) {
+            items.add(TjLocale.getString(R.string.TjReplyPrivately));
+            options.add(OPTION_TJ_REPLY_PRIVATELY);
+            icons.add(R.drawable.menu_reply);
+        }
         if (message != null && message.getId() > 0 && !options.contains(OPTION_MESSAGE_INFO) && TjSettingsActivity.isMessageInfoEnabled()) {
             items.add(TjLocale.getString(R.string.TjMessageInfo));
             options.add(OPTION_MESSAGE_INFO);
@@ -46583,6 +46614,28 @@ public class ChatActivity extends BaseFragment implements
             options.add(OPTION_SAVE_TO_SAVED);
             icons.add(R.drawable.msg_saved);
         }
+    }
+
+    /**
+     * Reply in the sender's private chat: only in a group, only for a message from another real
+     * user, and only when their account is one we can open a private chat with.
+     */
+    private boolean canReplyPrivately(MessageObject message) {
+        if (message == null || message.getId() <= 0 || currentChat == null || currentEncryptedChat != null) {
+            return false;
+        }
+        if (chatMode != MODE_DEFAULT || message.messageOwner == null || message.messageOwner.action != null) {
+            return false;
+        }
+        if (message.isSponsored() || message.isForwarded()) {
+            return false;
+        }
+        final long author = DialogObject.getPeerDialogId(message.getFromPeer());
+        if (author <= 0 || author == getUserConfig().getClientUserId()) {
+            return false;
+        }
+        final TLRPC.User user = getMessagesController().getUser(author);
+        return user != null && !user.bot && !UserObject.isDeleted(user);
     }
 
     private boolean canSaveToSavedMessages(MessageObject message) {

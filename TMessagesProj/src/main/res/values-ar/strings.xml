@@ -1320,4 +1320,6 @@
     <string name="TjSubtitleDirAuto">تلقائي</string>
     <string name="TjSubtitleDirRtl">فرض من اليمين لليسار</string>
     <string name="TjSubtitleDirNone">بدون علامات اتجاه</string>
+    <string name="TjReplyPrivately">الرد بشكل خاص</string>
+    <string name="TjSubtitleCopyRaw">نسخ نص الترجمة (للتشخيص)</string>
 </resources>

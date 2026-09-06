@@ -77,4 +77,6 @@
     <string name="TjSubtitleDirAuto">自动</string>
     <string name="TjSubtitleDirRtl">强制从右到左</string>
     <string name="TjSubtitleDirNone">不加方向标记</string>
+    <string name="TjReplyPrivately">私聊回复</string>
+    <string name="TjSubtitleCopyRaw">复制字幕文本（诊断）</string>
 </resources>

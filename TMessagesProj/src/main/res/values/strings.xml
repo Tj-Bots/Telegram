@@ -11301,4 +11301,6 @@
     <string name="TjSubtitleDirAuto">Automatic</string>
     <string name="TjSubtitleDirRtl">Force right-to-left</string>
     <string name="TjSubtitleDirNone">No direction marks</string>
+    <string name="TjReplyPrivately">Reply privately</string>
+    <string name="TjSubtitleCopyRaw">Copy subtitle text (diagnostic)</string>
 </resources>

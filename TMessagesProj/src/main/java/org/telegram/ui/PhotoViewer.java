@@ -23485,6 +23485,21 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
         // Which way the lines run. Automatic and Force RTL both reorder with the bidi algorithm,
         // which is right for a file stored in logical order; "as in the file" suppresses reordering
         // for files stored already reversed. Flipping this re-wraps the cue on screen at once.
+        // A diagnostic, not a feature: copies the cue exactly as the player handed it over, with
+        // every character as a codepoint, so what the file actually contains can be read rather
+        // than inferred.
+        subtitleSubmenu.addRow(TjLocale.getString(R.string.TjSubtitleCopyRaw), false, () -> {
+            if (subtitleView == null) {
+                return;
+            }
+            final String dump = subtitleView.describeCurrentCue();
+            AndroidUtilities.addToClipboard(dump);
+            BulletinFactory.of(containerView, resourcesProvider)
+                    .createCopyBulletin(TjLocale.getString(R.string.TjSubtitleCopyRaw)).show();
+        });
+
+        addSubtitleGap(page);
+
         final int[] directionNames = {R.string.TjSubtitleDirAuto, R.string.TjSubtitleDirRtl, R.string.TjSubtitleDirNone};
         for (int a = 0; a < directionNames.length; a++) {
             final int direction = a;

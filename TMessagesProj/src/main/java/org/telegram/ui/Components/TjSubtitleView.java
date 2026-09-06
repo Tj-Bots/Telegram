@@ -45,6 +45,8 @@ public class TjSubtitleView extends View {
 
     /** The lines exactly as the file has them; cueTexts is these wrapped for direction. */
     private final ArrayList<String> rawLines = new ArrayList<>();
+    /** The same lines before clean() touched them, kept only for describeCurrentCue. */
+    private final ArrayList<String> rawSource = new ArrayList<>();
     private final ArrayList<CharSequence> cueTexts = new ArrayList<>();
     private final ArrayList<StaticLayout> layouts = new ArrayList<>();
 
@@ -69,6 +71,7 @@ public class TjSubtitleView extends View {
 
     public void setCues(List<Cue> cues) {
         final ArrayList<String> next = new ArrayList<>();
+        final ArrayList<String> nextSource = new ArrayList<>();
         if (cues != null) {
             for (int a = 0; a < cues.size(); a++) {
                 final Cue cue = cues.get(a);
@@ -78,7 +81,13 @@ public class TjSubtitleView extends View {
                 }
                 // One entry per line the subtitle file itself wrote, so the file's line breaks
                 // are what gets drawn.
-                final String[] lines = SOURCE_LINE.split(clean(cue.text.toString()));
+                final String source = cue.text.toString();
+                for (String raw : SOURCE_LINE.split(source)) {
+                    if (!raw.trim().isEmpty()) {
+                        nextSource.add(raw.trim());
+                    }
+                }
+                final String[] lines = SOURCE_LINE.split(clean(source));
                 for (int b = 0; b < lines.length; b++) {
                     final String line = lines[b].trim();
                     if (!line.isEmpty()) {
@@ -92,6 +101,8 @@ public class TjSubtitleView extends View {
         }
         rawLines.clear();
         rawLines.addAll(next);
+        rawSource.clear();
+        rawSource.addAll(nextSource);
         applyDirection();
     }
 
@@ -163,6 +174,29 @@ public class TjSubtitleView extends View {
 
     private static String clean(String text) {
         return BIDI_CONTROLS.matcher(MARKUP.matcher(text).replaceAll("")).replaceAll("");
+    }
+
+    /**
+     * The cue exactly as it arrived, before anything was stripped or wrapped, with every character
+     * spelled out as a codepoint.
+     *
+     * Four rounds of reasoning about what these files contain have not settled it, so this reports
+     * the bytes instead of me guessing at them again.
+     */
+    public String describeCurrentCue() {
+        if (rawSource.isEmpty()) {
+            return "(no subtitle on screen)";
+        }
+        final StringBuilder sb = new StringBuilder();
+        for (int a = 0; a < rawSource.size(); a++) {
+            final String line = rawSource.get(a);
+            sb.append("line ").append(a + 1).append(": ").append(line).append('\n');
+            for (int i = 0; i < line.length(); i++) {
+                sb.append(String.format(java.util.Locale.US, "U+%04X ", (int) line.charAt(i)));
+            }
+            sb.append('\n');
+        }
+        return sb.toString();
     }
 
     public void clear() {

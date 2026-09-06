@@ -58,6 +58,7 @@ public class TjSettingsActivity extends BaseFragment {
     private static final String KEY_MENU_COPY_THUMB = "menu_copy_thumbnail";
     private static final String KEY_MENU_SAVE_TO_SAVED = "menu_save_to_saved";
     private static final String KEY_MENU_FORWARD_NO_TAG = "menu_forward_without_tag";
+    private static final String KEY_MENU_REPLY_PRIVATELY = "menu_reply_privately";
 
     private static SharedPreferences getPrefs() {
         return ApplicationLoader.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
@@ -227,6 +228,11 @@ public class TjSettingsActivity extends BaseFragment {
         return getPrefs().getBoolean(KEY_MENU_COPY_THUMB, true);
     }
 
+    /** "Reply privately" in the message menu of a group. On by default. */
+    public static boolean isReplyPrivatelyEnabled() {
+        return getPrefs().getBoolean(KEY_MENU_REPLY_PRIVATELY, true);
+    }
+
     public static boolean isSaveToSavedEnabled() {
         return getPrefs().getBoolean(KEY_MENU_SAVE_TO_SAVED, true);
     }
@@ -271,6 +277,7 @@ public class TjSettingsActivity extends BaseFragment {
     private static final int ID_GHOST_ONLINE = 13;
     private static final int ID_GHOST_READ = 14;
     private static final int ID_SUBTITLE_AUTO = 15;
+    private static final int ID_MENU_REPLY_PRIVATELY = 16;
 
     private static class Item {
         final int viewType;
@@ -300,6 +307,7 @@ public class TjSettingsActivity extends BaseFragment {
             case ID_GHOST_ONLINE: return getPrefs().getBoolean(KEY_GHOST_ONLINE, true);
             case ID_GHOST_READ: return getPrefs().getBoolean(KEY_GHOST_READ, true);
             case ID_SUBTITLE_AUTO: return isSubtitleAutoEnabled();
+            case ID_MENU_REPLY_PRIVATELY: return isReplyPrivatelyEnabled();
         }
         return false;
     }
@@ -321,6 +329,7 @@ public class TjSettingsActivity extends BaseFragment {
             case ID_GHOST_ONLINE: key = KEY_GHOST_ONLINE; break;
             case ID_GHOST_READ: key = KEY_GHOST_READ; break;
             case ID_SUBTITLE_AUTO: key = KEY_SUBTITLE_AUTO; break;
+            case ID_MENU_REPLY_PRIVATELY: key = KEY_MENU_REPLY_PRIVATELY; break;
         }
         if (key != null) {
             getPrefs().edit().putBoolean(key, value).apply();
@@ -400,6 +409,7 @@ public class TjSettingsActivity extends BaseFragment {
         items.add(new Item(VIEW_TYPE_CHECK, ID_MENU_SAVE_TO_SAVED, TjLocale.getString(R.string.TjSaveToSaved)));
         items.add(new Item(VIEW_TYPE_CHECK, ID_MENU_COPY_LINK, TjLocale.getString(R.string.TjCopyMessageLink)));
         items.add(new Item(VIEW_TYPE_CHECK, ID_MENU_FORWARD_NO_TAG, TjLocale.getString(R.string.TjForwardWithoutTag)));
+        items.add(new Item(VIEW_TYPE_CHECK, ID_MENU_REPLY_PRIVATELY, TjLocale.getString(R.string.TjReplyPrivately)));
         items.add(new Item(VIEW_TYPE_SHADOW, 0, TjLocale.getString(R.string.TjMessageMenuInfo)));
     }
 

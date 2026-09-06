@@ -77,4 +77,6 @@
     <string name="TjSubtitleDirAuto">אוטומטי</string>
     <string name="TjSubtitleDirRtl">כפה ימין לשמאל</string>
     <string name="TjSubtitleDirNone">בלי סימוני כיוון</string>
+    <string name="TjReplyPrivately">השב בפרטי</string>
+    <string name="TjSubtitleCopyRaw">העתק טקסט כתובית (לאבחון)</string>
 </resources>
