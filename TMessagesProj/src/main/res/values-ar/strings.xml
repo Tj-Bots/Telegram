@@ -1317,4 +1317,7 @@
     <string name="TjFolderManaging">الإدارة</string>
     <string name="TjSubtitleAuto">تشغيل الترجمة تلقائيًا</string>
     <string name="TjSubtitleAutoInfo">يختار مسار ترجمة بلغتك عند توفره في الفيديو، وإلا فبالإنجليزية.</string>
+    <string name="TjSubtitleDirAuto">تلقائي</string>
+    <string name="TjSubtitleDirRtl">فرض من اليمين لليسار</string>
+    <string name="TjSubtitleDirAsStored">كما هو في الملف</string>
 </resources>

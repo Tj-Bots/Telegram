@@ -11298,4 +11298,7 @@
     <string name="TjFolderManaging">Managing</string>
     <string name="TjSubtitleAuto">Turn subtitles on automatically</string>
     <string name="TjSubtitleAutoInfo">Picks a subtitle track in your language when a video has one, otherwise English.</string>
+    <string name="TjSubtitleDirAuto">Automatic</string>
+    <string name="TjSubtitleDirRtl">Force right-to-left</string>
+    <string name="TjSubtitleDirAsStored">As stored in the file</string>
 </resources>

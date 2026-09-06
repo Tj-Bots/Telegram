@@ -62,6 +62,7 @@ import org.telegram.ui.Components.CubicBezierInterpolator;
 import org.telegram.ui.Components.FolderBottomSheet;
 import org.telegram.ui.Components.ItemOptions;
 import org.telegram.ui.Components.LayoutHelper;
+import org.telegram.ui.Components.TjFolderIcons;
 import org.telegram.ui.Components.ListView.AdapterWithDiffUtils;
 import org.telegram.ui.Components.LoadingDrawable;
 import org.telegram.ui.Components.Premium.LimitReachedBottomSheet;
@@ -595,6 +596,7 @@ public class FiltersSetupActivity extends BaseFragment implements NotificationCe
         final TLRPC.TL_dialogFilter filter = new TLRPC.TL_dialogFilter();
         filter.title = new TLRPC.TL_textWithEntities();
         filter.title.text = title;
+        filter.emoticon = TjFolderIcons.MANAGING;
         filter.include_peers.addAll(peers);
 
         final TLRPC.TL_dialogFilterSuggested suggested = new TLRPC.TL_dialogFilterSuggested();
@@ -1087,6 +1089,12 @@ public class FiltersSetupActivity extends BaseFragment implements NotificationCe
                         }
                         if (suggested.filter.exclude_muted) {
                             filter.flags |= MessagesController.DIALOG_FILTER_FLAG_EXCLUDE_MUTED;
+                        }
+                        // A folder built from a peer list has no flags for TjFolderIcons to read,
+                        // so it would fall through to the generic icon. Flag-based suggestions -
+                        // Groups, Bots, Channels and the rest - already resolve their own.
+                        if (!TextUtils.isEmpty(suggested.filter.emoticon)) {
+                            TjSettingsActivity.setFolderEmoticon(filter.id, suggested.filter.emoticon);
                         }
                         FilterCreateActivity.saveFilterToServer(filter, filter.flags, filter.name, filter.entities, filter.title_noanimate, filter.color, filter.alwaysShow, filter.neverShow, filter.pinnedDialogs, true, true, true, true, true, FiltersSetupActivity.this, () -> {
                             getMessagesController().suggestedFilters.remove(suggested);

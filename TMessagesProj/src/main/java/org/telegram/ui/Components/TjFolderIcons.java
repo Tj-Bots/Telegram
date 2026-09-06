@@ -27,6 +27,8 @@ public class TjFolderIcons {
 
     /** Reserved for the main "All chats" folder. */
     public static final String ALL_CHATS = "\uD83D\uDCAC";
+    /** The crown, used by the Managing folder suggestion - a peer-list folder with no flags. */
+    public static final String MANAGING = "\uD83D\uDC51";
 
     static {
         ICONS.put("\uD83D\uDC31", R.drawable.filter_cat);

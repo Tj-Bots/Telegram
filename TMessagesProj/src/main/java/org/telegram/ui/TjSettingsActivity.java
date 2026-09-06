@@ -47,6 +47,7 @@ public class TjSettingsActivity extends BaseFragment {
     private static final String KEY_SUBTITLE_STYLE = "subtitle_style";
     private static final String KEY_SUBTITLE_POSITION = "subtitle_position";
     private static final String KEY_SUBTITLE_AUTO = "subtitle_auto_enable";
+    private static final String KEY_SUBTITLE_DIRECTION = "subtitle_direction";
 
     private static final String KEY_FOLDER_TAB_STYLE = "folder_tab_style";
     private static final String KEY_FOLDER_EMOTICON_PREFIX = "folder_emoticon_";
@@ -140,6 +141,26 @@ public class TjSettingsActivity extends BaseFragment {
     }
 
     /**
+     * How subtitle lines are ordered on screen.
+     *
+     * AUTO and FORCE_RTL both run the bidi algorithm, which is right for a file stored in logical
+     * order - the order you would type it. AS_STORED suppresses reordering altogether, which is
+     * what a file stored in visual order needs: those are already reversed on disk, and running
+     * bidi over them reverses a second time.
+     */
+    public static final int SUBTITLE_DIR_AUTO = 0;
+    public static final int SUBTITLE_DIR_RTL = 1;
+    public static final int SUBTITLE_DIR_AS_STORED = 2;
+
+    public static int getSubtitleDirection() {
+        return getPrefs().getInt(KEY_SUBTITLE_DIRECTION, SUBTITLE_DIR_AUTO);
+    }
+
+    public static void setSubtitleDirection(int direction) {
+        getPrefs().edit().putInt(KEY_SUBTITLE_DIRECTION, direction).apply();
+    }
+
+    /**
      * Turn subtitles on by themselves, preferring a track in the app's own language and falling
      * back to English. Off by default; a track you pick by hand always wins.
      */
@@ -152,7 +173,7 @@ public class TjSettingsActivity extends BaseFragment {
     }
 
     /** How far up from the bottom of the picture subtitles sit, as a percentage of its height. */
-    public static final int SUBTITLE_POSITION_MAX = 20;
+    public static final int SUBTITLE_POSITION_MAX = 50;
 
     public static int getSubtitlePosition() {
         return Math.max(0, Math.min(SUBTITLE_POSITION_MAX, getPrefs().getInt(KEY_SUBTITLE_POSITION, 0)));

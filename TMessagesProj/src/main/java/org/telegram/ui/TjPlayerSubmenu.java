@@ -12,9 +12,7 @@ import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.ActionBarMenuItem;
 import org.telegram.ui.ActionBar.ActionBarMenuSubItem;
-import org.telegram.ui.ActionBar.ActionBarMenuSlider;
 import org.telegram.ui.ActionBar.ActionBarPopupWindow;
-import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.PopupSwipeBackLayout;
 
@@ -74,44 +72,5 @@ public class TjPlayerSubmenu {
 
     public void clear() {
         buttonsLayout.removeAllViews();
-    }
-
-    /**
-     * A labelled slider, the same widget and the same look as the speed control at the top of this
-     * menu.
-     *
-     * The base ActionBarMenuSlider draws its value as a filled bar rather than a thumb, and takes
-     * its text from getLeftStringValue / getRightStringValue, which return null unless a subclass
-     * supplies them - so a bare one sitting at zero renders as an empty row with a few stop marks
-     * and no hint that it can be dragged. Naming it and showing the live percentage fixes that.
-     *
-     * It also has to stay an ActionBarMenuSlider: PopupSwipeBackLayout.isDisallowedView whitelists
-     * this class by name, so a horizontal drag reaches the slider instead of being taken as a
-     * swipe back to the previous page.
-     */
-    public static class LabelledSlider extends ActionBarMenuSlider {
-
-        private final String label;
-        private final int maxPercent;
-
-        public LabelledSlider(Context context, Theme.ResourcesProvider resourcesProvider, String label, int maxPercent) {
-            super(context, resourcesProvider);
-            this.label = label;
-            this.maxPercent = maxPercent;
-            setDrawShadow(false);
-            setMinimumWidth(dp(196));
-            setBackgroundColor(0xff222222);
-            setTextColor(0xffffffff);
-        }
-
-        @Override
-        protected String getLeftStringValue(float value) {
-            return label;
-        }
-
-        @Override
-        protected String getRightStringValue(float value) {
-            return Math.round(value * maxPercent) + "%";
-        }
     }
 }

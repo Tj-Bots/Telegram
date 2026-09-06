@@ -1088,6 +1088,11 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             }
 
             actionBarLayout.setFragmentStack(mainFragmentsStack);
+            // DrawerLayoutContainer consumes the window insets and hands them on itself, but only
+            // to a child that asks for them; anything else just gets system-bar margins. Without
+            // this the ActionBarLayout listener never fires, so no fragment ever sees an IME inset
+            // and the keyboard falls back to its old two-stage handoff instead of layering.
+            actionBarLayout.getView().setFitsSystemWindows(true);
             if (i != -1) {
                 drawerLayoutContainer.addView(actionBarLayout.getView(), i, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
             } else {

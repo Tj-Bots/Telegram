@@ -906,6 +906,8 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
     private int selectedAudioTrack = -1;
     private TjPlayerSubmenu subtitleSubmenu;
     private ActionBarMenuSubItem subtitleItem;
+    private TjPlayerSubmenu subtitlePositionSubmenu;
+    private int subtitlePositionPageIndex = -1;
     private int selectedSubtitleTrack = -1;
     private boolean autoSubtitlesApplied;
     private TjSubtitleView subtitleView;
@@ -5834,6 +5836,11 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
         subtitleItem.setColors(0xfffafafa, 0xfffafafa);
         subtitleItem.setSelectorColor(0x0fffffff);
         subtitleItem.setVisibility(View.GONE);
+
+        // A third page, opened from a row inside the subtitles page rather than from the root menu,
+        // so it gets registered with the swipe-back layout directly instead of via addSwipeBackItem.
+        subtitlePositionSubmenu = new TjPlayerSubmenu(activityContext, videoItem.getPopupLayout().getSwipeBack());
+        subtitlePositionPageIndex = videoItem.getPopupLayout().addViewToSwipeBack(subtitlePositionSubmenu.layout);
         loopItem = videoItem.addSubItem(gallery_menu_loop, R.drawable.menu_video_loop, LocaleController.getString(R.string.VideoPlayerLoop));
         loopItem.setSelectorColor(0x0fffffff);
         castItemButton = new CastMediaRouteButton(activityContext) {
@@ -23423,29 +23430,27 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
         addSubtitleAppearanceRows();
     }
 
-    /** The appearance half of the subtitles page: a position slider, then size and style. */
-    private void addSubtitleAppearanceRows() {
-        final LinearLayout page = subtitleSubmenu.buttonsLayout;
-
+    private void addSubtitleGap(LinearLayout page) {
         ActionBarPopupWindow.GapView gap = new ActionBarPopupWindow.GapView(activityContext, resourcesProvider, Theme.key_actionBarDefaultSubmenuSeparator);
         gap.setTag(R.id.fit_width_tag, 1);
         gap.setColor(0xff181818);
         page.addView(gap, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 8));
+    }
 
-        // The same widget and the same look as the speed control at the top of this menu, named
-        // and showing its own percentage so it reads as something you can drag. In 5% steps.
-        final TjPlayerSubmenu.LabelledSlider positionSlider = new TjPlayerSubmenu.LabelledSlider(
-                activityContext, resourcesProvider,
-                TjLocale.getString(R.string.TjSubtitlePosition), TjSettingsActivity.SUBTITLE_POSITION_MAX);
-        positionSlider.setStops(new float[]{0f, 0.25f, 0.5f, 0.75f, 1f});
-        positionSlider.setValue(TjSettingsActivity.getSubtitlePosition() / (float) TjSettingsActivity.SUBTITLE_POSITION_MAX, false);
-        positionSlider.setOnValueChange((value, isFinal) -> {
-            TjSettingsActivity.setSubtitlePosition(Math.round(value * TjSettingsActivity.SUBTITLE_POSITION_MAX));
-            if (subtitleView != null) {
-                subtitleView.updateAppearance();
+    /** The appearance half of the subtitles page: position, size, style and direction. */
+    private void addSubtitleAppearanceRows() {
+        final LinearLayout page = subtitleSubmenu.buttonsLayout;
+
+        addSubtitleGap(page);
+
+        // Position gets a page of its own so the value can be picked outright rather than dragged.
+        subtitleSubmenu.addRow(TjLocale.getString(R.string.TjSubtitlePosition)
+                + "  \u00b7  " + TjSettingsActivity.getSubtitlePosition() + "%", false, () -> {
+            updateSubtitlePositionSubmenu();
+            if (videoItem != null && videoItem.getPopupLayout().getSwipeBack() != null && subtitlePositionPageIndex >= 0) {
+                videoItem.getPopupLayout().getSwipeBack().openForeground(subtitlePositionPageIndex);
             }
         });
-        page.addView(positionSlider, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 44));
 
         final int[] sizeNames = {R.string.TjSubtitleSizeSmall, R.string.TjSubtitleSizeMedium, R.string.TjSubtitleSizeLarge, R.string.TjSubtitleSizeHuge};
         for (int a = 0; a < TjSettingsActivity.SUBTITLE_FONT_SIZES.length; a++) {
@@ -23459,10 +23464,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
             });
         }
 
-        ActionBarPopupWindow.GapView styleGap = new ActionBarPopupWindow.GapView(activityContext, resourcesProvider, Theme.key_actionBarDefaultSubmenuSeparator);
-        styleGap.setTag(R.id.fit_width_tag, 1);
-        styleGap.setColor(0xff181818);
-        page.addView(styleGap, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 8));
+        addSubtitleGap(page);
 
         final int[] styleNames = {R.string.TjSubtitleStyleOutline, R.string.TjSubtitleStyleShadow, R.string.TjSubtitleStyleBox};
         for (int a = 0; a < styleNames.length; a++) {
@@ -23472,6 +23474,42 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
                 if (subtitleView != null) {
                     subtitleView.updateAppearance();
                 }
+                updateSubtitleSubmenu();
+            });
+        }
+
+        addSubtitleGap(page);
+
+        // Which way the lines run. Automatic and Force RTL both reorder with the bidi algorithm,
+        // which is right for a file stored in logical order; "as in the file" suppresses reordering
+        // for files stored already reversed. Flipping this re-wraps the cue on screen at once.
+        final int[] directionNames = {R.string.TjSubtitleDirAuto, R.string.TjSubtitleDirRtl, R.string.TjSubtitleDirAsStored};
+        for (int a = 0; a < directionNames.length; a++) {
+            final int direction = a;
+            subtitleSubmenu.addRow(TjLocale.getString(directionNames[a]), TjSettingsActivity.getSubtitleDirection() == direction, () -> {
+                TjSettingsActivity.setSubtitleDirection(direction);
+                if (subtitleView != null) {
+                    subtitleView.updateAppearance();
+                }
+                updateSubtitleSubmenu();
+            });
+        }
+    }
+
+    /** The Position page: 0% to 50% of the picture's height, in steps of 5. */
+    private void updateSubtitlePositionSubmenu() {
+        if (subtitlePositionSubmenu == null) {
+            return;
+        }
+        subtitlePositionSubmenu.clear();
+        for (int percent = 0; percent <= TjSettingsActivity.SUBTITLE_POSITION_MAX; percent += 5) {
+            final int value = percent;
+            subtitlePositionSubmenu.addRow(percent + "%", TjSettingsActivity.getSubtitlePosition() == percent, () -> {
+                TjSettingsActivity.setSubtitlePosition(value);
+                if (subtitleView != null) {
+                    subtitleView.updateAppearance();
+                }
+                updateSubtitlePositionSubmenu();
                 updateSubtitleSubmenu();
             });
         }

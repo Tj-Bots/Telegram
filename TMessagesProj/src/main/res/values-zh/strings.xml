@@ -74,4 +74,7 @@
     <string name="TjFolderManaging">管理</string>
     <string name="TjSubtitleAuto">自动开启字幕</string>
     <string name="TjSubtitleAutoInfo">视频中有你的语言的字幕轨时优先选择，否则选择英文。</string>
+    <string name="TjSubtitleDirAuto">自动</string>
+    <string name="TjSubtitleDirRtl">强制从右到左</string>
+    <string name="TjSubtitleDirAsStored">按文件原样</string>
 </resources>

@@ -43,6 +43,8 @@ public class TjSubtitleView extends View {
     private final Paint boxPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final RectF boxRect = new RectF();
 
+    /** The lines exactly as the file has them; cueTexts is these wrapped for direction. */
+    private final ArrayList<String> rawLines = new ArrayList<>();
     private final ArrayList<CharSequence> cueTexts = new ArrayList<>();
     private final ArrayList<StaticLayout> layouts = new ArrayList<>();
 
@@ -66,7 +68,7 @@ public class TjSubtitleView extends View {
     }
 
     public void setCues(List<Cue> cues) {
-        final ArrayList<CharSequence> next = new ArrayList<>();
+        final ArrayList<String> next = new ArrayList<>();
         if (cues != null) {
             for (int a = 0; a < cues.size(); a++) {
                 final Cue cue = cues.get(a);
@@ -76,28 +78,47 @@ public class TjSubtitleView extends View {
                 }
                 // One entry per line the subtitle file itself wrote, so the file's line breaks
                 // are what gets drawn.
-                final String text = clean(cue.text.toString());
-                // Direction is decided once for the whole cue and forced on every line of it.
-                // Left to itself a line takes its direction from its own first strong character,
-                // so a Hebrew cue whose line opens with a Latin word or a quote would flip to
-                // left-to-right and strand its comma or full stop on the wrong end - and two
-                // lines of one cue could even disagree.
-                final boolean rtl = isRtl(text);
-                final String[] lines = SOURCE_LINE.split(text);
+                final String[] lines = SOURCE_LINE.split(clean(cue.text.toString()));
                 for (int b = 0; b < lines.length; b++) {
                     final String line = lines[b].trim();
                     if (!line.isEmpty()) {
-                        next.add((rtl ? RLE : LRE) + line + PDF);
+                        next.add(line);
                     }
                 }
-                cueIsRtl = rtl;
             }
         }
-        if (next.equals(cueTexts)) {
+        if (next.equals(rawLines)) {
             return;
         }
+        rawLines.clear();
+        rawLines.addAll(next);
+        applyDirection();
+    }
+
+    /**
+     * Wraps the lines on screen according to the direction setting.
+     *
+     * The raw lines are kept so the setting can be changed with a cue already showing and take
+     * effect on it, rather than only on the next one.
+     */
+    private void applyDirection() {
+        final int direction = TjSettingsActivity.getSubtitleDirection();
+        // Direction is decided once for the whole cue and forced on every line of it. Left to
+        // itself a line takes its direction from its own first strong character, so a Hebrew cue
+        // whose line opens with a Latin word or a quote would flip to left-to-right and strand its
+        // comma or full stop on the wrong end - and two lines of one cue could even disagree.
+        final boolean rtl = direction == TjSettingsActivity.SUBTITLE_DIR_RTL || isRtl(TextUtils.join("\n", rawLines));
+        // AS_STORED uses LRO - a left-to-right *override* - which pins every character in the order
+        // the file has it and suppresses reordering entirely. That is what a file stored in visual
+        // order needs; the other two run the bidi algorithm as normal.
+        final String open = direction == TjSettingsActivity.SUBTITLE_DIR_AS_STORED ? LRO
+                : rtl ? RLE : LRE;
+        cueIsRtl = direction != TjSettingsActivity.SUBTITLE_DIR_AS_STORED && rtl;
+
         cueTexts.clear();
-        cueTexts.addAll(next);
+        for (int a = 0; a < rawLines.size(); a++) {
+            cueTexts.add(open + rawLines.get(a) + PDF);
+        }
         layouts.clear();
         layoutWidth = 0;
         setVisibility(cueTexts.isEmpty() ? GONE : VISIBLE);
@@ -110,6 +131,8 @@ public class TjSubtitleView extends View {
      */
     private static final String RLE = "\u202B";
     private static final String LRE = "\u202A";
+    /** Override, not embedding: storage order wins over every character's own direction. */
+    private static final String LRO = "\u202D";
     private static final String PDF = "\u202C";
 
     /** Direction of the cue currently on screen; drives the layout's own text direction. */
@@ -158,9 +181,8 @@ public class TjSubtitleView extends View {
 
     /** Re-reads the appearance settings; call after the settings dialog changes anything. */
     public void updateAppearance() {
-        layoutWidth = 0;
-        layouts.clear();
-        invalidate();
+        // Re-wraps as well as re-measures, so a change of direction shows on the cue already up.
+        applyDirection();
     }
 
     private void buildLayouts(int width) {
