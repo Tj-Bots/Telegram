@@ -56,6 +56,13 @@
     <string name="TjGhostOnline">Rester hors ligne</string>
     <string name="TjGhostRead">Ne pas envoyer d’accusés de lecture</string>
     <string name="TjGhostModeInfo">Le mode fantôme masque votre activité aux autres. Choisissez ce qu’il couvre.</string>
+    <string name="TjGhostSuppresses">Ce qu\'il masque</string>
+    <string name="TjGhostModeOnForChat">Activer pour cette discussion</string>
+    <string name="TjGhostModeOffForChat">Désactiver pour cette discussion</string>
+    <string name="TjGhostModeOnBulletin">Le mode fantôme est activé</string>
+    <string name="TjGhostModeOffBulletin">Le mode fantôme est désactivé</string>
+    <string name="TjGhostInstantRead">Lu à la réponse</string>
+    <string name="TjGhostInstantReadInfo">Marquer une discussion fantôme comme lue dès l\'envoi d\'un message.</string>
     <string name="TjGhostWarning">Le mode fantôme n’est pas une fonctionnalité officielle de Telegram. Telegram pourrait le considérer comme un comportement inhabituel : à utiliser à vos risques.</string>
     <string name="TjGhostDontWarnAgain">Ne plus afficher</string>
     <string name="TjChatCountersUpdated">Dernière mise à jour : %1$s</string>

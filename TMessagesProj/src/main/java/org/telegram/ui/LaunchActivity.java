@@ -262,7 +262,9 @@ import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import android.graphics.Point;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import org.telegram.ui.Adapters.DrawerLayoutAdapter;
 import org.telegram.ui.Cells.DrawerAddCell;
 import org.telegram.ui.Cells.DrawerProfileCell;
@@ -8353,6 +8355,30 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         sideMenu.setAllowItemsInteractionDuringAnimation(false);
         sideMenu.setAdapter(drawerLayoutAdapter = new DrawerLayoutAdapter(this, sideMenuItemAnimator, drawerLayoutContainer));
         sideMenuContainer.addView(sideMenu, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
+        // Long-press and drag an account row to reorder it - only account rows (view type 4)
+        // are draggable, and swapElements() already persists the new order via loginTime.
+        new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, 0) {
+            @Override
+            public int getMovementFlags(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
+                if (viewHolder.getItemViewType() != 4) {
+                    return 0;
+                }
+                return makeMovementFlags(ItemTouchHelper.UP | ItemTouchHelper.DOWN, 0);
+            }
+
+            @Override
+            public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+                if (target.getItemViewType() != 4) {
+                    return false;
+                }
+                drawerLayoutAdapter.swapElements(viewHolder.getAdapterPosition(), target.getAdapterPosition());
+                return true;
+            }
+
+            @Override
+            public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
+            }
+        }).attachToRecyclerView(sideMenu);
         drawerLayoutContainer.setDrawerLayout(sideMenuContainer, sideMenu);
         // The real container refuses to open unless this is switched on, and it defaults to off.
         // Upstream toggles it from a dozen fragment-stack callbacks; here the drawer is only ever
@@ -8462,6 +8488,14 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                     break;
             }
         });
+        sideMenu.setOnItemLongClickListener((view, position) -> {
+            if (drawerLayoutAdapter.getId(position) == 104) {
+                drawerLayoutContainer.closeDrawer(false);
+                presentFragment(new TjGhostSettingsActivity());
+                return true;
+            }
+            return false;
+        });
     }
 
     /** Ghost mode from the drawer. Turning it on warns once, unless that was dismissed. */
@@ -8474,17 +8508,27 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         }
     }
 
+    /** Bottom bulletin confirming the global ghost switch flipped - shown in the regular build too. */
+    private void showGhostModeBulletin(boolean on) {
+        BaseFragment fragment = actionBarLayout.getLastFragment();
+        if (fragment != null) {
+            BulletinFactory.of(fragment).createSimpleBulletin(R.raw.info, TjLocale.getString(on ? R.string.TjGhostModeOnBulletin : R.string.TjGhostModeOffBulletin)).show();
+        }
+    }
+
     private void toggleGhostMode() {
         if (TjSettingsActivity.isGhostModeEnabled()) {
             TjSettingsActivity.setGhostModeEnabled(false);
             updateSideMenu();
             notifyGhostModeChanged();
+            showGhostModeBulletin(false);
             return;
         }
         if (TjSettingsActivity.isGhostWarningDismissed()) {
             TjSettingsActivity.setGhostModeEnabled(true);
             updateSideMenu();
             notifyGhostModeChanged();
+            showGhostModeBulletin(true);
             return;
         }
         LinearLayout content = new LinearLayout(this);
@@ -8506,6 +8550,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             TjSettingsActivity.setGhostModeEnabled(true);
             updateSideMenu();
             notifyGhostModeChanged();
+            showGhostModeBulletin(true);
         });
         builder.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
         builder.show();

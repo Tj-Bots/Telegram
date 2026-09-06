@@ -56,6 +56,13 @@
     <string name="TjGhostOnline">הישאר לא מחובר</string>
     <string name="TjGhostRead">אל תשלח אישורי קריאה</string>
     <string name="TjGhostModeInfo">מצב רפאים מסתיר את הפעילות שלך מאחרים. בחר מה הוא כולל.</string>
+    <string name="TjGhostSuppresses">מה זה מסתיר</string>
+    <string name="TjGhostModeOnForChat">הפעל לצ\'אט הזה</string>
+    <string name="TjGhostModeOffForChat">כבה לצ\'אט הזה</string>
+    <string name="TjGhostModeOnBulletin">מצב רפאים הופעל</string>
+    <string name="TjGhostModeOffBulletin">מצב רפאים כובה</string>
+    <string name="TjGhostInstantRead">קרא עם המענה</string>
+    <string name="TjGhostInstantReadInfo">סמן צ\'אט מרופא כנקרא ברגע ששלחת הודעה בו.</string>
     <string name="TjGhostWarning">מצב רפאים אינו תכונה רשמית של טלגרם. ייתכן שטלגרם תתייחס לזה כהתנהגות חריגה, אז השימוש על אחריותך.</string>
     <string name="TjGhostDontWarnAgain">אל תציג את זה שוב</string>
     <string name="TjChatCountersUpdated">עודכן לאחרונה: %1$s</string>

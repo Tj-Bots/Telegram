@@ -56,6 +56,13 @@
     <string name="TjGhostOnline">ऑफ़लाइन रहें</string>
     <string name="TjGhostRead">पढ़ने की रसीदें न भेजें</string>
     <string name="TjGhostModeInfo">घोस्ट मोड आपकी गतिविधि दूसरों से छिपाता है। चुनें कि इसमें क्या शामिल हो।</string>
+    <string name="TjGhostSuppresses">यह क्या छिपाता है</string>
+    <string name="TjGhostModeOnForChat">इस चैट के लिए चालू करें</string>
+    <string name="TjGhostModeOffForChat">इस चैट के लिए बंद करें</string>
+    <string name="TjGhostModeOnBulletin">घोस्ट मोड चालू है</string>
+    <string name="TjGhostModeOffBulletin">घोस्ट मोड बंद है</string>
+    <string name="TjGhostInstantRead">जवाब देने पर पढ़ा हुआ</string>
+    <string name="TjGhostInstantReadInfo">भूतिया चैट में संदेश भेजते ही उसे पढ़ा हुआ चिह्नित करें।</string>
     <string name="TjGhostWarning">घोस्ट मोड Telegram की आधिकारिक सुविधा नहीं है। Telegram इसे असामान्य व्यवहार मान सकता है, इसलिए अपने जोखिम पर उपयोग करें।</string>
     <string name="TjGhostDontWarnAgain">इसे दोबारा न दिखाएँ</string>
     <string name="TjChatCountersUpdated">अंतिम अपडेट: %1$s</string>

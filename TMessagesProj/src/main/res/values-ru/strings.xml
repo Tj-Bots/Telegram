@@ -319,6 +319,13 @@
     <string name="TjGhostOnline">Оставаться не в сети</string>
     <string name="TjGhostRead">Не отправлять отметки о прочтении</string>
     <string name="TjGhostModeInfo">Режим призрака скрывает вашу активность от других. Выберите, что он охватывает.</string>
+    <string name="TjGhostSuppresses">Что скрывается</string>
+    <string name="TjGhostModeOnForChat">Включить для этого чата</string>
+    <string name="TjGhostModeOffForChat">Выключить для этого чата</string>
+    <string name="TjGhostModeOnBulletin">Режим призрака включён</string>
+    <string name="TjGhostModeOffBulletin">Режим призрака выключен</string>
+    <string name="TjGhostInstantRead">Прочитано при ответе</string>
+    <string name="TjGhostInstantReadInfo">Отмечать чат в режиме призрака прочитанным сразу при отправке сообщения в нём.</string>
     <string name="TjGhostWarning">Режим призрака — неофициальная функция. Telegram может счесть это необычным поведением, используйте на свой риск.</string>
     <string name="TjGhostDontWarnAgain">Больше не показывать</string>
     <string name="TjChatCountersUpdated">Обновлено: %1$s</string>

@@ -11388,7 +11388,7 @@ public class MessagesController extends BaseController implements NotificationCe
         if (action < 0 || action >= sendingTypings.length || dialogId == 0) {
             return false;
         }
-        if (TjSettingsActivity.isGhostHideTyping()) {
+        if (TjSettingsActivity.isGhostHideTyping(currentAccount, dialogId)) {
             return false;
         }
         final long selfId = UserConfig.getInstance(UserConfig.selectedAccount).getClientUserId();
@@ -14562,9 +14562,15 @@ public class MessagesController extends BaseController implements NotificationCe
     }
 
     private void completeReadTask(ReadTask task) {
+        completeReadTask(task, false);
+    }
+
+    private void completeReadTask(ReadTask task, boolean bypassGhost) {
         // Ghost mode suppresses only the network read. All the local unread bookkeeping in
         // markDialogAsRead has already run, so badges and counters still clear normally.
-        if (TjSettingsActivity.isGhostHideReadReceipts()) {
+        // bypassGhost is how "mark read the instant I reply" gets past that suppression on
+        // purpose for this one call, without touching the passive/automatic read path.
+        if (!bypassGhost && TjSettingsActivity.isGhostHideReadReceipts(currentAccount, task.dialogId)) {
             return;
         }
         if (task.replyId != 0 && task.monoForumPeerId == 0) {
@@ -14646,6 +14652,10 @@ public class MessagesController extends BaseController implements NotificationCe
     }
 
     public void markDialogAsReadNow(long dialogId, long replyId) {
+        markDialogAsReadNow(dialogId, replyId, false);
+    }
+
+    public void markDialogAsReadNow(long dialogId, long replyId, boolean bypassGhost) {
         Utilities.stageQueue.postRunnable(() -> {
             if (replyId != 0) {
                 String key = dialogId + "_" + replyId;
@@ -14653,7 +14663,7 @@ public class MessagesController extends BaseController implements NotificationCe
                 if (currentReadTask == null) {
                     return;
                 }
-                completeReadTask(currentReadTask);
+                completeReadTask(currentReadTask, bypassGhost);
                 repliesReadTasks.remove(currentReadTask);
                 threadsReadTasksMap.remove(key);
             } else {
@@ -14661,7 +14671,7 @@ public class MessagesController extends BaseController implements NotificationCe
                 if (currentReadTask == null) {
                     return;
                 }
-                completeReadTask(currentReadTask);
+                completeReadTask(currentReadTask, bypassGhost);
                 readTasks.remove(currentReadTask);
                 readTasksMap.remove(dialogId);
             }

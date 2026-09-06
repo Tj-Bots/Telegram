@@ -456,6 +456,7 @@ public class ChatActivity extends BaseFragment implements
     private ActionBarMenuItem.Item addContactItem;
     private ActionBarMenuItem.Item clearHistoryItem;
     private ActionBarMenuItem.Item pinnedVisibilityItem;
+    private ActionBarMenuItem.Item ghostChatItem;
     private ActionBarMenuItem.Item viewAsTopics;
     private ActionBarMenuItem.Item closeTopicItem;
     private ActionBarMenuItem.Item openForumItem;
@@ -1655,6 +1656,7 @@ public class ChatActivity extends BaseFragment implements
     private final static int select_range = 1002;
     private final static int forward_no_tag = 1003;
     private final static int toggle_pinned_visibility = 1008;
+    private final static int ghost_chat_toggle = 1013;
     private final static int edit = 23;
     private final static int add_shortcut = 24;
     private final static int save_to = 25;
@@ -2004,6 +2006,11 @@ public class ChatActivity extends BaseFragment implements
 
         @Override
         public void onMessageSend(CharSequence message, boolean notify, int scheduleDate, int scheduleRepeatPeriod, long payStars) {
+            // Ghost mode hides read receipts from the other side, so a reply here would otherwise
+            // sit "unread" forever from their perspective - this closes that gap on request.
+            if (scheduleDate == 0 && TjSettingsActivity.isGhostInstantReadEnabled() && TjSettingsActivity.isGhostActiveForChat(currentAccount, getDialogId())) {
+                getMessagesController().markDialogAsReadNow(getDialogId(), 0, true);
+            }
             if (chatListItemAnimator != null) {
                 chatActivityEnterViewAnimateFromTop = chatActivityEnterView.getBackgroundTop();
                 if (chatActivityEnterViewAnimateFromTop != 0) {
@@ -3888,6 +3895,13 @@ public class ChatActivity extends BaseFragment implements
                     currentPinnedMessageIndex[0] = 0;
                     updateMessagesVisiblePart(false);
                     updatePinnedMessageView(true);
+                } else if (id == ghost_chat_toggle) {
+                    boolean turningOn = TjSettingsActivity.getGhostChatOverride(currentAccount, getDialogId()) != TjSettingsActivity.GHOST_OVERRIDE_ON;
+                    TjSettingsActivity.setGhostChatOverride(currentAccount, getDialogId(), turningOn ? TjSettingsActivity.GHOST_OVERRIDE_ON : TjSettingsActivity.GHOST_OVERRIDE_INHERIT);
+                    if (ghostChatItem != null) {
+                        ghostChatItem.text = ghostChatItemLabel();
+                    }
+                    BulletinFactory.of(this).createSimpleBulletin(R.raw.info, TjLocale.getString(turningOn ? R.string.TjGhostModeOnBulletin : R.string.TjGhostModeOffBulletin)).show();
                 } else if (id == clear_history || id == delete_chat || id == auto_delete_timer) {
                     if (getParentActivity() == null) {
                         return;
@@ -4511,6 +4525,9 @@ public class ChatActivity extends BaseFragment implements
             headerItem.lazilyAddSubItem(jump_to_first_message, R.drawable.msg_go_up, TjLocale.getString(R.string.TjGoToFirstMessage));
             pinnedVisibilityItem = headerItem.lazilyAddSubItem(toggle_pinned_visibility, R.drawable.msg_pin, TjLocale.getString(R.string.TjHidePinnedMessage));
             headerItem.hideSubItem(toggle_pinned_visibility);
+            if (currentEncryptedChat == null && chatMode == MODE_DEFAULT && getDialogId() != getUserConfig().getClientUserId()) {
+                ghostChatItem = headerItem.lazilyAddSubItem(ghost_chat_toggle, R.drawable.tj_ghost, ghostChatItemLabel());
+            }
             boolean addedSettings = false;
             if (!isTopic) {
                 if (ChatObject.isChannel(currentChat) && !currentChat.creator) {
@@ -46643,6 +46660,11 @@ public class ChatActivity extends BaseFragment implements
             options.add(OPTION_TJ_CLEAR_VIDEO_CACHE);
             icons.add(R.drawable.msg_clearcache);
         }
+    }
+
+    private String ghostChatItemLabel() {
+        boolean on = TjSettingsActivity.getGhostChatOverride(currentAccount, getDialogId()) == TjSettingsActivity.GHOST_OVERRIDE_ON;
+        return TjLocale.getString(on ? R.string.TjGhostModeOffForChat : R.string.TjGhostModeOnForChat);
     }
 
     /** A video message with anything on disk for it - whole, partial or mid-download. */

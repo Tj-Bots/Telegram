@@ -11280,6 +11280,13 @@
     <string name="TjGhostOnline">Stay offline</string>
     <string name="TjGhostRead">Don\'t send read receipts</string>
     <string name="TjGhostModeInfo">Ghost mode hides your activity from other people. Choose what it covers.</string>
+    <string name="TjGhostSuppresses">What it hides</string>
+    <string name="TjGhostModeOnForChat">Turn on for this chat</string>
+    <string name="TjGhostModeOffForChat">Turn off for this chat</string>
+    <string name="TjGhostModeOnBulletin">Ghost mode is on</string>
+    <string name="TjGhostModeOffBulletin">Ghost mode is off</string>
+    <string name="TjGhostInstantRead">Read on reply</string>
+    <string name="TjGhostInstantReadInfo">Mark a ghosted chat as read the instant you send a message into it.</string>
     <string name="TjGhostWarning">Ghost mode is not an official Telegram feature. Telegram may treat it as unusual behaviour, so use it at your own risk.</string>
     <string name="TjGhostDontWarnAgain">Don\'t show this again</string>
     <string name="TjChatCountersUpdated">Last updated: %1$s</string>

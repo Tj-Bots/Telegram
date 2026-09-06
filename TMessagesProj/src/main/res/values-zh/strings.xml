@@ -56,6 +56,13 @@
     <string name="TjGhostOnline">保持离线</string>
     <string name="TjGhostRead">不发送已读回执</string>
     <string name="TjGhostModeInfo">隐身模式会对他人隐藏你的活动。选择它包含的内容。</string>
+    <string name="TjGhostSuppresses">隐藏的内容</string>
+    <string name="TjGhostModeOnForChat">为此聊天开启</string>
+    <string name="TjGhostModeOffForChat">为此聊天关闭</string>
+    <string name="TjGhostModeOnBulletin">隐身模式已开启</string>
+    <string name="TjGhostModeOffBulletin">隐身模式已关闭</string>
+    <string name="TjGhostInstantRead">回复即已读</string>
+    <string name="TjGhostInstantReadInfo">在隐身聊天中发送消息后立即将其标记为已读。</string>
     <string name="TjGhostWarning">隐身模式并非 Telegram 官方功能。Telegram 可能将其视为异常行为，请自行承担风险。</string>
     <string name="TjGhostDontWarnAgain">不再显示</string>
     <string name="TjChatCountersUpdated">最后更新：%1$s</string>

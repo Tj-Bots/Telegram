@@ -106,16 +106,32 @@ public class TjSettingsActivity extends BaseFragment {
         getPrefs().edit().putBoolean(KEY_GHOST_MODE, value).apply();
     }
 
-    public static boolean isGhostHideTyping() {
-        return isGhostModeEnabled() && getPrefs().getBoolean(KEY_GHOST_TYPING, true);
-    }
-
     public static boolean isGhostHideOnline() {
         return isGhostModeEnabled() && getPrefs().getBoolean(KEY_GHOST_ONLINE, true);
     }
 
-    public static boolean isGhostHideReadReceipts() {
-        return isGhostModeEnabled() && getPrefs().getBoolean(KEY_GHOST_READ, true);
+    public static boolean isGhostHideTypingSetting() {
+        return getPrefs().getBoolean(KEY_GHOST_TYPING, true);
+    }
+
+    public static void setGhostHideTypingSetting(boolean value) {
+        getPrefs().edit().putBoolean(KEY_GHOST_TYPING, value).apply();
+    }
+
+    public static boolean isGhostHideOnlineSetting() {
+        return getPrefs().getBoolean(KEY_GHOST_ONLINE, true);
+    }
+
+    public static void setGhostHideOnlineSetting(boolean value) {
+        getPrefs().edit().putBoolean(KEY_GHOST_ONLINE, value).apply();
+    }
+
+    public static boolean isGhostHideReadReceiptsSetting() {
+        return getPrefs().getBoolean(KEY_GHOST_READ, true);
+    }
+
+    public static void setGhostHideReadReceiptsSetting(boolean value) {
+        getPrefs().edit().putBoolean(KEY_GHOST_READ, value).apply();
     }
 
     public static boolean isGhostWarningDismissed() {
@@ -124,6 +140,61 @@ public class TjSettingsActivity extends BaseFragment {
 
     public static void setGhostWarningDismissed(boolean value) {
         getPrefs().edit().putBoolean(KEY_GHOST_WARNED, value).apply();
+    }
+
+    /**
+     * A per-chat override lets one conversation keep ghost behaviour independent of, and past,
+     * the global toggle - the override always wins over the global switch when it's set.
+     */
+    public static final int GHOST_OVERRIDE_INHERIT = 0;
+    public static final int GHOST_OVERRIDE_ON = 1;
+    public static final int GHOST_OVERRIDE_OFF = 2;
+
+    private static final String KEY_GHOST_CHAT_OVERRIDE_PREFIX = "ghost_chat_override_";
+    private static final String KEY_GHOST_INSTANT_READ = "ghost_instant_read";
+
+    public static int getGhostChatOverride(int account, long dialogId) {
+        return getPrefs().getInt(KEY_GHOST_CHAT_OVERRIDE_PREFIX + account + "_" + dialogId, GHOST_OVERRIDE_INHERIT);
+    }
+
+    public static void setGhostChatOverride(int account, long dialogId, int value) {
+        if (value == GHOST_OVERRIDE_INHERIT) {
+            getPrefs().edit().remove(KEY_GHOST_CHAT_OVERRIDE_PREFIX + account + "_" + dialogId).apply();
+        } else {
+            getPrefs().edit().putInt(KEY_GHOST_CHAT_OVERRIDE_PREFIX + account + "_" + dialogId, value).apply();
+        }
+    }
+
+    /** Whether ghost mode is in effect for this chat right now - the override if set, else the global switch. */
+    public static boolean isGhostActiveForChat(int account, long dialogId) {
+        int override = getGhostChatOverride(account, dialogId);
+        if (override == GHOST_OVERRIDE_ON) {
+            return true;
+        }
+        if (override == GHOST_OVERRIDE_OFF) {
+            return false;
+        }
+        return isGhostModeEnabled();
+    }
+
+    public static boolean isGhostHideTyping(int account, long dialogId) {
+        return isGhostActiveForChat(account, dialogId) && getPrefs().getBoolean(KEY_GHOST_TYPING, true);
+    }
+
+    public static boolean isGhostHideReadReceipts(int account, long dialogId) {
+        return isGhostActiveForChat(account, dialogId) && getPrefs().getBoolean(KEY_GHOST_READ, true);
+    }
+
+    /**
+     * While ghost mode is active in a chat, mark it as read the instant a message is sent into
+     * it - so the other side never sees an unread badge lingering on a reply that was seen.
+     */
+    public static boolean isGhostInstantReadEnabled() {
+        return getPrefs().getBoolean(KEY_GHOST_INSTANT_READ, false);
+    }
+
+    public static void setGhostInstantReadEnabled(boolean value) {
+        getPrefs().edit().putBoolean(KEY_GHOST_INSTANT_READ, value).apply();
     }
 
     public static final int SUBTITLE_STYLE_OUTLINE = 0;
@@ -265,10 +336,7 @@ public class TjSettingsActivity extends BaseFragment {
     private static final int ID_MENU_SAVE_TO_SAVED = 8;
     private static final int ID_MENU_FORWARD_NO_TAG = 9;
     private static final int ID_FOLDER_TAB_STYLE = 10;
-    private static final int ID_GHOST_MODE = 11;
-    private static final int ID_GHOST_TYPING = 12;
-    private static final int ID_GHOST_ONLINE = 13;
-    private static final int ID_GHOST_READ = 14;
+    private static final int ID_GHOST_SETTINGS = 11;
     private static final int ID_SUBTITLE_AUTO = 15;
     private static final int ID_MENU_REPLY_PRIVATELY = 16;
     private static final int ID_DELETE_FOR_BOTH = 17;
@@ -296,10 +364,6 @@ public class TjSettingsActivity extends BaseFragment {
             case ID_MENU_COPY_THUMB: return isCopyThumbnailEnabled();
             case ID_MENU_SAVE_TO_SAVED: return isSaveToSavedEnabled();
             case ID_MENU_FORWARD_NO_TAG: return isForwardWithoutTagEnabled();
-            case ID_GHOST_MODE: return isGhostModeEnabled();
-            case ID_GHOST_TYPING: return getPrefs().getBoolean(KEY_GHOST_TYPING, true);
-            case ID_GHOST_ONLINE: return getPrefs().getBoolean(KEY_GHOST_ONLINE, true);
-            case ID_GHOST_READ: return getPrefs().getBoolean(KEY_GHOST_READ, true);
             case ID_SUBTITLE_AUTO: return isSubtitleAutoEnabled();
             case ID_MENU_REPLY_PRIVATELY: return isReplyPrivatelyEnabled();
             case ID_DELETE_FOR_BOTH: return isDeleteForBothDefault();
@@ -319,10 +383,6 @@ public class TjSettingsActivity extends BaseFragment {
             case ID_MENU_COPY_THUMB: key = KEY_MENU_COPY_THUMB; break;
             case ID_MENU_SAVE_TO_SAVED: key = KEY_MENU_SAVE_TO_SAVED; break;
             case ID_MENU_FORWARD_NO_TAG: key = KEY_MENU_FORWARD_NO_TAG; break;
-            case ID_GHOST_MODE: key = KEY_GHOST_MODE; break;
-            case ID_GHOST_TYPING: key = KEY_GHOST_TYPING; break;
-            case ID_GHOST_ONLINE: key = KEY_GHOST_ONLINE; break;
-            case ID_GHOST_READ: key = KEY_GHOST_READ; break;
             case ID_SUBTITLE_AUTO: key = KEY_SUBTITLE_AUTO; break;
             case ID_MENU_REPLY_PRIVATELY: key = KEY_MENU_REPLY_PRIVATELY; break;
             case ID_DELETE_FOR_BOTH: key = KEY_DELETE_FOR_BOTH; break;
@@ -366,6 +426,10 @@ public class TjSettingsActivity extends BaseFragment {
                 showFolderTabStyleAlert();
                 return;
             }
+            if (item.id == ID_GHOST_SETTINGS) {
+                presentFragment(new TjGhostSettingsActivity());
+                return;
+            }
             if (item.viewType != VIEW_TYPE_CHECK) {
                 return;
             }
@@ -375,6 +439,15 @@ public class TjSettingsActivity extends BaseFragment {
         });
 
         return fragmentView;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // The Ghost row's value column needs to reflect changes made in the sub-screen.
+        if (adapter != null) {
+            adapter.notifyDataSetChanged();
+        }
     }
 
     private void updateItems() {
@@ -389,10 +462,7 @@ public class TjSettingsActivity extends BaseFragment {
         items.add(new Item(VIEW_TYPE_CHECK, ID_SHOW_CALL_BUTTON, TjLocale.getString(R.string.TjShowCallButton)));
         items.add(new Item(VIEW_TYPE_SHADOW, 0, TjLocale.getString(R.string.TjShowCallButtonInfo)));
         items.add(new Item(VIEW_TYPE_HEADER, 0, TjLocale.getString(R.string.TjGhostMode)));
-        items.add(new Item(VIEW_TYPE_CHECK, ID_GHOST_MODE, TjLocale.getString(R.string.TjGhostMode)));
-        items.add(new Item(VIEW_TYPE_CHECK, ID_GHOST_TYPING, TjLocale.getString(R.string.TjGhostTyping)));
-        items.add(new Item(VIEW_TYPE_CHECK, ID_GHOST_ONLINE, TjLocale.getString(R.string.TjGhostOnline)));
-        items.add(new Item(VIEW_TYPE_CHECK, ID_GHOST_READ, TjLocale.getString(R.string.TjGhostRead)));
+        items.add(new Item(VIEW_TYPE_SETTING, ID_GHOST_SETTINGS, TjLocale.getString(R.string.TjGhostMode)));
         items.add(new Item(VIEW_TYPE_SHADOW, 0, TjLocale.getString(R.string.TjGhostModeInfo)));
         items.add(new Item(VIEW_TYPE_HEADER, 0, LocaleController.getString(R.string.Filters)));
         items.add(new Item(VIEW_TYPE_SETTING, ID_FOLDER_TAB_STYLE, TjLocale.getString(R.string.TjFolderTabStyle)));
@@ -477,7 +547,10 @@ public class TjSettingsActivity extends BaseFragment {
             } else if (item.viewType == VIEW_TYPE_SHADOW) {
                 ((TextInfoPrivacyCell) holder.itemView).setText(item.text);
             } else if (item.viewType == VIEW_TYPE_SETTING) {
-                ((TextSettingsCell) holder.itemView).setTextAndValue(item.text, folderTabStyleName(), false);
+                String value = item.id == ID_GHOST_SETTINGS
+                    ? LocaleController.getString(isGhostModeEnabled() ? R.string.NotificationsOn : R.string.NotificationsOff)
+                    : folderTabStyleName();
+                ((TextSettingsCell) holder.itemView).setTextAndValue(item.text, value, false);
             } else {
                 boolean divider = position + 1 < items.size() && items.get(position + 1).viewType == VIEW_TYPE_CHECK;
                 ((TextCheckCell) holder.itemView).setTextAndCheck(item.text, isChecked(item.id), divider);
