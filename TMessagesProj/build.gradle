@@ -136,7 +136,16 @@ android {
         externalNativeBuild {
             cmake {
                 version '3.22.1'
-                arguments '-DANDROID_STL=c++_static', '-DANDROID_PLATFORM=android-21' //, '-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON'
+                // ccache when CI provides one, so a rebuild reuses object files instead of
+                // recompiling ffmpeg, dav1d, libvpx and the rest from scratch every time. It keys
+                // on file content, not timestamps, which is what makes it survive a cache restore.
+                def cmakeArgs = ['-DANDROID_STL=c++_static', '-DANDROID_PLATFORM=android-21']
+                def ccache = System.getenv('CCACHE_PATH')
+                if (ccache != null && !ccache.isEmpty()) {
+                    cmakeArgs += "-DCMAKE_C_COMPILER_LAUNCHER=${ccache}".toString()
+                    cmakeArgs += "-DCMAKE_CXX_COMPILER_LAUNCHER=${ccache}".toString()
+                }
+                arguments(cmakeArgs as String[])
                 targets 'tmessages.49'
             }
         }
