@@ -162,5 +162,10 @@ public class TjRetainedMessagesListActivity extends BaseFragment {
         public int getItemViewType(int position) {
             return loaded && messages.isEmpty() ? 1 : 0;
         }
+
+        @Override
+        public boolean isEnabled(RecyclerView.ViewHolder holder) {
+            return false;
+        }
     }
 }
