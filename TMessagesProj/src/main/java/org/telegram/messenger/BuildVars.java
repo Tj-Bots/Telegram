@@ -51,6 +51,14 @@ public class BuildVars {
                 final Thread.UncaughtExceptionHandler pastHandler = Thread.getDefaultUncaughtExceptionHandler();
                 Thread.setDefaultUncaughtExceptionHandler((thread, exception) -> {
                     FileLog.fatal(exception, false);
+                    // No adb access on a real phone means no way to hand back a stack trace -
+                    // this puts it on the clipboard instead, ready to paste wherever it's needed.
+                    try {
+                        java.io.StringWriter sw = new java.io.StringWriter();
+                        exception.printStackTrace(new java.io.PrintWriter(sw));
+                        AndroidUtilities.addToClipboard("TjGram crash on " + thread.getName() + ":\n" + sw);
+                    } catch (Throwable ignore) {
+                    }
                     if (pastHandler != null) {
                         pastHandler.uncaughtException(thread, exception);
                     }
