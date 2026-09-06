@@ -45,8 +45,6 @@ public class TjSubtitleView extends View {
 
     /** The lines exactly as the file has them; cueTexts is these wrapped for direction. */
     private final ArrayList<String> rawLines = new ArrayList<>();
-    /** The same lines before clean() touched them, kept only for describeCurrentCue. */
-    private final ArrayList<String> rawSource = new ArrayList<>();
     private final ArrayList<CharSequence> cueTexts = new ArrayList<>();
     private final ArrayList<StaticLayout> layouts = new ArrayList<>();
 
@@ -71,7 +69,6 @@ public class TjSubtitleView extends View {
 
     public void setCues(List<Cue> cues) {
         final ArrayList<String> next = new ArrayList<>();
-        final ArrayList<String> nextSource = new ArrayList<>();
         if (cues != null) {
             for (int a = 0; a < cues.size(); a++) {
                 final Cue cue = cues.get(a);
@@ -81,13 +78,7 @@ public class TjSubtitleView extends View {
                 }
                 // One entry per line the subtitle file itself wrote, so the file's line breaks
                 // are what gets drawn.
-                final String source = cue.text.toString();
-                for (String raw : SOURCE_LINE.split(source)) {
-                    if (!raw.trim().isEmpty()) {
-                        nextSource.add(raw.trim());
-                    }
-                }
-                final String[] lines = SOURCE_LINE.split(clean(source));
+                final String[] lines = SOURCE_LINE.split(clean(cue.text.toString()));
                 for (int b = 0; b < lines.length; b++) {
                     final String line = lines[b].trim();
                     if (!line.isEmpty()) {
@@ -101,8 +92,6 @@ public class TjSubtitleView extends View {
         }
         rawLines.clear();
         rawLines.addAll(next);
-        rawSource.clear();
-        rawSource.addAll(nextSource);
         applyDirection();
     }
 
@@ -113,29 +102,14 @@ public class TjSubtitleView extends View {
      * effect on it, rather than only on the next one.
      */
     private void applyDirection() {
-        final int direction = TjSettingsActivity.getSubtitleDirection();
-        final boolean rtl = direction == TjSettingsActivity.SUBTITLE_DIR_RTL || isRtl(TextUtils.join("\n", rawLines));
-        // PUNCT moves the punctuation itself instead of asking the bidi algorithm to place it, so
-        // the paragraph must stay neutral or the two would fight and undo each other.
-        cueIsRtl = rtl && direction != TjSettingsActivity.SUBTITLE_DIR_PUNCT;
+        // Right-to-left cues get their trailing punctuation moved to the front; everything else is
+        // drawn as it comes. No setting and nothing to choose - the cue's own content decides.
+        final boolean rtl = isRtl(TextUtils.join("\n", rawLines));
 
         cueTexts.clear();
         for (int a = 0; a < rawLines.size(); a++) {
             final String line = rawLines.get(a);
-            switch (direction) {
-                case TjSettingsActivity.SUBTITLE_DIR_PUNCT:
-                    cueTexts.add(rtl ? movePunctuationToFront(line) : line);
-                    break;
-                case TjSettingsActivity.SUBTITLE_DIR_NONE:
-                    cueTexts.add(line);
-                    break;
-                default:
-                    // One explicit embedding, so mixed content - Hebrew with numbers or Latin names
-                    // in it - is ordered by that embedding rather than by a guess at the line's own
-                    // direction.
-                    cueTexts.add((rtl ? RLE : LRE) + line + PDF);
-                    break;
-            }
+            cueTexts.add(rtl ? movePunctuationToFront(line) : line);
         }
         layouts.clear();
         layoutWidth = 0;
@@ -171,17 +145,6 @@ public class TjSubtitleView extends View {
         return line.substring(cut) + line.substring(0, cut);
     }
 
-    /**
-     * Explicit bidi embedding: everything between these is laid out in one direction whatever it
-     * contains, which is what keeps punctuation on the correct end of the line.
-     */
-    private static final String RLE = "\u202B";
-    private static final String LRE = "\u202A";
-    private static final String PDF = "\u202C";
-
-    /** Direction of the cue currently on screen; drives the layout's own text direction. */
-    private boolean cueIsRtl;
-
     /** True when the text carries any Hebrew or Arabic letter, including presentation forms. */
     private static boolean isRtl(String text) {
         for (int i = 0; i < text.length(); i++) {
@@ -210,29 +173,6 @@ public class TjSubtitleView extends View {
 
     private static String clean(String text) {
         return BIDI_CONTROLS.matcher(MARKUP.matcher(text).replaceAll("")).replaceAll("");
-    }
-
-    /**
-     * The cue exactly as it arrived, before anything was stripped or wrapped, with every character
-     * spelled out as a codepoint.
-     *
-     * Four rounds of reasoning about what these files contain have not settled it, so this reports
-     * the bytes instead of me guessing at them again.
-     */
-    public String describeCurrentCue() {
-        if (rawSource.isEmpty()) {
-            return "(no subtitle on screen)";
-        }
-        final StringBuilder sb = new StringBuilder();
-        for (int a = 0; a < rawSource.size(); a++) {
-            final String line = rawSource.get(a);
-            sb.append("line ").append(a + 1).append(": ").append(line).append('\n');
-            for (int i = 0; i < line.length(); i++) {
-                sb.append(String.format(java.util.Locale.US, "U+%04X ", (int) line.charAt(i)));
-            }
-            sb.append('\n');
-        }
-        return sb.toString();
     }
 
     public void clear() {
@@ -287,16 +227,17 @@ public class TjSubtitleView extends View {
     }
 
     /**
-     * Centred, and told which way the line runs rather than left to guess from its first strong
-     * character. The embedding marks already force the glyph order; setting the layout's own
-     * direction keeps the line box on the same side, which is what puts a trailing full stop
-     * where a reader expects it.
+     * Centred, and laid out left-to-right on purpose.
+     *
+     * The punctuation has already been moved by hand, so asking the bidi algorithm to place it as
+     * well would have the two undo each other. Hebrew and Arabic letters still render right-to-left
+     * within their own run either way.
      */
     private StaticLayout makeLayout(CharSequence text, int width) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             return StaticLayout.Builder.obtain(text, 0, text.length(), textPaint, width)
                     .setAlignment(Layout.Alignment.ALIGN_CENTER)
-                    .setTextDirection(cueIsRtl ? TextDirectionHeuristics.RTL : TextDirectionHeuristics.LTR)
+                    .setTextDirection(TextDirectionHeuristics.LTR)
                     .setLineSpacing(0, 1f)
                     .setIncludePad(false)
                     .build();

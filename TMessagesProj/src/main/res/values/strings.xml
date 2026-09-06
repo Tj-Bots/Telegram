@@ -11298,10 +11298,6 @@
     <string name="TjFolderManaging">Managing</string>
     <string name="TjSubtitleAuto">Turn subtitles on automatically</string>
     <string name="TjSubtitleAutoInfo">Picks a subtitle track in your language when a video has one, otherwise English.</string>
-    <string name="TjSubtitleDirAuto">Automatic</string>
-    <string name="TjSubtitleDirRtl">Force right-to-left</string>
-    <string name="TjSubtitleDirNone">No direction marks</string>
     <string name="TjReplyPrivately">Reply privately</string>
-    <string name="TjSubtitleCopyRaw">Copy subtitle text (diagnostic)</string>
-    <string name="TjSubtitleDirPunct">Move final punctuation</string>
+    <string name="TjDeleteForBoth">Delete for both sides by default</string>
 </resources>

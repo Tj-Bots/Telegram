@@ -1317,10 +1317,6 @@
     <string name="TjFolderManaging">الإدارة</string>
     <string name="TjSubtitleAuto">تشغيل الترجمة تلقائيًا</string>
     <string name="TjSubtitleAutoInfo">يختار مسار ترجمة بلغتك عند توفره في الفيديو، وإلا فبالإنجليزية.</string>
-    <string name="TjSubtitleDirAuto">تلقائي</string>
-    <string name="TjSubtitleDirRtl">فرض من اليمين لليسار</string>
-    <string name="TjSubtitleDirNone">بدون علامات اتجاه</string>
     <string name="TjReplyPrivately">الرد بشكل خاص</string>
-    <string name="TjSubtitleCopyRaw">نسخ نص الترجمة (للتشخيص)</string>
-    <string name="TjSubtitleDirPunct">نقل علامة الترقيم الأخيرة</string>
+    <string name="TjDeleteForBoth">الحذف للطرفين افتراضيًا</string>
 </resources>

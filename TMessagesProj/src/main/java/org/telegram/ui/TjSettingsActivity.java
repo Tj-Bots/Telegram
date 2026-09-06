@@ -47,7 +47,6 @@ public class TjSettingsActivity extends BaseFragment {
     private static final String KEY_SUBTITLE_STYLE = "subtitle_style";
     private static final String KEY_SUBTITLE_POSITION = "subtitle_position";
     private static final String KEY_SUBTITLE_AUTO = "subtitle_auto_enable";
-    private static final String KEY_SUBTITLE_DIRECTION = "subtitle_direction";
 
     private static final String KEY_FOLDER_TAB_STYLE = "folder_tab_style";
     private static final String KEY_FOLDER_EMOTICON_PREFIX = "folder_emoticon_";
@@ -59,6 +58,7 @@ public class TjSettingsActivity extends BaseFragment {
     private static final String KEY_MENU_SAVE_TO_SAVED = "menu_save_to_saved";
     private static final String KEY_MENU_FORWARD_NO_TAG = "menu_forward_without_tag";
     private static final String KEY_MENU_REPLY_PRIVATELY = "menu_reply_privately";
+    private static final String KEY_DELETE_FOR_BOTH = "delete_for_both_default";
 
     private static SharedPreferences getPrefs() {
         return ApplicationLoader.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
@@ -142,30 +142,6 @@ public class TjSettingsActivity extends BaseFragment {
     }
 
     /**
-     * How subtitle lines are ordered on screen.
-     *
-     * Every option first has the file's own bidi control characters stripped - Hebrew subtitles
-     * usually arrive with a layer already applied, and adding a second embedding over the first is
-     * what reverses a line.
-     *
-     * PUNCT, the default, then moves each line's trailing punctuation to its front and adds no
-     * embedding at all. AUTO wraps in the embedding that matches the cue's content, RTL always
-     * wraps right-to-left, and NONE adds nothing and reorders nothing.
-     */
-    public static final int SUBTITLE_DIR_PUNCT = 0;
-    public static final int SUBTITLE_DIR_AUTO = 1;
-    public static final int SUBTITLE_DIR_RTL = 2;
-    public static final int SUBTITLE_DIR_NONE = 3;
-
-    public static int getSubtitleDirection() {
-        return getPrefs().getInt(KEY_SUBTITLE_DIRECTION, SUBTITLE_DIR_PUNCT);
-    }
-
-    public static void setSubtitleDirection(int direction) {
-        getPrefs().edit().putInt(KEY_SUBTITLE_DIRECTION, direction).apply();
-    }
-
-    /**
      * Turn subtitles on by themselves, preferring a track in the app's own language and falling
      * back to English. Off by default; a track you pick by hand always wins.
      */
@@ -232,6 +208,14 @@ public class TjSettingsActivity extends BaseFragment {
         return getPrefs().getBoolean(KEY_MENU_COPY_THUMB, true);
     }
 
+    /**
+     * Tick "delete also for X" by default when deleting a message in a private chat. On by
+     * default - deleting only your own copy is rarely what anyone means.
+     */
+    public static boolean isDeleteForBothDefault() {
+        return getPrefs().getBoolean(KEY_DELETE_FOR_BOTH, true);
+    }
+
     /** "Reply privately" in the message menu of a group. On by default. */
     public static boolean isReplyPrivatelyEnabled() {
         return getPrefs().getBoolean(KEY_MENU_REPLY_PRIVATELY, true);
@@ -282,6 +266,7 @@ public class TjSettingsActivity extends BaseFragment {
     private static final int ID_GHOST_READ = 14;
     private static final int ID_SUBTITLE_AUTO = 15;
     private static final int ID_MENU_REPLY_PRIVATELY = 16;
+    private static final int ID_DELETE_FOR_BOTH = 17;
 
     private static class Item {
         final int viewType;
@@ -312,6 +297,7 @@ public class TjSettingsActivity extends BaseFragment {
             case ID_GHOST_READ: return getPrefs().getBoolean(KEY_GHOST_READ, true);
             case ID_SUBTITLE_AUTO: return isSubtitleAutoEnabled();
             case ID_MENU_REPLY_PRIVATELY: return isReplyPrivatelyEnabled();
+            case ID_DELETE_FOR_BOTH: return isDeleteForBothDefault();
         }
         return false;
     }
@@ -334,6 +320,7 @@ public class TjSettingsActivity extends BaseFragment {
             case ID_GHOST_READ: key = KEY_GHOST_READ; break;
             case ID_SUBTITLE_AUTO: key = KEY_SUBTITLE_AUTO; break;
             case ID_MENU_REPLY_PRIVATELY: key = KEY_MENU_REPLY_PRIVATELY; break;
+            case ID_DELETE_FOR_BOTH: key = KEY_DELETE_FOR_BOTH; break;
         }
         if (key != null) {
             getPrefs().edit().putBoolean(key, value).apply();
@@ -414,6 +401,7 @@ public class TjSettingsActivity extends BaseFragment {
         items.add(new Item(VIEW_TYPE_CHECK, ID_MENU_COPY_LINK, TjLocale.getString(R.string.TjCopyMessageLink)));
         items.add(new Item(VIEW_TYPE_CHECK, ID_MENU_FORWARD_NO_TAG, TjLocale.getString(R.string.TjForwardWithoutTag)));
         items.add(new Item(VIEW_TYPE_CHECK, ID_MENU_REPLY_PRIVATELY, TjLocale.getString(R.string.TjReplyPrivately)));
+        items.add(new Item(VIEW_TYPE_CHECK, ID_DELETE_FOR_BOTH, TjLocale.getString(R.string.TjDeleteForBoth)));
         items.add(new Item(VIEW_TYPE_SHADOW, 0, TjLocale.getString(R.string.TjMessageMenuInfo)));
     }
 

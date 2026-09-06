@@ -152,6 +152,7 @@ import org.telegram.ui.Stories.DarkThemeResourceProvider;
 import org.telegram.ui.Stories.recorder.ButtonWithCounterView;
 import org.telegram.ui.Stories.recorder.HintView2;
 import org.telegram.ui.ThemePreviewActivity;
+import org.telegram.ui.TjSettingsActivity;
 import org.telegram.ui.TooManyCommunitiesActivity;
 import org.telegram.ui.community.cells.CommunityBanGroupConfirmCell;
 
@@ -8109,6 +8110,13 @@ public class AlertsCreator {
                 }
                 cell.setPadding(LocaleController.isRTL ? dp(16) : dp(8), 0, LocaleController.isRTL ? dp(8) : dp(16), 0);
                 frameLayout.addView(cell, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 48, Gravity.TOP | Gravity.LEFT, 0, 0, 0, 0));
+                // Start ticked in a one-to-one chat: deleting only your own copy is rarely what
+                // anyone means. Deliberately not for groups or channels, where "delete for
+                // everyone" is a far less forgiving default than it is between two people.
+                if (user != null && TjSettingsActivity.isDeleteForBothDefault()) {
+                    deleteForAll[0] = true;
+                    cell.setChecked(true, false);
+                }
                 cell.setOnClickListener(v -> {
                     CheckBoxCell cell1 = (CheckBoxCell) v;
                     deleteForAll[0] = !deleteForAll[0];

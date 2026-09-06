@@ -337,10 +337,6 @@
     <string name="TjFolderManaging">Управление</string>
     <string name="TjSubtitleAuto">Включать субтитры автоматически</string>
     <string name="TjSubtitleAutoInfo">Выбирает дорожку субтитров на вашем языке, если она есть в видео, иначе английскую.</string>
-    <string name="TjSubtitleDirAuto">Автоматически</string>
-    <string name="TjSubtitleDirRtl">Всегда справа налево</string>
-    <string name="TjSubtitleDirNone">Без меток направления</string>
     <string name="TjReplyPrivately">Ответить лично</string>
-    <string name="TjSubtitleCopyRaw">Скопировать текст субтитров (диагностика)</string>
-    <string name="TjSubtitleDirPunct">Переносить конечный знак препинания</string>
+    <string name="TjDeleteForBoth">Удалять у обоих по умолчанию</string>
 </resources>

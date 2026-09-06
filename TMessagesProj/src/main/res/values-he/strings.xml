@@ -74,10 +74,6 @@
     <string name="TjFolderManaging">ניהול</string>
     <string name="TjSubtitleAuto">הפעל כתוביות אוטומטית</string>
     <string name="TjSubtitleAutoInfo">בוחר רצועת כתוביות בשפה שלך כשיש כזו בוידאו, ואחרת באנגלית.</string>
-    <string name="TjSubtitleDirAuto">אוטומטי</string>
-    <string name="TjSubtitleDirRtl">כפה ימין לשמאל</string>
-    <string name="TjSubtitleDirNone">בלי סימוני כיוון</string>
     <string name="TjReplyPrivately">השב בפרטי</string>
-    <string name="TjSubtitleCopyRaw">העתק טקסט כתובית (לאבחון)</string>
-    <string name="TjSubtitleDirPunct">העבר פיסוק סופי להתחלה</string>
+    <string name="TjDeleteForBoth">מחק לשני הצדדים כברירת מחדל</string>
 </resources>
