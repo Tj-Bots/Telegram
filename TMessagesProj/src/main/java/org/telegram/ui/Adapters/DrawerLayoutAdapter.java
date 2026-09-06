@@ -9,9 +9,11 @@
 package org.telegram.ui.Adapters;
 
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.core.graphics.ColorUtils;
 import androidx.recyclerview.widget.RecyclerView;
 
 
@@ -170,10 +172,30 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter {
             }
             case 4: {
                 DrawerUserCell drawerUserCell = (DrawerUserCell) holder.itemView;
-                drawerUserCell.setAccount(accountNumbers.get(position - 2));
+                int index = position - 2;
+                drawerUserCell.setAccount(accountNumbers.get(index));
+                boolean first = index == 0;
+                boolean last = index == accountNumbers.size() - 1 && accountNumbers.size() >= UserConfig.MAX_ACCOUNT_COUNT;
+                drawerUserCell.setBackground(accountCardBackground(first ? 12 : 0, last ? 12 : 0));
+                break;
+            }
+            case 5: {
+                // The account list always ends on either the last account row or this one -
+                // "Add account" only shows while there's still room for another account.
+                holder.itemView.setBackground(accountCardBackground(0, 12));
                 break;
             }
         }
+    }
+
+    /**
+     * The account rows sit inside their own rounded card rather than as flat list rows, so the
+     * account switcher reads as a distinct control instead of blending into the rest of the menu.
+     */
+    private static Drawable accountCardBackground(int topRad, int bottomRad) {
+        int base = Theme.getColor(Theme.key_chats_menuBackground);
+        int overlay = ColorUtils.blendARGB(base, Theme.getColor(Theme.key_chats_menuItemText), 0.05f);
+        return Theme.createRadSelectorDrawable(overlay, Theme.getColor(Theme.key_listSelector), topRad, bottomRad);
     }
 
     @Override

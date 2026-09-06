@@ -10,6 +10,7 @@ package org.telegram.ui.Cells;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.view.Gravity;
@@ -164,8 +165,21 @@ public class DrawerUserCell extends FrameLayout implements NotificationCenter.No
         return accountNumber;
     }
 
+    private final Paint selectedRingPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+
     @Override
     protected void onDraw(Canvas canvas) {
+        if (accountNumber == UserConfig.selectedAccount) {
+            // A thin ring around the current account's avatar, so the selected row reads at a
+            // glance instead of relying on the small checkmark badge alone.
+            selectedRingPaint.setStyle(Paint.Style.STROKE);
+            selectedRingPaint.setStrokeWidth(AndroidUtilities.dp(1.5f));
+            selectedRingPaint.setColor(Theme.getColor(Theme.key_chats_unreadCounter));
+            float cx = imageView.getLeft() + imageView.getMeasuredWidth() / 2f;
+            float cy = imageView.getTop() + imageView.getMeasuredHeight() / 2f;
+            float radius = imageView.getMeasuredWidth() / 2f + AndroidUtilities.dp(1.5f);
+            canvas.drawCircle(cx, cy, radius, selectedRingPaint);
+        }
         if (UserConfig.getActivatedAccountsCount() <= 1 || !NotificationsController.getInstance(accountNumber).showBadgeNumber) {
             textView.setRightPadding(0);
             return;
