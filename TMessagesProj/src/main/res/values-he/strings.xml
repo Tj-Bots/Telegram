@@ -72,4 +72,6 @@
     <string name="TjSubtitleStyleBox">רקע מלא</string>
     <string name="TjSubtitlePosition">מיקום</string>
     <string name="TjFolderManaging">ניהול</string>
+    <string name="TjSubtitleAuto">הפעל כתוביות אוטומטית</string>
+    <string name="TjSubtitleAutoInfo">בוחר רצועת כתוביות בשפה שלך כשיש כזו בוידאו, ואחרת באנגלית.</string>
 </resources>

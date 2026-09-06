@@ -123,7 +123,15 @@ public class DrawerLayoutContainer extends FrameLayout {
                 AndroidUtilities.statusBarHeight = newTopInset;
             }
             firstLayout = false;
-            AndroidUtilities.navigationBarHeight = insets.getSystemWindowInsetBottom();
+            // The navigation bar alone. getSystemWindowInsetBottom() includes the IME, and this is
+            // the only line in the app that assigns this global - which ~168 readers depend on -
+            // so taking the keyboard's height here made every one of them wrong the moment the
+            // keyboard opened. Stable insets exclude the IME by definition.
+            if (Build.VERSION.SDK_INT >= 30) {
+                AndroidUtilities.navigationBarHeight = insets.getInsets(WindowInsets.Type.navigationBars()).bottom;
+            } else {
+                AndroidUtilities.navigationBarHeight = insets.getStableInsetBottom();
+            }
             lastInsets = insets;
             drawerLayoutContainer.setWillNotDraw(insets.getSystemWindowInsetTop() <= 0 && getBackground() == null);
 

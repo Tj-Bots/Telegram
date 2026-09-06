@@ -46,6 +46,7 @@ public class TjSettingsActivity extends BaseFragment {
     private static final String KEY_SUBTITLE_FONT_SIZE = "subtitle_font_size";
     private static final String KEY_SUBTITLE_STYLE = "subtitle_style";
     private static final String KEY_SUBTITLE_POSITION = "subtitle_position";
+    private static final String KEY_SUBTITLE_AUTO = "subtitle_auto_enable";
 
     private static final String KEY_FOLDER_TAB_STYLE = "folder_tab_style";
     private static final String KEY_FOLDER_EMOTICON_PREFIX = "folder_emoticon_";
@@ -136,6 +137,18 @@ public class TjSettingsActivity extends BaseFragment {
 
     public static void setSubtitleFontSize(int size) {
         getPrefs().edit().putInt(KEY_SUBTITLE_FONT_SIZE, size).apply();
+    }
+
+    /**
+     * Turn subtitles on by themselves, preferring a track in the app's own language and falling
+     * back to English. Off by default; a track you pick by hand always wins.
+     */
+    public static boolean isSubtitleAutoEnabled() {
+        return getPrefs().getBoolean(KEY_SUBTITLE_AUTO, false);
+    }
+
+    public static void setSubtitleAutoEnabled(boolean value) {
+        getPrefs().edit().putBoolean(KEY_SUBTITLE_AUTO, value).apply();
     }
 
     /** How far up from the bottom of the picture subtitles sit, as a percentage of its height. */
@@ -236,6 +249,7 @@ public class TjSettingsActivity extends BaseFragment {
     private static final int ID_GHOST_TYPING = 12;
     private static final int ID_GHOST_ONLINE = 13;
     private static final int ID_GHOST_READ = 14;
+    private static final int ID_SUBTITLE_AUTO = 15;
 
     private static class Item {
         final int viewType;
@@ -264,6 +278,7 @@ public class TjSettingsActivity extends BaseFragment {
             case ID_GHOST_TYPING: return getPrefs().getBoolean(KEY_GHOST_TYPING, true);
             case ID_GHOST_ONLINE: return getPrefs().getBoolean(KEY_GHOST_ONLINE, true);
             case ID_GHOST_READ: return getPrefs().getBoolean(KEY_GHOST_READ, true);
+            case ID_SUBTITLE_AUTO: return isSubtitleAutoEnabled();
         }
         return false;
     }
@@ -284,6 +299,7 @@ public class TjSettingsActivity extends BaseFragment {
             case ID_GHOST_TYPING: key = KEY_GHOST_TYPING; break;
             case ID_GHOST_ONLINE: key = KEY_GHOST_ONLINE; break;
             case ID_GHOST_READ: key = KEY_GHOST_READ; break;
+            case ID_SUBTITLE_AUTO: key = KEY_SUBTITLE_AUTO; break;
         }
         if (key != null) {
             getPrefs().edit().putBoolean(key, value).apply();
@@ -355,6 +371,9 @@ public class TjSettingsActivity extends BaseFragment {
         items.add(new Item(VIEW_TYPE_HEADER, 0, LocaleController.getString(R.string.Filters)));
         items.add(new Item(VIEW_TYPE_SETTING, ID_FOLDER_TAB_STYLE, TjLocale.getString(R.string.TjFolderTabStyle)));
         items.add(new Item(VIEW_TYPE_SHADOW, 0, TjLocale.getString(R.string.TjFolderTabStyleInfo)));
+        items.add(new Item(VIEW_TYPE_HEADER, 0, TjLocale.getString(R.string.TjSubtitles)));
+        items.add(new Item(VIEW_TYPE_CHECK, ID_SUBTITLE_AUTO, TjLocale.getString(R.string.TjSubtitleAuto)));
+        items.add(new Item(VIEW_TYPE_SHADOW, 0, TjLocale.getString(R.string.TjSubtitleAutoInfo)));
         items.add(new Item(VIEW_TYPE_HEADER, 0, TjLocale.getString(R.string.TjMessageMenuHeader)));
         items.add(new Item(VIEW_TYPE_CHECK, ID_MENU_MESSAGE_INFO, TjLocale.getString(R.string.TjMessageInfo)));
         items.add(new Item(VIEW_TYPE_CHECK, ID_MENU_SAVE_TO_SAVED, TjLocale.getString(R.string.TjSaveToSaved)));

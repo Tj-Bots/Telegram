@@ -335,4 +335,6 @@
     <string name="TjSubtitleStyleBox">Фон</string>
     <string name="TjSubtitlePosition">Положение</string>
     <string name="TjFolderManaging">Управление</string>
+    <string name="TjSubtitleAuto">Включать субтитры автоматически</string>
+    <string name="TjSubtitleAutoInfo">Выбирает дорожку субтитров на вашем языке, если она есть в видео, иначе английскую.</string>
 </resources>

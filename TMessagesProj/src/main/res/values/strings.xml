@@ -11296,4 +11296,6 @@
     <string name="TjSubtitleStyleBox">Background box</string>
     <string name="TjSubtitlePosition">Position</string>
     <string name="TjFolderManaging">Managing</string>
+    <string name="TjSubtitleAuto">Turn subtitles on automatically</string>
+    <string name="TjSubtitleAutoInfo">Picks a subtitle track in your language when a video has one, otherwise English.</string>
 </resources>

@@ -3527,9 +3527,8 @@ public class ChatActivityEnterView extends FrameLayout implements
             return onSendLongClick(v);
         });
 
-        SharedPreferences sharedPreferences = MessagesController.getGlobalEmojiSettings();
-        keyboardHeight = sharedPreferences.getInt("kbd_height", dp(200));
-        keyboardHeightLand = sharedPreferences.getInt("kbd_height_land3", dp(200));
+        keyboardHeight = readRememberedKeyboardHeight("kbd_height");
+        keyboardHeightLand = readRememberedKeyboardHeight("kbd_height_land3");
 
         setRecordVideoButtonVisible(false, false);
         checkSendButton(false);
@@ -12649,10 +12648,10 @@ public class ChatActivityEnterView extends FrameLayout implements
             currentPopupContentType = contentType;
 
             if (keyboardHeight <= 0) {
-                keyboardHeight = MessagesController.getGlobalEmojiSettings().getInt("kbd_height", dp(200));
+                keyboardHeight = readRememberedKeyboardHeight("kbd_height");
             }
             if (keyboardHeightLand <= 0) {
-                keyboardHeightLand = MessagesController.getGlobalEmojiSettings().getInt("kbd_height_land3", dp(200));
+                keyboardHeightLand = readRememberedKeyboardHeight("kbd_height_land3");
             }
             int currentHeight = AndroidUtilities.displaySize.x > AndroidUtilities.displaySize.y ? keyboardHeightLand : keyboardHeight;
             if (parentFragment != null && parentFragment.getParentLayout() != null) {
@@ -13096,6 +13095,23 @@ public class ChatActivityEnterView extends FrameLayout implements
         if (emojiView != null) {
             emojiView.addRecentGif(searchImage);
         }
+    }
+
+    /**
+     * The remembered panel height, kept sane.
+     *
+     * kbd_height is written from a single measurement and never re-validated, so one bad reading
+     * sticks for good and the emoji panel opens at that size forever after. Clamping on read
+     * repairs a stored bad value and leaves a good one alone.
+     */
+    private static int readRememberedKeyboardHeight(String key) {
+        final int stored = MessagesController.getGlobalEmojiSettings().getInt(key, dp(200));
+        final int screen = Math.max(AndroidUtilities.displaySize.y, AndroidUtilities.displaySize.x);
+        final int max = (int) (screen * 0.65f);
+        if (stored < dp(80) || stored > max) {
+            return Math.min(dp(200), max);
+        }
+        return stored;
     }
 
     @Override

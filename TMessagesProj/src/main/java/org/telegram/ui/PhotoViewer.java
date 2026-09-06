@@ -907,6 +907,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
     private TjPlayerSubmenu subtitleSubmenu;
     private ActionBarMenuSubItem subtitleItem;
     private int selectedSubtitleTrack = -1;
+    private boolean autoSubtitlesApplied;
     private TjSubtitleView subtitleView;
     private ActionBarMenuSubItem loopItem;
     private ActionBarMenuSubItem galleryButton;
@@ -23239,14 +23240,96 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
 
     /** Both track pages, refreshed together whenever the player tells us what a file carries. */
     private void updateTrackSubmenus() {
+        autoEnableSubtitles();
         updateAudioTrackSubmenu();
         updateSubtitleSubmenu();
+    }
+
+    /**
+     * Turn subtitles on by themselves when the setting asks for it: the app's own language first,
+     * then English, then whatever the file has.
+     *
+     * Runs once per file - autoSubtitlesApplied is cleared when a player is prepared - and never
+     * touches a track already chosen, so picking one by hand or choosing Off both stand.
+     */
+    private void autoEnableSubtitles() {
+        if (autoSubtitlesApplied || selectedSubtitleTrack >= 0 || videoPlayer == null) {
+            return;
+        }
+        if (!TjSettingsActivity.isSubtitleAutoEnabled()) {
+            return;
+        }
+        final ArrayList<VideoPlayer.TjTrack> tracks = tracksOrNull(true);
+        if (tracks == null || tracks.isEmpty()) {
+            return;
+        }
+        autoSubtitlesApplied = true;
+
+        int chosen = matchTrackLanguage(tracks, currentAppLanguage());
+        if (chosen < 0) {
+            chosen = matchTrackLanguage(tracks, "en");
+        }
+        if (chosen < 0) {
+            chosen = 0;
+        }
+        selectedSubtitleTrack = chosen;
+        videoPlayer.selectSubtitleTrack(tracks.get(chosen));
+    }
+
+    /** The language the app itself is in, as a plain two-letter code. */
+    private static String currentAppLanguage() {
+        try {
+            final LocaleController.LocaleInfo info = LocaleController.getInstance().getCurrentLocaleInfo();
+            if (info != null) {
+                String code = !TextUtils.isEmpty(info.pluralLangCode) ? info.pluralLangCode
+                        : !TextUtils.isEmpty(info.baseLangCode) ? info.baseLangCode : info.shortName;
+                if (!TextUtils.isEmpty(code)) {
+                    code = code.toLowerCase();
+                    int cut = code.indexOf('_');
+                    if (cut < 0) {
+                        cut = code.indexOf('-');
+                    }
+                    if (cut > 0) {
+                        code = code.substring(0, cut);
+                    }
+                    // Java still reports Hebrew, Indonesian and Yiddish by their obsolete codes.
+                    if ("iw".equals(code)) return "he";
+                    if ("in".equals(code)) return "id";
+                    if ("ji".equals(code)) return "yi";
+                    return code;
+                }
+            }
+        } catch (Exception e) {
+            FileLog.e(e);
+        }
+        return null;
+    }
+
+    private static int matchTrackLanguage(ArrayList<VideoPlayer.TjTrack> tracks, String language) {
+        if (TextUtils.isEmpty(language)) {
+            return -1;
+        }
+        for (int a = 0; a < tracks.size(); a++) {
+            final String trackLanguage = tracks.get(a).language;
+            if (TextUtils.isEmpty(trackLanguage)) {
+                continue;
+            }
+            // Track languages arrive as anything from "he" to "heb" to "he-IL".
+            final String normalised = trackLanguage.toLowerCase();
+            if (normalised.equals(language) || normalised.startsWith(language + "-")
+                    || normalised.startsWith(language + "_")
+                    || new java.util.Locale(normalised).getLanguage().equals(new java.util.Locale(language).getLanguage())) {
+                return a;
+            }
+        }
+        return -1;
     }
 
     /** Empties both pages and hides their rows - what a new file starts from. */
     private void clearTrackSubmenus() {
         selectedAudioTrack = -1;
         selectedSubtitleTrack = -1;
+        autoSubtitlesApplied = false;
         if (audioTrackSubmenu != null) {
             audioTrackSubmenu.clear();
         }
@@ -23349,21 +23432,12 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
         gap.setColor(0xff181818);
         page.addView(gap, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 8));
 
-        final TextView positionHeader = new TextView(activityContext);
-        positionHeader.setText(TjLocale.getString(R.string.TjSubtitlePosition));
-        positionHeader.setTypeface(AndroidUtilities.bold());
-        positionHeader.setPadding(dp(16), dp(9), dp(16), dp(4));
-        positionHeader.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
-        positionHeader.setTextColor(0xFFFFFFFF);
-        page.addView(positionHeader, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
-
-        // The same slider the speed control at the top of this menu uses, in 5% steps.
-        final ActionBarMenuSlider positionSlider = new ActionBarMenuSlider(activityContext, resourcesProvider);
+        // The same widget and the same look as the speed control at the top of this menu, named
+        // and showing its own percentage so it reads as something you can drag. In 5% steps.
+        final TjPlayerSubmenu.LabelledSlider positionSlider = new TjPlayerSubmenu.LabelledSlider(
+                activityContext, resourcesProvider,
+                TjLocale.getString(R.string.TjSubtitlePosition), TjSettingsActivity.SUBTITLE_POSITION_MAX);
         positionSlider.setStops(new float[]{0f, 0.25f, 0.5f, 0.75f, 1f});
-        positionSlider.setMinimumWidth(dp(196));
-        positionSlider.setDrawShadow(false);
-        positionSlider.setBackgroundColor(0xff222222);
-        positionSlider.setTextColor(0xffffffff);
         positionSlider.setValue(TjSettingsActivity.getSubtitlePosition() / (float) TjSettingsActivity.SUBTITLE_POSITION_MAX, false);
         positionSlider.setOnValueChange((value, isFinal) -> {
             TjSettingsActivity.setSubtitlePosition(Math.round(value * TjSettingsActivity.SUBTITLE_POSITION_MAX));

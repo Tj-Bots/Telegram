@@ -72,4 +72,6 @@
     <string name="TjSubtitleStyleBox">पृष्ठभूमि बॉक्स</string>
     <string name="TjSubtitlePosition">स्थिति</string>
     <string name="TjFolderManaging">प्रबंधन</string>
+    <string name="TjSubtitleAuto">सबटाइटल अपने आप चालू करें</string>
+    <string name="TjSubtitleAutoInfo">वीडियो में आपकी भाषा का सबटाइटल ट्रैक होने पर उसे चुनता है, अन्यथा अंग्रेज़ी।</string>
 </resources>

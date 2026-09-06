@@ -72,4 +72,6 @@
     <string name="TjSubtitleStyleBox">Fond coloré</string>
     <string name="TjSubtitlePosition">Position</string>
     <string name="TjFolderManaging">Gestion</string>
+    <string name="TjSubtitleAuto">Activer les sous-titres automatiquement</string>
+    <string name="TjSubtitleAutoInfo">Choisit une piste de sous-titres dans votre langue si la vidéo en a une, sinon en anglais.</string>
 </resources>

@@ -72,4 +72,6 @@
     <string name="TjSubtitleStyleBox">背景色块</string>
     <string name="TjSubtitlePosition">位置</string>
     <string name="TjFolderManaging">管理</string>
+    <string name="TjSubtitleAuto">自动开启字幕</string>
+    <string name="TjSubtitleAutoInfo">视频中有你的语言的字幕轨时优先选择，否则选择英文。</string>
 </resources>

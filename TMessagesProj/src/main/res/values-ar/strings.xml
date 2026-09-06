@@ -1315,4 +1315,6 @@
     <string name="TjSubtitleStyleBox">خلفية ملونة</string>
     <string name="TjSubtitlePosition">الموضع</string>
     <string name="TjFolderManaging">الإدارة</string>
+    <string name="TjSubtitleAuto">تشغيل الترجمة تلقائيًا</string>
+    <string name="TjSubtitleAutoInfo">يختار مسار ترجمة بلغتك عند توفره في الفيديو، وإلا فبالإنجليزية.</string>
 </resources>

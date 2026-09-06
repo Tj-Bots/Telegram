@@ -6,8 +6,10 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.RectF;
+import android.os.Build;
 import android.text.Layout;
 import android.text.StaticLayout;
+import android.text.TextDirectionHeuristics;
 import android.text.TextPaint;
 import android.text.TextUtils;
 import android.view.View;
@@ -74,13 +76,21 @@ public class TjSubtitleView extends View {
                 }
                 // One entry per line the subtitle file itself wrote, so the file's line breaks
                 // are what gets drawn.
-                final String[] lines = SOURCE_LINE.split(clean(cue.text.toString()));
+                final String text = clean(cue.text.toString());
+                // Direction is decided once for the whole cue and forced on every line of it.
+                // Left to itself a line takes its direction from its own first strong character,
+                // so a Hebrew cue whose line opens with a Latin word or a quote would flip to
+                // left-to-right and strand its comma or full stop on the wrong end - and two
+                // lines of one cue could even disagree.
+                final boolean rtl = isRtl(text);
+                final String[] lines = SOURCE_LINE.split(text);
                 for (int b = 0; b < lines.length; b++) {
                     final String line = lines[b].trim();
                     if (!line.isEmpty()) {
-                        next.add(line);
+                        next.add((rtl ? RLE : LRE) + line + PDF);
                     }
                 }
+                cueIsRtl = rtl;
             }
         }
         if (next.equals(cueTexts)) {
@@ -92,6 +102,29 @@ public class TjSubtitleView extends View {
         layoutWidth = 0;
         setVisibility(cueTexts.isEmpty() ? GONE : VISIBLE);
         invalidate();
+    }
+
+    /**
+     * Explicit bidi embedding: everything between these is laid out in one direction whatever it
+     * contains, which is what keeps punctuation on the correct end of the line.
+     */
+    private static final String RLE = "\u202B";
+    private static final String LRE = "\u202A";
+    private static final String PDF = "\u202C";
+
+    /** Direction of the cue currently on screen; drives the layout's own text direction. */
+    private boolean cueIsRtl;
+
+    /** True when the text carries any Hebrew or Arabic letter, including presentation forms. */
+    private static boolean isRtl(String text) {
+        for (int i = 0; i < text.length(); i++) {
+            final byte dir = Character.getDirectionality(text.charAt(i));
+            if (dir == Character.DIRECTIONALITY_RIGHT_TO_LEFT
+                    || dir == Character.DIRECTIONALITY_RIGHT_TO_LEFT_ARABIC) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** A newline, or the \N and \n that SSA/ASS use for one. */
@@ -151,8 +184,26 @@ public class TjSubtitleView extends View {
         strokeWidth = Math.max(1f, AndroidUtilities.dpf2(textSize) / 9f);
 
         for (int a = 0; a < cueTexts.size(); a++) {
-            layouts.add(new StaticLayout(cueTexts.get(a), textPaint, width, Layout.Alignment.ALIGN_CENTER, 1.0f, 0, false));
+            layouts.add(makeLayout(cueTexts.get(a), width));
         }
+    }
+
+    /**
+     * Centred, and told which way the line runs rather than left to guess from its first strong
+     * character. The embedding marks already force the glyph order; setting the layout's own
+     * direction keeps the line box on the same side, which is what puts a trailing full stop
+     * where a reader expects it.
+     */
+    private StaticLayout makeLayout(CharSequence text, int width) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            return StaticLayout.Builder.obtain(text, 0, text.length(), textPaint, width)
+                    .setAlignment(Layout.Alignment.ALIGN_CENTER)
+                    .setTextDirection(cueIsRtl ? TextDirectionHeuristics.RTL : TextDirectionHeuristics.LTR)
+                    .setLineSpacing(0, 1f)
+                    .setIncludePad(false)
+                    .build();
+        }
+        return new StaticLayout(text, textPaint, width, Layout.Alignment.ALIGN_CENTER, 1.0f, 0, false);
     }
 
     @Override
