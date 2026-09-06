@@ -180,15 +180,20 @@ public class TjSettingsActivity extends BaseFragment {
         getPrefs().edit().putInt(KEY_FOLDER_TAB_STYLE, style).apply();
     }
 
-    public static String getFolderEmoticon(int filterId) {
-        return getPrefs().getString(KEY_FOLDER_EMOTICON_PREFIX + filterId, null);
+    /**
+     * Folder ids are only unique within one account - two logged-in accounts routinely each
+     * have their own folder #2 - so the key must carry the account too, or setting an icon on
+     * one account's folder silently overwrites a different folder of the same id on another.
+     */
+    public static String getFolderEmoticon(int account, int filterId) {
+        return getPrefs().getString(KEY_FOLDER_EMOTICON_PREFIX + account + "_" + filterId, null);
     }
 
-    public static void setFolderEmoticon(int filterId, String emoticon) {
+    public static void setFolderEmoticon(int account, int filterId, String emoticon) {
         if (emoticon == null) {
-            getPrefs().edit().remove(KEY_FOLDER_EMOTICON_PREFIX + filterId).apply();
+            getPrefs().edit().remove(KEY_FOLDER_EMOTICON_PREFIX + account + "_" + filterId).apply();
         } else {
-            getPrefs().edit().putString(KEY_FOLDER_EMOTICON_PREFIX + filterId, emoticon).apply();
+            getPrefs().edit().putString(KEY_FOLDER_EMOTICON_PREFIX + account + "_" + filterId, emoticon).apply();
         }
     }
 

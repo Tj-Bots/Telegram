@@ -5966,12 +5966,27 @@ public class MediaDataController extends BaseController {
     private LongSparseArray<Boolean> loadingPinnedMessages = new LongSparseArray<>();
 
     public void loadPinnedMessages(long dialogId, int maxId, int fallback) {
-        if (loadingPinnedMessages.indexOfKey(dialogId) >= 0) {
+        loadPinnedMessages(dialogId, 0, maxId, fallback);
+    }
+
+    // A saved-messages sub-chat (chatMode == MODE_SAVED) shares its dialogId with every other
+    // sub-chat - it's always the self id, with topicId (the sub-chat's own peer) the only thing
+    // that tells them apart. Route the request through saved_peer_id when a topic is given, and
+    // key the in-flight guard and the resulting notification by topic so two sub-chats loading
+    // pinned messages at once don't block or contaminate each other.
+    public void loadPinnedMessages(long dialogId, long topicId, int maxId, int fallback) {
+        final boolean isSavedTopic = topicId != 0 && dialogId == getUserConfig().getClientUserId();
+        final long guardKey = isSavedTopic ? (topicId | (1L << 62)) : dialogId;
+        if (loadingPinnedMessages.indexOfKey(guardKey) >= 0) {
             return;
         }
-        loadingPinnedMessages.put(dialogId, true);
+        loadingPinnedMessages.put(guardKey, true);
         TLRPC.TL_messages_search req = new TLRPC.TL_messages_search();
         req.peer = getMessagesController().getInputPeer(dialogId);
+        if (isSavedTopic) {
+            req.saved_peer_id = getMessagesController().getInputPeer(topicId);
+            req.flags |= 4;
+        }
         req.limit = 40;
         req.offset_id = maxId;
         req.q = "";
@@ -6001,6 +6016,9 @@ public class MediaDataController extends BaseController {
                     if (message instanceof TLRPC.TL_messageService || message instanceof TLRPC.TL_messageEmpty) {
                         continue;
                     }
+                    if (isSavedTopic && MessageObject.getSavedDialogId(dialogId, message) != topicId) {
+                        continue;
+                    }
                     ids.add(message.id);
                     messages.put(message.id, new MessageObject(currentAccount, message, usersDict, chatsDict, false, false));
                 }
@@ -6016,8 +6034,21 @@ public class MediaDataController extends BaseController {
                 }
                 endReached = false;
             }
-            getMessagesStorage().updatePinnedMessages(dialogId, ids, true, totalCount, maxId, endReached, messages);
-            AndroidUtilities.runOnUIThread(() -> loadingPinnedMessages.remove(dialogId));
+            if (isSavedTopic) {
+                // chat_pinned_v2 has no topic column - persisting these under the shared self
+                // dialogId would collide with every other saved sub-chat's pinned messages, so
+                // this scope is delivered straight to the UI instead of round-tripping storage.
+                final ArrayList<Integer> finalIds = ids;
+                final int finalTotalCount = totalCount;
+                final boolean finalEndReached = endReached;
+                AndroidUtilities.runOnUIThread(() -> {
+                    getNotificationCenter().postNotificationName(NotificationCenter.didLoadPinnedMessages, dialogId, finalIds, true, null, messages, maxId, finalTotalCount, finalEndReached);
+                    loadingPinnedMessages.remove(guardKey);
+                });
+            } else {
+                getMessagesStorage().updatePinnedMessages(dialogId, ids, true, totalCount, maxId, endReached, messages);
+                AndroidUtilities.runOnUIThread(() -> loadingPinnedMessages.remove(guardKey));
+            }
         });
     }
 

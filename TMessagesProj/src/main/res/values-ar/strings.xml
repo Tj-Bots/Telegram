@@ -1251,6 +1251,8 @@
     <string name="TjCopyImage">نسخ الصورة</string>
     <string name="TjCopyThumbnail">نسخ الصورة المصغرة</string>
     <string name="TjSaveToSaved">حفظ في الرسائل المحفوظة</string>
+    <string name="TjClearVideoCache">مسح من التخزين المؤقت</string>
+    <string name="TjClearedFromCache">تم تحرير %1$s من التخزين</string>
     <string name="TjShowPinnedMessage">إظهار الرسالة المثبتة</string>
     <string name="TjHidePinnedMessage">إخفاء الرسالة المثبتة</string>
     <string name="TjChatCounters">عدادات الدردشة</string>

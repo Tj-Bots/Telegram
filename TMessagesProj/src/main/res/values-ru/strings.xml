@@ -271,6 +271,8 @@
     <string name="TjCopyImage">Копировать изображение</string>
     <string name="TjCopyThumbnail">Копировать миниатюру</string>
     <string name="TjSaveToSaved">Сохранить в Избранное</string>
+    <string name="TjClearVideoCache">Очистить из кэша</string>
+    <string name="TjClearedFromCache">Освобождено %1$s</string>
     <string name="TjShowPinnedMessage">Показать закреплённое сообщение</string>
     <string name="TjHidePinnedMessage">Скрыть закреплённое сообщение</string>
     <string name="TjChatCounters">Счётчики чатов</string>

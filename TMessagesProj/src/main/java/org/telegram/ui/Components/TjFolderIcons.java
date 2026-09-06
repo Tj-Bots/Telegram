@@ -120,7 +120,7 @@ public class TjFolderIcons {
         return TextUtils.isEmpty(newEmoticon) ? null : newEmoticon;
     }
 
-    public static String getFolderEmoticon(MessagesController.DialogFilter filter) {
+    public static String getFolderEmoticon(int account, MessagesController.DialogFilter filter) {
         if (filter == null) {
             return null;
         }
@@ -128,7 +128,7 @@ public class TjFolderIcons {
         if (filter.isDefault()) {
             return ALL_CHATS;
         }
-        String saved = TjSettingsActivity.getFolderEmoticon(filter.id);
+        String saved = TjSettingsActivity.getFolderEmoticon(account, filter.id);
         if (!TextUtils.isEmpty(saved)) {
             return saved;
         }

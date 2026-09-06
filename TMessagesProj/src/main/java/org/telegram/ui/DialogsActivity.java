@@ -6935,10 +6935,10 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 filterTabsView.removeTabs();
                 for (int a = 0, N = filters.size(); a < N; a++) {
                     if (filters.get(a).isDefault()) {
-                        filterTabsView.addTab(a, 0, TjFolderIcons.tabTitle(LocaleController.getString(R.string.FilterAllChats)), TjFolderIcons.getFolderEmoticon(filters.get(a)), false, true, filters.get(a).locked);
+                        filterTabsView.addTab(a, 0, TjFolderIcons.tabTitle(LocaleController.getString(R.string.FilterAllChats)), TjFolderIcons.getFolderEmoticon(currentAccount, filters.get(a)), false, true, filters.get(a).locked);
                     } else {
                         final MessagesController.DialogFilter filter = filters.get(a);
-                        filterTabsView.addTab(a, filter.localId, TjFolderIcons.tabTitle(filter.name), TjFolderIcons.getFolderEmoticon(filter), filter.title_noanimate, false, filters.get(a).locked);
+                        filterTabsView.addTab(a, filter.localId, TjFolderIcons.tabTitle(filter.name), TjFolderIcons.getFolderEmoticon(currentAccount, filter), filter.title_noanimate, false, filters.get(a).locked);
                     }
                 }
                 if (stableId >= 0) {

@@ -8,6 +8,8 @@
     <string name="TjCopyImage">चित्र कॉपी करें</string>
     <string name="TjCopyThumbnail">थंबनेल कॉपी करें</string>
     <string name="TjSaveToSaved">सहेजे गए संदेशों में सहेजें</string>
+    <string name="TjClearVideoCache">कैश से साफ़ करें</string>
+    <string name="TjClearedFromCache">संग्रहण से %1$s साफ़ किया गया</string>
     <string name="TjShowPinnedMessage">पिन किया संदेश दिखाएँ</string>
     <string name="TjHidePinnedMessage">पिन किया संदेश छिपाएँ</string>
     <string name="TjChatCounters">चैट काउंटर</string>

@@ -8,6 +8,8 @@
     <string name="TjCopyImage">העתק תמונה</string>
     <string name="TjCopyThumbnail">העתק תמונה ממוזערת</string>
     <string name="TjSaveToSaved">שמור בהודעות שמורות</string>
+    <string name="TjClearVideoCache">נקה מהמטמון</string>
+    <string name="TjClearedFromCache">נוקו %1$s מהאחסון</string>
     <string name="TjShowPinnedMessage">הצג הודעה מוצמדת</string>
     <string name="TjHidePinnedMessage">הסתר הודעה מוצמדת</string>
     <string name="TjChatCounters">מוני צ׳אטים</string>

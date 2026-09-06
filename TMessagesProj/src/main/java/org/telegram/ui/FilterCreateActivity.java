@@ -297,7 +297,7 @@ public class FilterCreateActivity extends BaseFragment {
         }));
         nameRow = items.size();
         items.add(ItemInner.asEdit());
-        items.add(ItemInner.asButton(TjFolderIcons.getTabIcon(TjFolderIcons.getFolderEmoticon(filter)), TjLocale.getString(R.string.TjFolderIcon), false).whenClicked(v -> showFolderIconPicker()));
+        items.add(ItemInner.asButton(TjFolderIcons.getTabIcon(TjFolderIcons.getFolderEmoticon(currentAccount, filter)), TjLocale.getString(R.string.TjFolderIcon), false).whenClicked(v -> showFolderIconPicker()));
         items.add(ItemInner.asShadow(null));
         items.add(ItemInner.asHeader(LocaleController.getString(R.string.FilterInclude)));
         items.add(ItemInner.asButton(R.drawable.msg2_chats_add, LocaleController.getString(R.string.FilterAddChats), false).whenClicked(v -> selectChatsFor(true)));
@@ -1125,7 +1125,7 @@ public class FilterCreateActivity extends BaseFragment {
             return;
         }
         final String[] emoticons = TjFolderIcons.emoticons();
-        final String current = TjFolderIcons.getFolderEmoticon(filter);
+        final String current = TjFolderIcons.getFolderEmoticon(currentAccount, filter);
 
         LinearLayout content = new LinearLayout(getParentActivity());
         content.setOrientation(LinearLayout.VERTICAL);
@@ -1153,7 +1153,7 @@ public class FilterCreateActivity extends BaseFragment {
             icon.setBackground(Theme.createSelectorDrawable(Theme.getColor(Theme.key_listSelector), Theme.RIPPLE_MASK_CIRCLE_20DP));
             icon.setPadding(dp(8), dp(8), dp(8), dp(8));
             icon.setOnClickListener(v -> {
-                TjSettingsActivity.setFolderEmoticon(filter.id, emoticon);
+                TjSettingsActivity.setFolderEmoticon(currentAccount, filter.id, emoticon);
                 if (sheet[0] != null) {
                     sheet[0].dismiss();
                 }

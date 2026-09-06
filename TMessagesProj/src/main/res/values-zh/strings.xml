@@ -8,6 +8,8 @@
     <string name="TjCopyImage">复制图片</string>
     <string name="TjCopyThumbnail">复制缩略图</string>
     <string name="TjSaveToSaved">保存到收藏夹</string>
+    <string name="TjClearVideoCache">清除缓存</string>
+    <string name="TjClearedFromCache">已清除 %1$s 存储空间</string>
     <string name="TjShowPinnedMessage">显示置顶消息</string>
     <string name="TjHidePinnedMessage">隐藏置顶消息</string>
     <string name="TjChatCounters">聊天统计</string>

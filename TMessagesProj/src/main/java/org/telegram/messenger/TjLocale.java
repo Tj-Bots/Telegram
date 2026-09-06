@@ -39,6 +39,8 @@ public class TjLocale {
         m.put("TjChatCountersUpdated", "\u05e2\u05d5\u05d3\u05db\u05df \u05dc\u05d0\u05d7\u05e8\u05d5\u05e0\u05d4: %1$s");
         m.put("TjChatIdHeader", "\u05de\u05d6\u05d4\u05d9 \u05e6'\u05d0\u05d8");
         m.put("TjChatsHeader", "\u05e6'\u05d0\u05d8\u05d9\u05dd");
+        m.put("TjClearVideoCache", "\u05e0\u05e7\u05d4 \u05de\u05d4\u05de\u05d8\u05de\u05d5\u05df");
+        m.put("TjClearedFromCache", "\u05e0\u05d5\u05e7\u05d5 %1$s \u05de\u05d4\u05d0\u05d7\u05e1\u05d5\u05df");
         m.put("TjContactsCount", "\u05d0\u05e0\u05e9\u05d9 \u05e7\u05e9\u05e8");
         m.put("TjCopyImage", "\u05d4\u05e2\u05ea\u05e7 \u05ea\u05de\u05d5\u05e0\u05d4");
         m.put("TjCopyMessageLink", "\u05d4\u05e2\u05ea\u05e7 \u05e7\u05d9\u05e9\u05d5\u05e8 \u05dc\u05d4\u05d5\u05d3\u05e2\u05d4");
@@ -118,6 +120,8 @@ public class TjLocale {
         m.put("TjChatCountersUpdated", "\u0622\u062e\u0631 \u062a\u062d\u062f\u064a\u062b: %1$s");
         m.put("TjChatIdHeader", "\u0645\u0639\u0631\u0651\u0641\u0627\u062a \u0627\u0644\u0645\u062d\u0627\u062f\u062b\u0627\u062a");
         m.put("TjChatsHeader", "\u0627\u0644\u0645\u062d\u0627\u062f\u062b\u0627\u062a");
+        m.put("TjClearVideoCache", "\u0645\u0633\u062d \u0645\u0646 \u0627\u0644\u062a\u062e\u0632\u064a\u0646 \u0627\u0644\u0645\u0624\u0642\u062a");
+        m.put("TjClearedFromCache", "\u062a\u0645 \u062a\u062d\u0631\u064a\u0631 %1$s \u0645\u0646 \u0627\u0644\u062a\u062e\u0632\u064a\u0646");
         m.put("TjContactsCount", "\u062c\u0647\u0627\u062a \u0627\u0644\u0627\u062a\u0635\u0627\u0644");
         m.put("TjCopyImage", "\u0646\u0633\u062e \u0627\u0644\u0635\u0648\u0631\u0629");
         m.put("TjCopyMessageLink", "\u0646\u0633\u062e \u0631\u0627\u0628\u0637 \u0627\u0644\u0631\u0633\u0627\u0644\u0629");
@@ -197,6 +201,8 @@ public class TjLocale {
         m.put("TjChatCountersUpdated", "\u041e\u0431\u043d\u043e\u0432\u043b\u0435\u043d\u043e: %1$s");
         m.put("TjChatIdHeader", "ID \u0447\u0430\u0442\u043e\u0432");
         m.put("TjChatsHeader", "\u0427\u0430\u0442\u044b");
+        m.put("TjClearVideoCache", "\u041e\u0447\u0438\u0441\u0442\u0438\u0442\u044c \u0438\u0437 \u043a\u044d\u0448\u0430");
+        m.put("TjClearedFromCache", "\u041e\u0441\u0432\u043e\u0431\u043e\u0436\u0434\u0435\u043d\u043e %1$s");
         m.put("TjContactsCount", "\u041a\u043e\u043d\u0442\u0430\u043a\u0442\u044b");
         m.put("TjCopyImage", "\u041a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u0438\u0437\u043e\u0431\u0440\u0430\u0436\u0435\u043d\u0438\u0435");
         m.put("TjCopyMessageLink", "\u0421\u043a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u0441\u0441\u044b\u043b\u043a\u0443 \u043d\u0430 \u0441\u043e\u043e\u0431\u0449\u0435\u043d\u0438\u0435");
@@ -276,6 +282,8 @@ public class TjLocale {
         m.put("TjChatCountersUpdated", "Derni\u00e8re mise \u00e0 jour : %1$s");
         m.put("TjChatIdHeader", "Identifiants de discussion");
         m.put("TjChatsHeader", "Discussions");
+        m.put("TjClearVideoCache", "Effacer du cache");
+        m.put("TjClearedFromCache", "%1$s lib\u00e9r\u00e9s du stockage");
         m.put("TjContactsCount", "Contacts");
         m.put("TjCopyImage", "Copier l'image");
         m.put("TjCopyMessageLink", "Copier le lien du message");
@@ -355,6 +363,8 @@ public class TjLocale {
         m.put("TjChatCountersUpdated", "\u6700\u540e\u66f4\u65b0\uff1a%1$s");
         m.put("TjChatIdHeader", "\u804a\u5929 ID");
         m.put("TjChatsHeader", "\u804a\u5929");
+        m.put("TjClearVideoCache", "\u6e05\u9664\u7f13\u5b58");
+        m.put("TjClearedFromCache", "\u5df2\u6e05\u9664 %1$s \u5b58\u50a8\u7a7a\u95f4");
         m.put("TjContactsCount", "\u8054\u7cfb\u4eba");
         m.put("TjCopyImage", "\u590d\u5236\u56fe\u7247");
         m.put("TjCopyMessageLink", "\u590d\u5236\u6d88\u606f\u94fe\u63a5");
@@ -434,6 +444,8 @@ public class TjLocale {
         m.put("TjChatCountersUpdated", "\u0905\u0902\u0924\u093f\u092e \u0905\u092a\u0921\u0947\u091f: %1$s");
         m.put("TjChatIdHeader", "\u091a\u0948\u091f ID");
         m.put("TjChatsHeader", "\u091a\u0948\u091f");
+        m.put("TjClearVideoCache", "\u0915\u0948\u0936 \u0938\u0947 \u0938\u093e\u092b\u093c \u0915\u0930\u0947\u0902");
+        m.put("TjClearedFromCache", "\u0938\u0902\u0917\u094d\u0930\u0939\u0923 \u0938\u0947 %1$s \u0938\u093e\u092b\u093c \u0915\u093f\u092f\u093e \u0917\u092f\u093e");
         m.put("TjContactsCount", "\u0938\u0902\u092a\u0930\u094d\u0915");
         m.put("TjCopyImage", "\u091a\u093f\u0924\u094d\u0930 \u0915\u0949\u092a\u0940 \u0915\u0930\u0947\u0902");
         m.put("TjCopyMessageLink", "\u0938\u0902\u0926\u0947\u0936 \u0932\u093f\u0902\u0915 \u0915\u0949\u092a\u0940 \u0915\u0930\u0947\u0902");

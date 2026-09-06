@@ -11232,6 +11232,8 @@
     <string name="TjCopyImage">Copy Image</string>
     <string name="TjCopyThumbnail">Copy Thumbnail</string>
     <string name="TjSaveToSaved">Save to Saved Messages</string>
+    <string name="TjClearVideoCache">Clear from cache</string>
+    <string name="TjClearedFromCache">Cleared %1$s from storage</string>
     <string name="TjShowPinnedMessage">Show pinned message</string>
     <string name="TjHidePinnedMessage">Hide pinned message</string>
     <string name="TjChatCounters">Chat counters</string>

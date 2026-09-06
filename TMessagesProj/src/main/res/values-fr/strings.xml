@@ -8,6 +8,8 @@
     <string name="TjCopyImage">Copier l\'image</string>
     <string name="TjCopyThumbnail">Copier la miniature</string>
     <string name="TjSaveToSaved">Enregistrer dans les messages sauvegardés</string>
+    <string name="TjClearVideoCache">Effacer du cache</string>
+    <string name="TjClearedFromCache">%1$s libérés du stockage</string>
     <string name="TjShowPinnedMessage">Afficher le message épinglé</string>
     <string name="TjHidePinnedMessage">Masquer le message épinglé</string>
     <string name="TjChatCounters">Compteurs de discussions</string>

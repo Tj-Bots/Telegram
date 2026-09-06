@@ -766,7 +766,7 @@ public class ChatActivity extends BaseFragment implements
         loadedPinnedMessagesCount = 0;
         totalPinnedMessagesCount = 0;
         updatePinnedMessageView(true);
-        getMediaDataController().loadPinnedMessages(getDialogId(), 0, chatInfo == null ? 0 : chatInfo.pinned_msg_id);
+        getMediaDataController().loadPinnedMessages(getDialogId(), getSavedDialogId(), 0, chatInfo == null ? 0 : chatInfo.pinned_msg_id);
         loadingPinnedMessagesList = true;
         updatePinnedTopicStarterMessage();
     }
@@ -1261,6 +1261,7 @@ public class ChatActivity extends BaseFragment implements
     public final static int OPTION_COPY_DEEPLINK = 1007;
     public final static int OPTION_SAVE_TO_SAVED = 1009;
     public final static int OPTION_TJ_REPLY_PRIVATELY = 1010;
+    public final static int OPTION_TJ_CLEAR_VIDEO_CACHE = 1011;
 
     private final static int[] allowedNotificationsDuringChatListAnimations = new int[]{
             NotificationCenter.messagesRead,
@@ -23524,7 +23525,7 @@ public class ChatActivity extends BaseFragment implements
                             if (object == null && replaceObjects != null) {
                                 object = replaceObjects.get(mid);
                             }
-                            if (object != null && (!isTopic || getTopicId() == MessageObject.getTopicId(currentAccount, object.messageOwner, ChatObject.isForum(currentChat)))) {
+                            if (object != null && (chatMode != MODE_SAVED || getSavedDialogId() == object.getSavedDialogId()) && (!isTopic || getTopicId() == MessageObject.getTopicId(currentAccount, object.messageOwner, ChatObject.isForum(currentChat)))) {
                                 pinnedMessageIds.add(mid);
                                 pinnedMessageObjects.put(mid, object);
                                 if (replaceObjects == null) {
@@ -33494,6 +33495,29 @@ public class ChatActivity extends BaseFragment implements
                     return;
                 }
                 presentFragment(new MessageInfoActivity(selectedObject));
+                break;
+            }
+            case OPTION_TJ_CLEAR_VIDEO_CACHE: {
+                if (selectedObject == null || selectedObject.getDocument() == null) {
+                    break;
+                }
+                TLRPC.Document document = selectedObject.getDocument();
+                String attachName = FileLoader.getAttachFileName(document);
+                getFileLoader().cancelLoadFile(document);
+                long freed = 0;
+                File finalFile = getFileLoader().getPathToAttach(document, false);
+                if (finalFile != null && finalFile.exists()) {
+                    freed += finalFile.length();
+                    finalFile.delete();
+                }
+                File tempFile = tjVideoTempFile(document);
+                if (tempFile != null && tempFile.exists()) {
+                    freed += tempFile.length();
+                    tempFile.delete();
+                }
+                selectedObject.mediaExists = false;
+                getNotificationCenter().postNotificationName(NotificationCenter.fileLoaded, attachName, (Object) null);
+                BulletinFactory.of(this).createSimpleBulletin(R.raw.ic_delete, TjLocale.formatString(R.string.TjClearedFromCache, AndroidUtilities.formatFileSize(freed))).show();
                 break;
             }
             case OPTION_COPY_DEEPLINK: {
@@ -46614,6 +46638,41 @@ public class ChatActivity extends BaseFragment implements
             options.add(OPTION_SAVE_TO_SAVED);
             icons.add(R.drawable.msg_saved);
         }
+        if (canClearVideoFromCache(message) && !options.contains(OPTION_TJ_CLEAR_VIDEO_CACHE)) {
+            items.add(TjLocale.getString(R.string.TjClearVideoCache));
+            options.add(OPTION_TJ_CLEAR_VIDEO_CACHE);
+            icons.add(R.drawable.msg_clearcache);
+        }
+    }
+
+    /** A video message with anything on disk for it - whole, partial or mid-download. */
+    private boolean canClearVideoFromCache(MessageObject message) {
+        if (message == null || !message.isVideo() || message.getDocument() == null) {
+            return false;
+        }
+        TLRPC.Document document = message.getDocument();
+        if (getFileLoader().isLoadingFile(FileLoader.getAttachFileName(document))) {
+            return true;
+        }
+        File finalFile = getFileLoader().getPathToAttach(document, false);
+        if (finalFile != null && finalFile.exists()) {
+            return true;
+        }
+        File tempFile = tjVideoTempFile(document);
+        return tempFile != null && tempFile.exists();
+    }
+
+    /**
+     * The partial-download counterpart of a document's final path. FileLoadOperation always
+     * stores it in the shared cache directory under the same name as the final file, extension
+     * swapped for ".temp" - see FileLoadOperation's fileNameTemp/fileNameFinal construction.
+     */
+    private File tjVideoTempFile(TLRPC.Document document) {
+        String name = FileLoader.getAttachFileName(document);
+        int dot = name.lastIndexOf('.');
+        String tempName = (dot >= 0 ? name.substring(0, dot) : name) + ".temp";
+        File cacheDir = FileLoader.getDirectory(FileLoader.MEDIA_DIR_CACHE);
+        return cacheDir != null ? new File(cacheDir, tempName) : null;
     }
 
     /**
