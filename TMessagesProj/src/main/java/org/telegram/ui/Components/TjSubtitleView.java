@@ -114,25 +114,61 @@ public class TjSubtitleView extends View {
      */
     private void applyDirection() {
         final int direction = TjSettingsActivity.getSubtitleDirection();
-        // The line arrives already stripped of any bidi controls the file carried. All that is left
-        // is to wrap it in one explicit embedding, so mixed content - Hebrew with numbers or Latin
-        // names in it - is ordered by that embedding rather than by the algorithm's guess at the
-        // line's own direction.
         final boolean rtl = direction == TjSettingsActivity.SUBTITLE_DIR_RTL || isRtl(TextUtils.join("\n", rawLines));
-        cueIsRtl = rtl;
+        // PUNCT moves the punctuation itself instead of asking the bidi algorithm to place it, so
+        // the paragraph must stay neutral or the two would fight and undo each other.
+        cueIsRtl = rtl && direction != TjSettingsActivity.SUBTITLE_DIR_PUNCT;
 
         cueTexts.clear();
         for (int a = 0; a < rawLines.size(); a++) {
             final String line = rawLines.get(a);
-            // NONE leaves the stripped line alone and lets the layout order it, which is the escape
-            // hatch if a file turns out not to want an embedding at all.
-            cueTexts.add(direction == TjSettingsActivity.SUBTITLE_DIR_NONE ? line
-                    : (rtl ? RLE : LRE) + line + PDF);
+            switch (direction) {
+                case TjSettingsActivity.SUBTITLE_DIR_PUNCT:
+                    cueTexts.add(rtl ? movePunctuationToFront(line) : line);
+                    break;
+                case TjSettingsActivity.SUBTITLE_DIR_NONE:
+                    cueTexts.add(line);
+                    break;
+                default:
+                    // One explicit embedding, so mixed content - Hebrew with numbers or Latin names
+                    // in it - is ordered by that embedding rather than by a guess at the line's own
+                    // direction.
+                    cueTexts.add((rtl ? RLE : LRE) + line + PDF);
+                    break;
+            }
         }
         layouts.clear();
         layoutWidth = 0;
         setVisibility(cueTexts.isEmpty() ? GONE : VISIBLE);
         invalidate();
+    }
+
+    /** Sentence punctuation that belongs at the end of a Hebrew or Arabic line. */
+    private static boolean isTrailingPunctuation(char c) {
+        return c == ',' || c == '.' || c == '!' || c == '?' || c == ':' || c == ';' || c == '\u2026'
+                || c == '\u060C' || c == '\u061B' || c == '\u061F';
+    }
+
+    /**
+     * Moves a line's trailing punctuation to its front.
+     *
+     * The rule as specified: punctuation at the end of the line goes to the beginning; a line that
+     * already begins with punctuation is left alone. A whole run moves together, so "..." and "?!"
+     * stay intact rather than being broken up one character at a time.
+     */
+    private static String movePunctuationToFront(String line) {
+        final int length = line.length();
+        if (length < 2 || isTrailingPunctuation(line.charAt(0))) {
+            return line;
+        }
+        int cut = length;
+        while (cut > 0 && isTrailingPunctuation(line.charAt(cut - 1))) {
+            cut--;
+        }
+        if (cut == length || cut == 0) {
+            return line;
+        }
+        return line.substring(cut) + line.substring(0, cut);
     }
 
     /**

@@ -11303,4 +11303,5 @@
     <string name="TjSubtitleDirNone">No direction marks</string>
     <string name="TjReplyPrivately">Reply privately</string>
     <string name="TjSubtitleCopyRaw">Copy subtitle text (diagnostic)</string>
+    <string name="TjSubtitleDirPunct">Move final punctuation</string>
 </resources>

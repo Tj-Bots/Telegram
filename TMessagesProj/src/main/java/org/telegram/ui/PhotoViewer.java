@@ -23500,7 +23500,8 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
 
         addSubtitleGap(page);
 
-        final int[] directionNames = {R.string.TjSubtitleDirAuto, R.string.TjSubtitleDirRtl, R.string.TjSubtitleDirNone};
+        final int[] directionNames = {R.string.TjSubtitleDirPunct, R.string.TjSubtitleDirAuto,
+                R.string.TjSubtitleDirRtl, R.string.TjSubtitleDirNone};
         for (int a = 0; a < directionNames.length; a++) {
             final int direction = a;
             subtitleSubmenu.addRow(TjLocale.getString(directionNames[a]), TjSettingsActivity.getSubtitleDirection() == direction, () -> {

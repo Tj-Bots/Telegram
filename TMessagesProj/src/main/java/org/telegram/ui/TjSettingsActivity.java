@@ -146,15 +146,19 @@ public class TjSettingsActivity extends BaseFragment {
      *
      * Every option first has the file's own bidi control characters stripped - Hebrew subtitles
      * usually arrive with a layer already applied, and adding a second embedding over the first is
-     * what reverses a line. AUTO then wraps in the embedding that matches the cue's content, RTL
-     * always wraps right-to-left, and NONE adds nothing and lets the layout order the line.
+     * what reverses a line.
+     *
+     * PUNCT, the default, then moves each line's trailing punctuation to its front and adds no
+     * embedding at all. AUTO wraps in the embedding that matches the cue's content, RTL always
+     * wraps right-to-left, and NONE adds nothing and reorders nothing.
      */
-    public static final int SUBTITLE_DIR_AUTO = 0;
-    public static final int SUBTITLE_DIR_RTL = 1;
-    public static final int SUBTITLE_DIR_NONE = 2;
+    public static final int SUBTITLE_DIR_PUNCT = 0;
+    public static final int SUBTITLE_DIR_AUTO = 1;
+    public static final int SUBTITLE_DIR_RTL = 2;
+    public static final int SUBTITLE_DIR_NONE = 3;
 
     public static int getSubtitleDirection() {
-        return getPrefs().getInt(KEY_SUBTITLE_DIRECTION, SUBTITLE_DIR_AUTO);
+        return getPrefs().getInt(KEY_SUBTITLE_DIRECTION, SUBTITLE_DIR_PUNCT);
     }
 
     public static void setSubtitleDirection(int direction) {

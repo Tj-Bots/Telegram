@@ -1322,4 +1322,5 @@
     <string name="TjSubtitleDirNone">بدون علامات اتجاه</string>
     <string name="TjReplyPrivately">الرد بشكل خاص</string>
     <string name="TjSubtitleCopyRaw">نسخ نص الترجمة (للتشخيص)</string>
+    <string name="TjSubtitleDirPunct">نقل علامة الترقيم الأخيرة</string>
 </resources>

@@ -90,6 +90,7 @@ public class TjLocale {
         m.put("TjSubtitleCopyRaw", "\u05d4\u05e2\u05ea\u05e7 \u05d8\u05e7\u05e1\u05d8 \u05db\u05ea\u05d5\u05d1\u05d9\u05ea (\u05dc\u05d0\u05d1\u05d7\u05d5\u05df)");
         m.put("TjSubtitleDirAuto", "\u05d0\u05d5\u05d8\u05d5\u05de\u05d8\u05d9");
         m.put("TjSubtitleDirNone", "\u05d1\u05dc\u05d9 \u05e1\u05d9\u05de\u05d5\u05e0\u05d9 \u05db\u05d9\u05d5\u05d5\u05df");
+        m.put("TjSubtitleDirPunct", "\u05d4\u05e2\u05d1\u05e8 \u05e4\u05d9\u05e1\u05d5\u05e7 \u05e1\u05d5\u05e4\u05d9 \u05dc\u05d4\u05ea\u05d7\u05dc\u05d4");
         m.put("TjSubtitleDirRtl", "\u05db\u05e4\u05d4 \u05d9\u05de\u05d9\u05df \u05dc\u05e9\u05de\u05d0\u05dc");
         m.put("TjSubtitleFontSize", "\u05d2\u05d5\u05d3\u05dc \u05d2\u05d5\u05e4\u05df");
         m.put("TjSubtitlePosition", "\u05de\u05d9\u05e7\u05d5\u05dd");
@@ -172,6 +173,7 @@ public class TjLocale {
         m.put("TjSubtitleCopyRaw", "\u0646\u0633\u062e \u0646\u0635 \u0627\u0644\u062a\u0631\u062c\u0645\u0629 (\u0644\u0644\u062a\u0634\u062e\u064a\u0635)");
         m.put("TjSubtitleDirAuto", "\u062a\u0644\u0642\u0627\u0626\u064a");
         m.put("TjSubtitleDirNone", "\u0628\u062f\u0648\u0646 \u0639\u0644\u0627\u0645\u0627\u062a \u0627\u062a\u062c\u0627\u0647");
+        m.put("TjSubtitleDirPunct", "\u0646\u0642\u0644 \u0639\u0644\u0627\u0645\u0629 \u0627\u0644\u062a\u0631\u0642\u064a\u0645 \u0627\u0644\u0623\u062e\u064a\u0631\u0629");
         m.put("TjSubtitleDirRtl", "\u0641\u0631\u0636 \u0645\u0646 \u0627\u0644\u064a\u0645\u064a\u0646 \u0644\u0644\u064a\u0633\u0627\u0631");
         m.put("TjSubtitleFontSize", "\u062d\u062c\u0645 \u0627\u0644\u062e\u0637");
         m.put("TjSubtitlePosition", "\u0627\u0644\u0645\u0648\u0636\u0639");
@@ -254,6 +256,7 @@ public class TjLocale {
         m.put("TjSubtitleCopyRaw", "\u0421\u043a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u0442\u0435\u043a\u0441\u0442 \u0441\u0443\u0431\u0442\u0438\u0442\u0440\u043e\u0432 (\u0434\u0438\u0430\u0433\u043d\u043e\u0441\u0442\u0438\u043a\u0430)");
         m.put("TjSubtitleDirAuto", "\u0410\u0432\u0442\u043e\u043c\u0430\u0442\u0438\u0447\u0435\u0441\u043a\u0438");
         m.put("TjSubtitleDirNone", "\u0411\u0435\u0437 \u043c\u0435\u0442\u043e\u043a \u043d\u0430\u043f\u0440\u0430\u0432\u043b\u0435\u043d\u0438\u044f");
+        m.put("TjSubtitleDirPunct", "\u041f\u0435\u0440\u0435\u043d\u043e\u0441\u0438\u0442\u044c \u043a\u043e\u043d\u0435\u0447\u043d\u044b\u0439 \u0437\u043d\u0430\u043a \u043f\u0440\u0435\u043f\u0438\u043d\u0430\u043d\u0438\u044f");
         m.put("TjSubtitleDirRtl", "\u0412\u0441\u0435\u0433\u0434\u0430 \u0441\u043f\u0440\u0430\u0432\u0430 \u043d\u0430\u043b\u0435\u0432\u043e");
         m.put("TjSubtitleFontSize", "\u0420\u0430\u0437\u043c\u0435\u0440 \u0448\u0440\u0438\u0444\u0442\u0430");
         m.put("TjSubtitlePosition", "\u041f\u043e\u043b\u043e\u0436\u0435\u043d\u0438\u0435");
@@ -336,6 +339,7 @@ public class TjLocale {
         m.put("TjSubtitleCopyRaw", "Copier le texte des sous-titres (diagnostic)");
         m.put("TjSubtitleDirAuto", "Automatique");
         m.put("TjSubtitleDirNone", "Sans marques de direction");
+        m.put("TjSubtitleDirPunct", "D\u00e9placer la ponctuation finale");
         m.put("TjSubtitleDirRtl", "Forcer de droite \u00e0 gauche");
         m.put("TjSubtitleFontSize", "Taille du texte");
         m.put("TjSubtitlePosition", "Position");
@@ -418,6 +422,7 @@ public class TjLocale {
         m.put("TjSubtitleCopyRaw", "\u590d\u5236\u5b57\u5e55\u6587\u672c\uff08\u8bca\u65ad\uff09");
         m.put("TjSubtitleDirAuto", "\u81ea\u52a8");
         m.put("TjSubtitleDirNone", "\u4e0d\u52a0\u65b9\u5411\u6807\u8bb0");
+        m.put("TjSubtitleDirPunct", "\u5c06\u884c\u5c3e\u6807\u70b9\u79fb\u5230\u884c\u9996");
         m.put("TjSubtitleDirRtl", "\u5f3a\u5236\u4ece\u53f3\u5230\u5de6");
         m.put("TjSubtitleFontSize", "\u5b57\u4f53\u5927\u5c0f");
         m.put("TjSubtitlePosition", "\u4f4d\u7f6e");
@@ -500,6 +505,7 @@ public class TjLocale {
         m.put("TjSubtitleCopyRaw", "\u0938\u092c\u091f\u093e\u0907\u091f\u0932 \u091f\u0947\u0915\u094d\u0938\u094d\u091f \u0915\u0949\u092a\u0940 \u0915\u0930\u0947\u0902 (\u0928\u093f\u0926\u093e\u0928)");
         m.put("TjSubtitleDirAuto", "\u0938\u094d\u0935\u091a\u093e\u0932\u093f\u0924");
         m.put("TjSubtitleDirNone", "\u0926\u093f\u0936\u093e \u091a\u093f\u0939\u094d\u0928\u094b\u0902 \u0915\u0947 \u092c\u093f\u0928\u093e");
+        m.put("TjSubtitleDirPunct", "\u0905\u0902\u0924\u093f\u092e \u0935\u093f\u0930\u093e\u092e \u091a\u093f\u0939\u094d\u0928 \u0906\u0917\u0947 \u0932\u093e\u090f\u0901");
         m.put("TjSubtitleDirRtl", "\u0926\u093e\u090f\u0901-\u0938\u0947-\u092c\u093e\u090f\u0901 \u092c\u093e\u0927\u094d\u092f \u0915\u0930\u0947\u0902");
         m.put("TjSubtitleFontSize", "\u092b\u093c\u0949\u0928\u094d\u091f \u0906\u0915\u093e\u0930");
         m.put("TjSubtitlePosition", "\u0938\u094d\u0925\u093f\u0924\u093f");

@@ -342,4 +342,5 @@
     <string name="TjSubtitleDirNone">Без меток направления</string>
     <string name="TjReplyPrivately">Ответить лично</string>
     <string name="TjSubtitleCopyRaw">Скопировать текст субтитров (диагностика)</string>
+    <string name="TjSubtitleDirPunct">Переносить конечный знак препинания</string>
 </resources>
