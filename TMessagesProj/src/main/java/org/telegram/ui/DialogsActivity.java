@@ -3530,9 +3530,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 logoDrawable = context.getResources().getDrawable(R.drawable.telegram_logo_2).mutate();
                 logoDrawable.setBounds(0, dp(2), logoDrawable.getIntrinsicWidth(), dp(2) + logoDrawable.getIntrinsicHeight());
                 logoDrawable.setColorFilter(getThemedColor(Theme.key_telegram_color_dialogsLogo), PorterDuff.Mode.MULTIPLY);
-                SpannableStringBuilder ssb = new SpannableStringBuilder(getString(R.string.AppName) + (BuildVars.DEBUG_PRIVATE_VERSION ? " #" + BuildConfig.BUILD_TAG : ""));
-                ssb.setSpan(new ImageSpan(logoDrawable), 0, ssb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                actionBar.setTitle(ssb, statusDrawable);
+                updateTitleForTab(true, null);
                 updateStatus(UserConfig.getInstance(currentAccount).getCurrentUser(), false);
             }
             if (folderId == 0) {
@@ -7076,6 +7074,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     public void onResume() {
         super.onResume();
         updateDrawerSwipeAllowed(filterTabsView == null || filterTabsView.getVisibility() != View.VISIBLE || filterTabsView.isFirstTabSelected());
+        // Ghost mode is toggled from the drawer, so refresh the badge when we come back.
+        updateTitleForTab(filterTabsView == null || filterTabsView.getVisibility() != View.VISIBLE || filterTabsView.isFirstTabSelected(), null);
         if (dialogStoriesCell != null) {
             dialogStoriesCell.onResume();
         }
@@ -8480,16 +8480,40 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
      * on the first ("All chats") tab there is no previous folder to swipe to.
      */
     /** Folder name in the action bar. Called from both the tap and the swipe path. */
+    /**
+     * Title on the chat list. The All-chats tab shows the account's own name rather than the app
+     * name - the emoji status already rides along in statusDrawable - with a ghost badge while
+     * ghost mode is on. Other folders show the folder name.
+     */
     private void updateTitleForTab(boolean isDefaultTab, CharSequence tabTitle) {
-        if (folderId != 0 || communityId != 0 || logoDrawable == null || statusDrawable == null || actionBar == null) {
+        if (folderId != 0 || communityId != 0 || actionBar == null) {
             return;
         }
-        if (isDefaultTab) {
-            SpannableStringBuilder ssb = new SpannableStringBuilder(getString(R.string.AppName) + (BuildVars.DEBUG_PRIVATE_VERSION ? " #" + BuildConfig.BUILD_TAG : ""));
-            ssb.setSpan(new ImageSpan(logoDrawable), 0, ssb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        if (!isDefaultTab) {
+            actionBar.setTitle(tabTitle);
+            return;
+        }
+        SpannableStringBuilder ssb = new SpannableStringBuilder();
+        TLRPC.User self = UserConfig.getInstance(currentAccount).getCurrentUser();
+        String name = self != null ? UserObject.getUserName(self) : null;
+        if (TextUtils.isEmpty(name)) {
+            name = getString(R.string.AppName);
+        }
+        ssb.append(name);
+        if (TjSettingsActivity.isGhostModeEnabled()) {
+            try {
+                Drawable ghost = getContext().getResources().getDrawable(R.drawable.tj_ghost).mutate();
+                ghost.setBounds(0, 0, dp(18), dp(18));
+                ghost.setColorFilter(new PorterDuffColorFilter(getThemedColor(Theme.key_actionBarDefaultTitle), PorterDuff.Mode.SRC_IN));
+                ssb.append("  x");
+                ssb.setSpan(new ImageSpan(ghost, ImageSpan.ALIGN_BOTTOM), ssb.length() - 1, ssb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            } catch (Exception ignore) {
+            }
+        }
+        if (statusDrawable != null) {
             actionBar.setTitle(ssb, statusDrawable);
         } else {
-            actionBar.setTitle(tabTitle);
+            actionBar.setTitle(ssb);
         }
     }
 

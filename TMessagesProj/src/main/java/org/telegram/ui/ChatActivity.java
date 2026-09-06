@@ -4330,17 +4330,9 @@ public class ChatActivity extends BaseFragment implements
                 if (TjSettingsActivity.isShowCallButtonEnabled() && userFull != null && userFull.phone_calls_available) {
                     showAudioCallAsIcon = !inPreviewMode;
                     audioCallIconItem.setVisibility(View.VISIBLE);
-                    // The call icon takes the search icon's place rather than sitting next to it.
-                    // Search is still reachable from the overflow menu.
-                    if (searchIconItem != null) {
-                        searchIconItem.setVisibility(View.GONE);
-                    }
                 } else {
                     showAudioCallAsIcon = false;
                     audioCallIconItem.setVisibility(View.GONE);
-                    if (searchIconItem != null) {
-                        searchIconItem.setVisibility(View.VISIBLE);
-                    }
                 }
             }
         }
@@ -18327,6 +18319,12 @@ public class ChatActivity extends BaseFragment implements
                     } else {
                         showSearchAsIcon = false;
                     }
+                    // Only one of the two gets the slot: the visibility rule below shows the call
+                    // icon just when search is hidden, so the call button setting has to stand
+                    // search down. Search stays available in the overflow menu.
+                    if (showAudioCallAsIcon && TjSettingsActivity.isShowCallButtonEnabled()) {
+                        showSearchAsIcon = false;
+                    }
                 } else {
                     showSearchAsIcon = false;
                 }
@@ -24023,7 +24021,7 @@ public class ChatActivity extends BaseFragment implements
                     }
                 }
                 if (headerItem != null) {
-                    showAudioCallAsIcon = userInfo.phone_calls_available && !inPreviewMode;
+                    showAudioCallAsIcon = TjSettingsActivity.isShowCallButtonEnabled() && userInfo.phone_calls_available && !inPreviewMode;
                     if (userInfo.phone_calls_available) {
                         if (showAudioCallAsIcon) {
                             if (audioCallIconItem != null) {
@@ -29781,7 +29779,7 @@ public class ChatActivity extends BaseFragment implements
         super.setInPreviewMode(value);
         if (currentUser != null && audioCallIconItem != null) {
             TLRPC.UserFull userFull = getMessagesController().getUserFull(currentUser.id);
-            if (userFull != null && userFull.phone_calls_available) {
+            if (TjSettingsActivity.isShowCallButtonEnabled() && userFull != null && userFull.phone_calls_available) {
                 showAudioCallAsIcon = !inPreviewMode;
                 audioCallIconItem.setVisibility(View.VISIBLE);
             } else {
@@ -46247,7 +46245,7 @@ public class ChatActivity extends BaseFragment implements
                                 items.add(LocaleController.getString(R.string.SaveToGallery));
                                 options.add(OPTION_SAVE_TO_GALLERY);
                                 icons.add(R.drawable.msg_gallery);
-                                if (selectedObject.getDocument() != null && !selectedObject.getDocument().thumbs.isEmpty() && TjSettingsActivity.isCopyThumbnailEnabled()) {
+                                if (selectedObject.getDocument() != null && !selectedObject.getDocument().thumbs.isEmpty()) {
                                     items.add(TjLocale.getString(R.string.TjCopyThumbnail));
                                     options.add(OPTION_COPY_VIDEO_THUMB);
                                     icons.add(R.drawable.msg_copy);
@@ -46282,11 +46280,9 @@ public class ChatActivity extends BaseFragment implements
                                 icons.add(R.drawable.msg_gallery);
                                 // A photo sent as a photo lands here; type 6 only covers images
                                 // sent as files, so Copy Image has to be offered in both places.
-                                if (TjSettingsActivity.isCopyImageEnabled()) {
-                                    items.add(TjLocale.getString(R.string.TjCopyImage));
-                                    options.add(OPTION_COPY_IMAGE);
-                                    icons.add(R.drawable.msg_copy);
-                                }
+                                items.add(TjLocale.getString(R.string.TjCopyImage));
+                                options.add(OPTION_COPY_IMAGE);
+                                icons.add(R.drawable.msg_copy);
                             }
                         }
                     }
@@ -46319,11 +46315,9 @@ public class ChatActivity extends BaseFragment implements
                         items.add(LocaleController.getString(R.string.SaveToGallery));
                         options.add(OPTION_SAVE_TO_GALLERY2);
                         icons.add(R.drawable.msg_gallery);
-                        if (TjSettingsActivity.isCopyImageEnabled()) {
-                            items.add(TjLocale.getString(R.string.TjCopyImage));
-                            options.add(OPTION_COPY_IMAGE);
-                            icons.add(R.drawable.msg_copy);
-                        }
+                        items.add(TjLocale.getString(R.string.TjCopyImage));
+                        options.add(OPTION_COPY_IMAGE);
+                        icons.add(R.drawable.msg_copy);
                         items.add(LocaleController.getString(R.string.SaveToDownloads));
                         options.add(OPTION_SAVE_TO_DOWNLOADS_OR_MUSIC);
                         icons.add(R.drawable.msg_download);
@@ -46502,7 +46496,7 @@ public class ChatActivity extends BaseFragment implements
                         items.add(LocaleController.getString(R.string.SaveToGallery));
                         options.add(OPTION_SAVE_TO_GALLERY);
                         icons.add(R.drawable.msg_gallery);
-                        if (selectedObject.getDocument() != null && !selectedObject.getDocument().thumbs.isEmpty() && TjSettingsActivity.isCopyThumbnailEnabled()) {
+                        if (selectedObject.getDocument() != null && !selectedObject.getDocument().thumbs.isEmpty()) {
                             items.add(TjLocale.getString(R.string.TjCopyThumbnail));
                             options.add(OPTION_COPY_VIDEO_THUMB);
                             icons.add(R.drawable.msg_copy);
@@ -46528,11 +46522,9 @@ public class ChatActivity extends BaseFragment implements
                         items.add(LocaleController.getString(R.string.SaveToGallery));
                         options.add(OPTION_SAVE_TO_GALLERY);
                         icons.add(R.drawable.msg_gallery);
-                        if (TjSettingsActivity.isCopyImageEnabled()) {
-                            items.add(TjLocale.getString(R.string.TjCopyImage));
-                            options.add(OPTION_COPY_IMAGE);
-                            icons.add(R.drawable.msg_copy);
-                        }
+                        items.add(TjLocale.getString(R.string.TjCopyImage));
+                        options.add(OPTION_COPY_IMAGE);
+                        icons.add(R.drawable.msg_copy);
                     }
                 } else if (type == 5) {
                     items.add(LocaleController.getString(R.string.ApplyLocalizationFile));

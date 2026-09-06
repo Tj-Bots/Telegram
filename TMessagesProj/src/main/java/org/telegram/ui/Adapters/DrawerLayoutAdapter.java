@@ -257,7 +257,8 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter {
         int settingsIcon = R.drawable.msg_settings_old;
 
         // TjGram menu. `null` is a divider row.
-        items.add(new Item(104, TjLocale.getString(TjSettingsActivity.isGhostModeEnabled() ? R.string.TjGhostModeOff : R.string.TjGhostModeOn), R.drawable.msg_secret));
+        boolean ghostOn = TjSettingsActivity.isGhostModeEnabled();
+        items.add(new Item(104, TjLocale.getString(ghostOn ? R.string.TjGhostModeOff : R.string.TjGhostModeOn), ghostOn ? R.drawable.tj_ghost_off : R.drawable.tj_ghost));
         items.add(null);
         items.add(new Item(100, TjLocale.getString(R.string.TjMyProfile), R.drawable.msg_openprofile));
         UserConfig me = UserConfig.getInstance(UserConfig.selectedAccount);

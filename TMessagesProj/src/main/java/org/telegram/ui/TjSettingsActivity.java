@@ -321,8 +321,6 @@ public class TjSettingsActivity extends BaseFragment {
         items.add(new Item(VIEW_TYPE_CHECK, ID_MENU_MESSAGE_INFO, TjLocale.getString(R.string.TjMessageInfo)));
         items.add(new Item(VIEW_TYPE_CHECK, ID_MENU_SAVE_TO_SAVED, TjLocale.getString(R.string.TjSaveToSaved)));
         items.add(new Item(VIEW_TYPE_CHECK, ID_MENU_COPY_LINK, TjLocale.getString(R.string.TjCopyMessageLink)));
-        items.add(new Item(VIEW_TYPE_CHECK, ID_MENU_COPY_IMAGE, TjLocale.getString(R.string.TjCopyImage)));
-        items.add(new Item(VIEW_TYPE_CHECK, ID_MENU_COPY_THUMB, TjLocale.getString(R.string.TjCopyThumbnail)));
         items.add(new Item(VIEW_TYPE_CHECK, ID_MENU_FORWARD_NO_TAG, TjLocale.getString(R.string.TjForwardWithoutTag)));
         items.add(new Item(VIEW_TYPE_SHADOW, 0, TjLocale.getString(R.string.TjMessageMenuInfo)));
     }

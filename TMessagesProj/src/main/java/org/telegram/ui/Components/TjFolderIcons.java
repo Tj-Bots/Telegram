@@ -25,6 +25,9 @@ public class TjFolderIcons {
 
     private static final Map<String, Integer> ICONS = new LinkedHashMap<>();
 
+    /** Reserved for the main "All chats" folder. */
+    public static final String ALL_CHATS = "\uD83D\uDCAC";
+
     static {
         ICONS.put("\uD83D\uDC31", R.drawable.filter_cat);
         ICONS.put("\uD83D\uDCD5", R.drawable.filter_book);
@@ -119,12 +122,13 @@ public class TjFolderIcons {
         if (filter == null) {
             return null;
         }
+        // The main folder always keeps the same icon - it is not user-changeable.
+        if (filter.isDefault()) {
+            return ALL_CHATS;
+        }
         String saved = TjSettingsActivity.getFolderEmoticon(filter.id);
         if (!TextUtils.isEmpty(saved)) {
             return saved;
-        }
-        if (filter.isDefault()) {
-            return "\uD83D\uDCAC";
         }
         return getEmoticonFromFlags(filter.flags);
     }
