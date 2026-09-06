@@ -143,14 +143,14 @@ public class TjSettingsActivity extends BaseFragment {
     /**
      * How subtitle lines are ordered on screen.
      *
-     * AUTO and FORCE_RTL both run the bidi algorithm, which is right for a file stored in logical
-     * order - the order you would type it. AS_STORED suppresses reordering altogether, which is
-     * what a file stored in visual order needs: those are already reversed on disk, and running
-     * bidi over them reverses a second time.
+     * Every option first has the file's own bidi control characters stripped - Hebrew subtitles
+     * usually arrive with a layer already applied, and adding a second embedding over the first is
+     * what reverses a line. AUTO then wraps in the embedding that matches the cue's content, RTL
+     * always wraps right-to-left, and NONE adds nothing and lets the layout order the line.
      */
     public static final int SUBTITLE_DIR_AUTO = 0;
     public static final int SUBTITLE_DIR_RTL = 1;
-    public static final int SUBTITLE_DIR_AS_STORED = 2;
+    public static final int SUBTITLE_DIR_NONE = 2;
 
     public static int getSubtitleDirection() {
         return getPrefs().getInt(KEY_SUBTITLE_DIRECTION, SUBTITLE_DIR_AUTO);

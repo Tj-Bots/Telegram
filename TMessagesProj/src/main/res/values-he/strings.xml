@@ -76,5 +76,5 @@
     <string name="TjSubtitleAutoInfo">בוחר רצועת כתוביות בשפה שלך כשיש כזו בוידאו, ואחרת באנגלית.</string>
     <string name="TjSubtitleDirAuto">אוטומטי</string>
     <string name="TjSubtitleDirRtl">כפה ימין לשמאל</string>
-    <string name="TjSubtitleDirAsStored">בדיוק כמו בקובץ</string>
+    <string name="TjSubtitleDirNone">בלי סימוני כיוון</string>
 </resources>

@@ -76,5 +76,5 @@
     <string name="TjSubtitleAutoInfo">视频中有你的语言的字幕轨时优先选择，否则选择英文。</string>
     <string name="TjSubtitleDirAuto">自动</string>
     <string name="TjSubtitleDirRtl">强制从右到左</string>
-    <string name="TjSubtitleDirAsStored">按文件原样</string>
+    <string name="TjSubtitleDirNone">不加方向标记</string>
 </resources>

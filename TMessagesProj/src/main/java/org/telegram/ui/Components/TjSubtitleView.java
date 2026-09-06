@@ -103,21 +103,20 @@ public class TjSubtitleView extends View {
      */
     private void applyDirection() {
         final int direction = TjSettingsActivity.getSubtitleDirection();
-        // Direction is decided once for the whole cue and forced on every line of it. Left to
-        // itself a line takes its direction from its own first strong character, so a Hebrew cue
-        // whose line opens with a Latin word or a quote would flip to left-to-right and strand its
-        // comma or full stop on the wrong end - and two lines of one cue could even disagree.
+        // The line arrives already stripped of any bidi controls the file carried. All that is left
+        // is to wrap it in one explicit embedding, so mixed content - Hebrew with numbers or Latin
+        // names in it - is ordered by that embedding rather than by the algorithm's guess at the
+        // line's own direction.
         final boolean rtl = direction == TjSettingsActivity.SUBTITLE_DIR_RTL || isRtl(TextUtils.join("\n", rawLines));
-        // AS_STORED uses LRO - a left-to-right *override* - which pins every character in the order
-        // the file has it and suppresses reordering entirely. That is what a file stored in visual
-        // order needs; the other two run the bidi algorithm as normal.
-        final String open = direction == TjSettingsActivity.SUBTITLE_DIR_AS_STORED ? LRO
-                : rtl ? RLE : LRE;
-        cueIsRtl = direction != TjSettingsActivity.SUBTITLE_DIR_AS_STORED && rtl;
+        cueIsRtl = rtl;
 
         cueTexts.clear();
         for (int a = 0; a < rawLines.size(); a++) {
-            cueTexts.add(open + rawLines.get(a) + PDF);
+            final String line = rawLines.get(a);
+            // NONE leaves the stripped line alone and lets the layout order it, which is the escape
+            // hatch if a file turns out not to want an embedding at all.
+            cueTexts.add(direction == TjSettingsActivity.SUBTITLE_DIR_NONE ? line
+                    : (rtl ? RLE : LRE) + line + PDF);
         }
         layouts.clear();
         layoutWidth = 0;
@@ -131,8 +130,6 @@ public class TjSubtitleView extends View {
      */
     private static final String RLE = "\u202B";
     private static final String LRE = "\u202A";
-    /** Override, not embedding: storage order wins over every character's own direction. */
-    private static final String LRO = "\u202D";
     private static final String PDF = "\u202C";
 
     /** Direction of the cue currently on screen; drives the layout's own text direction. */
@@ -154,9 +151,18 @@ public class TjSubtitleView extends View {
     private static final Pattern SOURCE_LINE = Pattern.compile("\r?\n|\\\\[Nn]");
     /** SSA/ASS override blocks such as {\an8} or {\i1}, and the HTML tags WebVTT allows. */
     private static final Pattern MARKUP = Pattern.compile("\\{[^}]*\\}|</?[a-zA-Z][^>]*>");
+    /**
+     * Bidi control characters already in the file: the marks (LRM, RLM), the embeddings and
+     * overrides (LRE, RLE, LRO, RLO), PDF, and the isolates (LRI, RLI, FSI, PDI).
+     *
+     * These have to go before we add our own. Hebrew subtitle files usually arrive with a layer of
+     * them already applied by whatever tool converted them, and wrapping a second embedding around
+     * the first is what reverses the line instead of fixing it.
+     */
+    private static final Pattern BIDI_CONTROLS = Pattern.compile("[\\u200E\\u200F\\u202A-\\u202E\\u2066-\\u2069]");
 
     private static String clean(String text) {
-        return MARKUP.matcher(text).replaceAll("");
+        return BIDI_CONTROLS.matcher(MARKUP.matcher(text).replaceAll("")).replaceAll("");
     }
 
     public void clear() {

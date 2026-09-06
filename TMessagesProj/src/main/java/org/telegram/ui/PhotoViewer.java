@@ -23452,6 +23452,8 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
             }
         });
 
+        addSubtitleGap(page);
+
         final int[] sizeNames = {R.string.TjSubtitleSizeSmall, R.string.TjSubtitleSizeMedium, R.string.TjSubtitleSizeLarge, R.string.TjSubtitleSizeHuge};
         for (int a = 0; a < TjSettingsActivity.SUBTITLE_FONT_SIZES.length; a++) {
             final int size = TjSettingsActivity.SUBTITLE_FONT_SIZES[a];
@@ -23483,7 +23485,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
         // Which way the lines run. Automatic and Force RTL both reorder with the bidi algorithm,
         // which is right for a file stored in logical order; "as in the file" suppresses reordering
         // for files stored already reversed. Flipping this re-wraps the cue on screen at once.
-        final int[] directionNames = {R.string.TjSubtitleDirAuto, R.string.TjSubtitleDirRtl, R.string.TjSubtitleDirAsStored};
+        final int[] directionNames = {R.string.TjSubtitleDirAuto, R.string.TjSubtitleDirRtl, R.string.TjSubtitleDirNone};
         for (int a = 0; a < directionNames.length; a++) {
             final int direction = a;
             subtitleSubmenu.addRow(TjLocale.getString(directionNames[a]), TjSettingsActivity.getSubtitleDirection() == direction, () -> {

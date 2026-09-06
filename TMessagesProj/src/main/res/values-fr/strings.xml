@@ -76,5 +76,5 @@
     <string name="TjSubtitleAutoInfo">Choisit une piste de sous-titres dans votre langue si la vidéo en a une, sinon en anglais.</string>
     <string name="TjSubtitleDirAuto">Automatique</string>
     <string name="TjSubtitleDirRtl">Forcer de droite à gauche</string>
-    <string name="TjSubtitleDirAsStored">Tel quel dans le fichier</string>
+    <string name="TjSubtitleDirNone">Sans marques de direction</string>
 </resources>

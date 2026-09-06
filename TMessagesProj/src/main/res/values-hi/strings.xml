@@ -76,5 +76,5 @@
     <string name="TjSubtitleAutoInfo">वीडियो में आपकी भाषा का सबटाइटल ट्रैक होने पर उसे चुनता है, अन्यथा अंग्रेज़ी।</string>
     <string name="TjSubtitleDirAuto">स्वचालित</string>
     <string name="TjSubtitleDirRtl">दाएँ-से-बाएँ बाध्य करें</string>
-    <string name="TjSubtitleDirAsStored">फ़ाइल में जैसा है</string>
+    <string name="TjSubtitleDirNone">दिशा चिह्नों के बिना</string>
 </resources>
