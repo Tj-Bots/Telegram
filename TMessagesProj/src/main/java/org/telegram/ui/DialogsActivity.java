@@ -4029,9 +4029,13 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 } else if (id == pin || id == read || id == delete || id == clear || id == mute || id == archive || id == block || id == archive2 || id == pin2) {
                     performSelectedDialogsAction(selectedDialogs, id, true, false);
                 } else if (id == select_all) {
-                    ArrayList<TLRPC.Dialog> archiveDialogs = getMessagesController().getDialogs(folderId);
-                    for (int a = 0; a < archiveDialogs.size(); a++) {
-                        long did = archiveDialogs.get(a).id;
+                    ArrayList<TLRPC.Dialog> dialogsToSelect = getSelectableDialogs();
+                    for (int a = 0; a < dialogsToSelect.size(); a++) {
+                        TLRPC.Dialog dialog = dialogsToSelect.get(a);
+                        if (dialog instanceof DialogsHeader) {
+                            continue;
+                        }
+                        long did = dialog.id;
                         if (!selectedDialogs.contains(did)) {
                             selectedDialogs.add(did);
                         }
@@ -10125,10 +10129,14 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             }
         }
         if (selectAllItem != null) {
-            ArrayList<TLRPC.Dialog> allDialogsInFolder = getMessagesController().getDialogs(folderId);
+            ArrayList<TLRPC.Dialog> allDialogsInFolder = getSelectableDialogs();
             boolean allSelected = !allDialogsInFolder.isEmpty();
             for (int a = 0; a < allDialogsInFolder.size(); a++) {
-                if (!selectedDialogs.contains(allDialogsInFolder.get(a).id)) {
+                TLRPC.Dialog dialog = allDialogsInFolder.get(a);
+                if (dialog instanceof DialogsHeader) {
+                    continue;
+                }
+                if (!selectedDialogs.contains(dialog.id)) {
                     allSelected = false;
                     break;
                 }
@@ -11144,6 +11152,22 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     private ArrayList<TLRPC.Dialog> botShareDialogs;
 
     @NonNull
+    /**
+     * The chats "select all" should reach: the ones on the folder tab you are actually on.
+     *
+     * folderId is the archive id - 0 for the main list, 1 for Archive - and says nothing about
+     * folder tabs, so reading getDialogs(folderId) here selected every chat you have.
+     * getDialogsArray resolves dialogsType 7/8 to the selected DialogFilter's own list and falls
+     * back to getDialogs(folderId) when no filter is active, which is the behaviour we want on
+     * the All tab and in Archive.
+     */
+    private ArrayList<TLRPC.Dialog> getSelectableDialogs() {
+        if (viewPages == null || viewPages.length == 0 || viewPages[0] == null) {
+            return getMessagesController().getDialogs(folderId);
+        }
+        return getDialogsArray(currentAccount, viewPages[0].dialogsType, folderId, false);
+    }
+
     public ArrayList<TLRPC.Dialog> getDialogsArray(int currentAccount, int dialogsType, int folderId, boolean frozen) {
         if (frozen && frozenDialogsList != null) {
             return frozenDialogsList;

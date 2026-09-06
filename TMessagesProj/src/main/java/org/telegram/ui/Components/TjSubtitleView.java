@@ -19,6 +19,7 @@ import org.telegram.ui.TjSettingsActivity;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * Draws the cues the player hands us.
@@ -48,6 +49,12 @@ public class TjSubtitleView extends View {
     private int layoutStyle = -1;
     /** How far above our bottom edge the block sits; the controls push this up when they show. */
     private int bottomOffset;
+    /**
+     * The video's own view. AspectRatioFrameLayout re-measures itself to the video's aspect ratio,
+     * so its bottom edge is the bottom of the picture rather than of the screen - which is where
+     * subtitles belong, letterboxing and fullscreen alike.
+     */
+    private View videoView;
 
     public TjSubtitleView(Context context) {
         super(context);
@@ -65,7 +72,15 @@ public class TjSubtitleView extends View {
                 if (cue == null || TextUtils.isEmpty(cue.text)) {
                     continue;
                 }
-                next.add(cue.text);
+                // One entry per line the subtitle file itself wrote, so the file's line breaks
+                // are what gets drawn.
+                final String[] lines = SOURCE_LINE.split(clean(cue.text.toString()));
+                for (int b = 0; b < lines.length; b++) {
+                    final String line = lines[b].trim();
+                    if (!line.isEmpty()) {
+                        next.add(line);
+                    }
+                }
             }
         }
         if (next.equals(cueTexts)) {
@@ -79,8 +94,25 @@ public class TjSubtitleView extends View {
         invalidate();
     }
 
+    /** A newline, or the \N and \n that SSA/ASS use for one. */
+    private static final Pattern SOURCE_LINE = Pattern.compile("\r?\n|\\\\[Nn]");
+    /** SSA/ASS override blocks such as {\an8} or {\i1}, and the HTML tags WebVTT allows. */
+    private static final Pattern MARKUP = Pattern.compile("\\{[^}]*\\}|</?[a-zA-Z][^>]*>");
+
+    private static String clean(String text) {
+        return MARKUP.matcher(text).replaceAll("");
+    }
+
     public void clear() {
         setCues(null);
+    }
+
+    /** The view the picture is drawn in; subtitles are anchored to its bottom edge. */
+    public void setVideoView(View view) {
+        if (videoView != view) {
+            videoView = view;
+            invalidate();
+        }
     }
 
     /** Called when the player controls appear or go away, so subtitles are never hidden by them. */
@@ -128,7 +160,13 @@ public class TjSubtitleView extends View {
         if (cueTexts.isEmpty()) {
             return;
         }
-        final int width = getMeasuredWidth() - dp(32);
+        // Wrap to the picture's width, not the window's, so a line only ever breaks where it
+        // would not fit over the video itself.
+        int available = getMeasuredWidth();
+        if (videoView != null && videoView.getVisibility() == VISIBLE && videoView.getWidth() > 0) {
+            available = Math.min(available, videoView.getWidth());
+        }
+        final int width = available - dp(32);
         if (width <= 0) {
             return;
         }
@@ -138,14 +176,23 @@ public class TjSubtitleView extends View {
         for (int a = 0; a < layouts.size(); a++) {
             totalHeight += layouts.get(a).getHeight() + (a > 0 ? dp(2) : 0);
         }
-        float y = getMeasuredHeight() - bottomOffset - dp(8) - totalHeight;
+        // Sit at the bottom of the picture, not the bottom of the screen - but never under the
+        // control bar, which is what bottomOffset lifts us clear of.
+        int baseline = getMeasuredHeight();
+        if (videoView != null && videoView.getVisibility() == VISIBLE && videoView.getHeight() > 0) {
+            baseline = Math.min(baseline, videoView.getBottom());
+            baseline -= (int) (videoView.getHeight() * (TjSettingsActivity.getSubtitlePosition() / 100f));
+        }
+        baseline = Math.min(baseline, getMeasuredHeight() - bottomOffset);
+
+        float y = baseline - dp(8) - totalHeight;
         if (y < 0) {
             y = 0;
         }
         for (int a = 0; a < layouts.size(); a++) {
             final StaticLayout layout = layouts.get(a);
             canvas.save();
-            canvas.translate(dp(16), y);
+            canvas.translate((getMeasuredWidth() - width) / 2f, y);
             if (layoutStyle == TjSettingsActivity.SUBTITLE_STYLE_BOX) {
                 for (int line = 0; line < layout.getLineCount(); line++) {
                     boxRect.set(layout.getLineLeft(line) - dp(6), layout.getLineTop(line),

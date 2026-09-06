@@ -45,6 +45,7 @@ public class TjSettingsActivity extends BaseFragment {
 
     private static final String KEY_SUBTITLE_FONT_SIZE = "subtitle_font_size";
     private static final String KEY_SUBTITLE_STYLE = "subtitle_style";
+    private static final String KEY_SUBTITLE_POSITION = "subtitle_position";
 
     private static final String KEY_FOLDER_TAB_STYLE = "folder_tab_style";
     private static final String KEY_FOLDER_EMOTICON_PREFIX = "folder_emoticon_";
@@ -135,6 +136,17 @@ public class TjSettingsActivity extends BaseFragment {
 
     public static void setSubtitleFontSize(int size) {
         getPrefs().edit().putInt(KEY_SUBTITLE_FONT_SIZE, size).apply();
+    }
+
+    /** How far up from the bottom of the picture subtitles sit, as a percentage of its height. */
+    public static final int SUBTITLE_POSITION_MAX = 20;
+
+    public static int getSubtitlePosition() {
+        return Math.max(0, Math.min(SUBTITLE_POSITION_MAX, getPrefs().getInt(KEY_SUBTITLE_POSITION, 0)));
+    }
+
+    public static void setSubtitlePosition(int percent) {
+        getPrefs().edit().putInt(KEY_SUBTITLE_POSITION, Math.max(0, Math.min(SUBTITLE_POSITION_MAX, percent))).apply();
     }
 
     public static int getSubtitleStyle() {

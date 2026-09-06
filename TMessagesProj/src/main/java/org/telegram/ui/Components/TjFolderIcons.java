@@ -159,8 +159,11 @@ public class TjFolderIcons {
         return getIconSize() + (showsTitle() ? AndroidUtilities.dp(6) : 0);
     }
 
-    /** Tab label: the folder name, or nothing at all in icon-only mode. */
-    public static CharSequence tabTitle(CharSequence name) {
+    /**
+     * Tab label: the folder name, or nothing at all in icon-only mode. Returns a String because
+     * FilterTabsView.Tab.setTitle takes one, and the main tab's title is re-assigned there.
+     */
+    public static String tabTitle(String name) {
         return showsTitle() ? name : "";
     }
 }

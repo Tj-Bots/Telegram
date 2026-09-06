@@ -31,7 +31,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.ChatObject;
 import org.telegram.messenger.Emoji;
+import org.telegram.messenger.TjLocale;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessageObject;
@@ -549,6 +551,58 @@ public class FiltersSetupActivity extends BaseFragment implements NotificationCe
     private int filtersSectionStart = -1, filtersSectionEnd = -1;
     private int folderTagsPosition;
 
+    /**
+     * A "Managing" folder offered alongside Telegram's own suggestions: every group and channel
+     * you administer.
+     *
+     * It is built here rather than fetched, so it goes through the same SuggestedFilterCell and
+     * the same add-button that turns a TL_dialogFilterSuggested into a real folder - no new UI.
+     * Membership is ChatObject.hasAdminRights, which is creator plus any admin right;
+     * dialogsMyGroups / dialogsMyChannels look similar but are built from narrower right
+     * combinations in MessagesController and would miss some admin roles.
+     *
+     * Returns null when there is nothing to manage, or when a folder by this name already exists.
+     */
+    private TLRPC.TL_dialogFilterSuggested buildManagingSuggestion() {
+        final String title = TjLocale.getString(R.string.TjFolderManaging);
+        final ArrayList<MessagesController.DialogFilter> existing = getMessagesController().getDialogFilters();
+        for (int i = 0; i < existing.size(); ++i) {
+            if (title.equals(existing.get(i).name)) {
+                return null;
+            }
+        }
+
+        final ArrayList<TLRPC.InputPeer> peers = new ArrayList<>();
+        final ArrayList<TLRPC.Dialog> dialogs = getMessagesController().getDialogs(0);
+        for (int i = 0; i < dialogs.size(); ++i) {
+            final TLRPC.Dialog dialog = dialogs.get(i);
+            if (dialog == null || dialog instanceof DialogsActivity.DialogsHeader || dialog.id >= 0) {
+                continue;
+            }
+            final TLRPC.Chat chat = getMessagesController().getChat(-dialog.id);
+            if (!ChatObject.hasAdminRights(chat)) {
+                continue;
+            }
+            final TLRPC.InputPeer peer = getMessagesController().getInputPeer(dialog.id);
+            if (peer != null) {
+                peers.add(peer);
+            }
+        }
+        if (peers.isEmpty()) {
+            return null;
+        }
+
+        final TLRPC.TL_dialogFilter filter = new TLRPC.TL_dialogFilter();
+        filter.title = new TLRPC.TL_textWithEntities();
+        filter.title.text = title;
+        filter.include_peers.addAll(peers);
+
+        final TLRPC.TL_dialogFilterSuggested suggested = new TLRPC.TL_dialogFilterSuggested();
+        suggested.filter = filter;
+        suggested.description = LocaleController.formatPluralString("Chats", peers.size());
+        return suggested;
+    }
+
     private void updateRows(boolean animated) {
         showTagsRow = -1;
 
@@ -566,10 +620,14 @@ public class FiltersSetupActivity extends BaseFragment implements NotificationCe
 
         ArrayList<TLRPC.TL_dialogFilterSuggested> suggestedFilters = getMessagesController().suggestedFilters;
         ArrayList<MessagesController.DialogFilter> dialogFilters = getMessagesController().getDialogFilters();
+        final TLRPC.TL_dialogFilterSuggested managingFilter = buildManagingSuggestion();
         items.add(ItemInner.asHint());
-        if (!suggestedFilters.isEmpty() && dialogFilters.size() < 10) {
+        if ((!suggestedFilters.isEmpty() || managingFilter != null) && dialogFilters.size() < 10) {
             int start = items.size();
             items.add(ItemInner.asHeader(LocaleController.getString(R.string.FilterRecommended)));
+            if (managingFilter != null) {
+                items.add(ItemInner.asSuggested(managingFilter));
+            }
             for (int i = 0; i < suggestedFilters.size(); ++i) {
                 items.add(ItemInner.asSuggested(suggestedFilters.get(i)));
             }

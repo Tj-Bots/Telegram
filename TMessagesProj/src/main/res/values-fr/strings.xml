@@ -70,4 +70,6 @@
     <string name="TjSubtitleStyleOutline">Contour</string>
     <string name="TjSubtitleStyleShadow">Ombre</string>
     <string name="TjSubtitleStyleBox">Fond coloré</string>
+    <string name="TjSubtitlePosition">Position</string>
+    <string name="TjFolderManaging">Gestion</string>
 </resources>

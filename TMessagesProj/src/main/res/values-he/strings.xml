@@ -70,4 +70,6 @@
     <string name="TjSubtitleStyleOutline">מסגרת</string>
     <string name="TjSubtitleStyleShadow">צל</string>
     <string name="TjSubtitleStyleBox">רקע מלא</string>
+    <string name="TjSubtitlePosition">מיקום</string>
+    <string name="TjFolderManaging">ניהול</string>
 </resources>

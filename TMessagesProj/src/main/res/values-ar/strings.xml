@@ -1313,4 +1313,6 @@
     <string name="TjSubtitleStyleOutline">إطار</string>
     <string name="TjSubtitleStyleShadow">ظل</string>
     <string name="TjSubtitleStyleBox">خلفية ملونة</string>
+    <string name="TjSubtitlePosition">الموضع</string>
+    <string name="TjFolderManaging">الإدارة</string>
 </resources>

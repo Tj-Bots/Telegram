@@ -745,7 +745,13 @@ public class VideoPlayer implements Player.Listener, VideoListener, AnalyticsLis
             builder.setTrackTypeDisabled(trackType, track == null);
             if (track != null && info != null) {
                 final TrackGroup group = info.getTrackGroups(track.rendererIndex).get(track.groupIndex);
-                builder.addOverride(new TrackSelectionOverride(group, track.trackIndex));
+                // setOverrideForType, not addOverride: addOverride only replaces the override for
+                // the *same* TrackGroup, and each audio or subtitle track is normally its own
+                // group - so the second pick left the first override in place and the selector
+                // kept honouring it. That is why choosing a language worked exactly once.
+                builder.setOverrideForType(new TrackSelectionOverride(group, track.trackIndex));
+            } else {
+                builder.clearOverridesOfType(trackType);
             }
             trackSelector.setParameters(builder.build());
         } catch (Exception e) {
@@ -778,6 +784,13 @@ public class VideoPlayer implements Player.Listener, VideoListener, AnalyticsLis
         if (subtitleListener != null) {
             subtitleListener.onSubtitleCues(cueGroup == null ? Collections.emptyList() : cueGroup.cues);
         }
+    }
+
+    private Runnable tracksChangedListener;
+
+    /** Fires when the player knows what the current file carries - see onTracksChanged. */
+    public void setTracksChangedListener(Runnable listener) {
+        tracksChangedListener = listener;
     }
 
     private TrackSelectionOverride getQualityTrackSelection(VideoUri videoUri) {
@@ -2113,6 +2126,9 @@ public class VideoPlayer implements Player.Listener, VideoListener, AnalyticsLis
         Player.Listener.super.onTracksChanged(tracks);
         if (onQualityChangeListener != null) {
             AndroidUtilities.runOnUIThread(onQualityChangeListener);
+        }
+        if (tracksChangedListener != null) {
+            AndroidUtilities.runOnUIThread(tracksChangedListener);
         }
     }
 

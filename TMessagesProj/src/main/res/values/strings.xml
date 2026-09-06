@@ -11294,4 +11294,6 @@
     <string name="TjSubtitleStyleOutline">Outline</string>
     <string name="TjSubtitleStyleShadow">Shadow</string>
     <string name="TjSubtitleStyleBox">Background box</string>
+    <string name="TjSubtitlePosition">Position</string>
+    <string name="TjFolderManaging">Managing</string>
 </resources>

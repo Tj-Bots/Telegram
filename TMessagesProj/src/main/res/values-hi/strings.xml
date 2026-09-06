@@ -70,4 +70,6 @@
     <string name="TjSubtitleStyleOutline">आउटलाइन</string>
     <string name="TjSubtitleStyleShadow">छाया</string>
     <string name="TjSubtitleStyleBox">पृष्ठभूमि बॉक्स</string>
+    <string name="TjSubtitlePosition">स्थिति</string>
+    <string name="TjFolderManaging">प्रबंधन</string>
 </resources>

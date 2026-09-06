@@ -50,6 +50,7 @@ public class TjLocale {
         m.put("TjFilterMembers", "\u05e1\u05d9\u05e0\u05d5\u05df \u05d7\u05d1\u05e8\u05d9\u05dd");
         m.put("TjFilterMembersOnly", "\u05d7\u05d1\u05e8\u05d9\u05dd \u05d1\u05dc\u05d1\u05d3");
         m.put("TjFolderIcon", "\u05e1\u05de\u05dc \u05d4\u05ea\u05d9\u05e7\u05d9\u05d9\u05d4");
+        m.put("TjFolderManaging", "\u05e0\u05d9\u05d4\u05d5\u05dc");
         m.put("TjFolderTabIconAndName", "\u05e1\u05de\u05dc \u05d5\u05e9\u05dd");
         m.put("TjFolderTabIconOnly", "\u05e1\u05de\u05dc \u05d1\u05dc\u05d1\u05d3");
         m.put("TjFolderTabNameOnly", "\u05e9\u05dd \u05d1\u05dc\u05d1\u05d3");
@@ -84,6 +85,7 @@ public class TjLocale {
         m.put("TjShowCallButtonInfo", "\u05db\u05d1\u05e8\u05d9\u05e8\u05ea \u05de\u05d7\u05d3\u05dc \u05de\u05d5\u05e6\u05d2 \u05e1\u05de\u05dc \u05d7\u05d9\u05e4\u05d5\u05e9 \u05d1\u05de\u05e7\u05d5\u05dd \u05e1\u05de\u05dc \u05d4\u05e9\u05d9\u05d7\u05d4 \u05d1\u05e6\u05f3\u05d0\u05d8\u05d9\u05dd \u05e4\u05e8\u05d8\u05d9\u05d9\u05dd.");
         m.put("TjShowPinnedMessage", "\u05d4\u05e6\u05d2 \u05d4\u05d5\u05d3\u05e2\u05d4 \u05de\u05d5\u05e6\u05de\u05d3\u05ea");
         m.put("TjSubtitleFontSize", "\u05d2\u05d5\u05d3\u05dc \u05d2\u05d5\u05e4\u05df");
+        m.put("TjSubtitlePosition", "\u05de\u05d9\u05e7\u05d5\u05dd");
         m.put("TjSubtitleSettings", "\u05d4\u05d2\u05d3\u05e8\u05d5\u05ea \u05db\u05ea\u05d5\u05d1\u05d9\u05d5\u05ea");
         m.put("TjSubtitleSizeHuge", "\u05d2\u05d3\u05d5\u05dc \u05de\u05d0\u05d5\u05d3");
         m.put("TjSubtitleSizeLarge", "\u05d2\u05d3\u05d5\u05dc");
@@ -123,6 +125,7 @@ public class TjLocale {
         m.put("TjFilterMembers", "\u062a\u0635\u0641\u064a\u0629 \u0627\u0644\u0623\u0639\u0636\u0627\u0621");
         m.put("TjFilterMembersOnly", "\u0627\u0644\u0623\u0639\u0636\u0627\u0621 \u0641\u0642\u0637");
         m.put("TjFolderIcon", "\u0623\u064a\u0642\u0648\u0646\u0629 \u0627\u0644\u0645\u062c\u0644\u062f");
+        m.put("TjFolderManaging", "\u0627\u0644\u0625\u062f\u0627\u0631\u0629");
         m.put("TjFolderTabIconAndName", "\u0623\u064a\u0642\u0648\u0646\u0629 \u0648\u0627\u0633\u0645");
         m.put("TjFolderTabIconOnly", "\u0623\u064a\u0642\u0648\u0646\u0629 \u0641\u0642\u0637");
         m.put("TjFolderTabNameOnly", "\u0627\u0633\u0645 \u0641\u0642\u0637");
@@ -157,6 +160,7 @@ public class TjLocale {
         m.put("TjShowCallButtonInfo", "\u0627\u0641\u062a\u0631\u0627\u0636\u064a\u064b\u0627 \u064a\u0638\u0647\u0631 \u0631\u0645\u0632 \u0627\u0644\u0628\u062d\u062b \u0628\u062f\u0644\u0627\u064b \u0645\u0646 \u0631\u0645\u0632 \u0627\u0644\u0627\u062a\u0635\u0627\u0644 \u0641\u064a \u0627\u0644\u0645\u062d\u0627\u062f\u062b\u0627\u062a \u0627\u0644\u062e\u0627\u0635\u0629.");
         m.put("TjShowPinnedMessage", "\u0625\u0638\u0647\u0627\u0631 \u0627\u0644\u0631\u0633\u0627\u0644\u0629 \u0627\u0644\u0645\u062b\u0628\u062a\u0629");
         m.put("TjSubtitleFontSize", "\u062d\u062c\u0645 \u0627\u0644\u062e\u0637");
+        m.put("TjSubtitlePosition", "\u0627\u0644\u0645\u0648\u0636\u0639");
         m.put("TjSubtitleSettings", "\u0625\u0639\u062f\u0627\u062f\u0627\u062a \u0627\u0644\u062a\u0631\u062c\u0645\u0629");
         m.put("TjSubtitleSizeHuge", "\u0643\u0628\u064a\u0631 \u062c\u062f\u064b\u0627");
         m.put("TjSubtitleSizeLarge", "\u0643\u0628\u064a\u0631");
@@ -196,6 +200,7 @@ public class TjLocale {
         m.put("TjFilterMembers", "\u0424\u0438\u043b\u044c\u0442\u0440 \u0443\u0447\u0430\u0441\u0442\u043d\u0438\u043a\u043e\u0432");
         m.put("TjFilterMembersOnly", "\u0422\u043e\u043b\u044c\u043a\u043e \u0443\u0447\u0430\u0441\u0442\u043d\u0438\u043a\u0438");
         m.put("TjFolderIcon", "\u0417\u043d\u0430\u0447\u043e\u043a \u043f\u0430\u043f\u043a\u0438");
+        m.put("TjFolderManaging", "\u0423\u043f\u0440\u0430\u0432\u043b\u0435\u043d\u0438\u0435");
         m.put("TjFolderTabIconAndName", "\u0417\u043d\u0430\u0447\u043e\u043a \u0438 \u043d\u0430\u0437\u0432\u0430\u043d\u0438\u0435");
         m.put("TjFolderTabIconOnly", "\u0422\u043e\u043b\u044c\u043a\u043e \u0437\u043d\u0430\u0447\u043e\u043a");
         m.put("TjFolderTabNameOnly", "\u0422\u043e\u043b\u044c\u043a\u043e \u043d\u0430\u0437\u0432\u0430\u043d\u0438\u0435");
@@ -230,6 +235,7 @@ public class TjLocale {
         m.put("TjShowCallButtonInfo", "\u041f\u043e \u0443\u043c\u043e\u043b\u0447\u0430\u043d\u0438\u044e \u0432 \u043b\u0438\u0447\u043d\u044b\u0445 \u0447\u0430\u0442\u0430\u0445 \u043f\u043e\u043a\u0430\u0437\u044b\u0432\u0430\u0435\u0442\u0441\u044f \u0437\u043d\u0430\u0447\u043e\u043a \u043f\u043e\u0438\u0441\u043a\u0430 \u0432\u043c\u0435\u0441\u0442\u043e \u0437\u043d\u0430\u0447\u043a\u0430 \u0437\u0432\u043e\u043d\u043a\u0430.");
         m.put("TjShowPinnedMessage", "\u041f\u043e\u043a\u0430\u0437\u0430\u0442\u044c \u0437\u0430\u043a\u0440\u0435\u043f\u043b\u0451\u043d\u043d\u043e\u0435 \u0441\u043e\u043e\u0431\u0449\u0435\u043d\u0438\u0435");
         m.put("TjSubtitleFontSize", "\u0420\u0430\u0437\u043c\u0435\u0440 \u0448\u0440\u0438\u0444\u0442\u0430");
+        m.put("TjSubtitlePosition", "\u041f\u043e\u043b\u043e\u0436\u0435\u043d\u0438\u0435");
         m.put("TjSubtitleSettings", "\u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438 \u0441\u0443\u0431\u0442\u0438\u0442\u0440\u043e\u0432");
         m.put("TjSubtitleSizeHuge", "\u041e\u0447\u0435\u043d\u044c \u0431\u043e\u043b\u044c\u0448\u043e\u0439");
         m.put("TjSubtitleSizeLarge", "\u0411\u043e\u043b\u044c\u0448\u043e\u0439");
@@ -269,6 +275,7 @@ public class TjLocale {
         m.put("TjFilterMembers", "Filtrer les membres");
         m.put("TjFilterMembersOnly", "Membres uniquement");
         m.put("TjFolderIcon", "Ic\u00f4ne du dossier");
+        m.put("TjFolderManaging", "Gestion");
         m.put("TjFolderTabIconAndName", "Ic\u00f4ne et nom");
         m.put("TjFolderTabIconOnly", "Ic\u00f4ne seule");
         m.put("TjFolderTabNameOnly", "Nom seul");
@@ -303,6 +310,7 @@ public class TjLocale {
         m.put("TjShowCallButtonInfo", "Par d\u00e9faut, l'ic\u00f4ne de recherche remplace l'ic\u00f4ne d'appel dans les discussions priv\u00e9es.");
         m.put("TjShowPinnedMessage", "Afficher le message \u00e9pingl\u00e9");
         m.put("TjSubtitleFontSize", "Taille du texte");
+        m.put("TjSubtitlePosition", "Position");
         m.put("TjSubtitleSettings", "R\u00e9glages des sous-titres");
         m.put("TjSubtitleSizeHuge", "Tr\u00e8s grande");
         m.put("TjSubtitleSizeLarge", "Grande");
@@ -342,6 +350,7 @@ public class TjLocale {
         m.put("TjFilterMembers", "\u7b5b\u9009\u6210\u5458");
         m.put("TjFilterMembersOnly", "\u4ec5\u6210\u5458");
         m.put("TjFolderIcon", "\u6587\u4ef6\u5939\u56fe\u6807");
+        m.put("TjFolderManaging", "\u7ba1\u7406");
         m.put("TjFolderTabIconAndName", "\u56fe\u6807\u548c\u540d\u79f0");
         m.put("TjFolderTabIconOnly", "\u4ec5\u56fe\u6807");
         m.put("TjFolderTabNameOnly", "\u4ec5\u540d\u79f0");
@@ -376,6 +385,7 @@ public class TjLocale {
         m.put("TjShowCallButtonInfo", "\u9ed8\u8ba4\u5728\u79c1\u804a\u4e2d\u663e\u793a\u641c\u7d22\u56fe\u6807\u800c\u975e\u901a\u8bdd\u56fe\u6807\u3002");
         m.put("TjShowPinnedMessage", "\u663e\u793a\u7f6e\u9876\u6d88\u606f");
         m.put("TjSubtitleFontSize", "\u5b57\u4f53\u5927\u5c0f");
+        m.put("TjSubtitlePosition", "\u4f4d\u7f6e");
         m.put("TjSubtitleSettings", "\u5b57\u5e55\u8bbe\u7f6e");
         m.put("TjSubtitleSizeHuge", "\u7279\u5927");
         m.put("TjSubtitleSizeLarge", "\u5927");
@@ -415,6 +425,7 @@ public class TjLocale {
         m.put("TjFilterMembers", "\u0938\u0926\u0938\u094d\u092f \u092b\u093c\u093f\u0932\u094d\u091f\u0930 \u0915\u0930\u0947\u0902");
         m.put("TjFilterMembersOnly", "\u0915\u0947\u0935\u0932 \u0938\u0926\u0938\u094d\u092f");
         m.put("TjFolderIcon", "\u092b\u093c\u094b\u0932\u094d\u0921\u0930 \u0906\u0907\u0915\u0928");
+        m.put("TjFolderManaging", "\u092a\u094d\u0930\u092c\u0902\u0927\u0928");
         m.put("TjFolderTabIconAndName", "\u0906\u0907\u0915\u0928 \u0914\u0930 \u0928\u093e\u092e");
         m.put("TjFolderTabIconOnly", "\u0915\u0947\u0935\u0932 \u0906\u0907\u0915\u0928");
         m.put("TjFolderTabNameOnly", "\u0915\u0947\u0935\u0932 \u0928\u093e\u092e");
@@ -449,6 +460,7 @@ public class TjLocale {
         m.put("TjShowCallButtonInfo", "\u0921\u093f\u092b\u093c\u0949\u0932\u094d\u091f \u0930\u0942\u092a \u0938\u0947 \u0928\u093f\u091c\u0940 \u091a\u0948\u091f \u092e\u0947\u0902 \u0915\u0949\u0932 \u0906\u0907\u0915\u0928 \u0915\u0947 \u092c\u091c\u093e\u092f \u0916\u094b\u091c \u0906\u0907\u0915\u0928 \u0926\u093f\u0916\u0924\u093e \u0939\u0948\u0964");
         m.put("TjShowPinnedMessage", "\u092a\u093f\u0928 \u0915\u093f\u092f\u093e \u0938\u0902\u0926\u0947\u0936 \u0926\u093f\u0916\u093e\u090f\u0901");
         m.put("TjSubtitleFontSize", "\u092b\u093c\u0949\u0928\u094d\u091f \u0906\u0915\u093e\u0930");
+        m.put("TjSubtitlePosition", "\u0938\u094d\u0925\u093f\u0924\u093f");
         m.put("TjSubtitleSettings", "\u0938\u092c\u091f\u093e\u0907\u091f\u0932 \u0938\u0947\u091f\u093f\u0902\u0917\u094d\u0938");
         m.put("TjSubtitleSizeHuge", "\u092c\u0939\u0941\u0924 \u092c\u0921\u093c\u093e");
         m.put("TjSubtitleSizeLarge", "\u092c\u0921\u093c\u093e");

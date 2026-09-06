@@ -70,4 +70,6 @@
     <string name="TjSubtitleStyleOutline">描边</string>
     <string name="TjSubtitleStyleShadow">阴影</string>
     <string name="TjSubtitleStyleBox">背景色块</string>
+    <string name="TjSubtitlePosition">位置</string>
+    <string name="TjFolderManaging">管理</string>
 </resources>

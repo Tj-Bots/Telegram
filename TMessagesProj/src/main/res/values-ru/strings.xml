@@ -333,4 +333,6 @@
     <string name="TjSubtitleStyleOutline">Обводка</string>
     <string name="TjSubtitleStyleShadow">Тень</string>
     <string name="TjSubtitleStyleBox">Фон</string>
+    <string name="TjSubtitlePosition">Положение</string>
+    <string name="TjFolderManaging">Управление</string>
 </resources>
