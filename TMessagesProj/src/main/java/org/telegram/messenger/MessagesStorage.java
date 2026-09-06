@@ -50,6 +50,7 @@ import org.telegram.tgnet.tl.TL_update;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Adapters.DialogsSearchAdapter;
 import org.telegram.ui.ChatActivity;
+import org.telegram.ui.TjSettingsActivity;
 import org.telegram.ui.Components.Forum.ForumUtilities;
 import org.telegram.ui.Components.Reactions.ReactionsLayoutInBubble;
 import org.telegram.ui.Components.Reactions.ReactionsUtils;
@@ -386,6 +387,11 @@ public class MessagesStorage extends BaseController {
                 }
             }
             databaseCreated = true;
+            // Idempotent, run on every open (fresh install or existing) rather than threaded
+            // through the versioned migration path - this table is fork-only and never
+            // conflicts with anything upstream migrations touch.
+            database.executeFast("CREATE TABLE IF NOT EXISTS tj_deleted_messages(uid INTEGER, mid INTEGER, date INTEGER, data BLOB, PRIMARY KEY(uid, mid))").stepThis().dispose();
+            database.executeFast("CREATE TABLE IF NOT EXISTS tj_message_edits(uid INTEGER, mid INTEGER, edit_date INTEGER, data BLOB, PRIMARY KEY(uid, mid, edit_date))").stepThis().dispose();
         } catch (Exception e) {
             FileLog.e(e);
             if (openTries < 3 && e.getMessage() != null && e.getMessage().contains("malformed")) {
@@ -14596,6 +14602,7 @@ public class MessagesStorage extends BaseController {
                 ArrayList<Pair<Long, Integer>> idsToDelete = new ArrayList<>();
                 ArrayList<TopicsController.TopicUpdate> topicUpdatesInUi = null;
                 ArrayList<TLRPC.Message> deletedMessages = currentUser == dialogId || dialogId == 0 ? new ArrayList<>() : null;
+                LongSparseArray<ArrayList<TLRPC.Message>> tjKeptByDialog = TjSettingsActivity.isDeletedMessagesEnabled() ? new LongSparseArray<>() : null;
 
                 if (dialogId != 0) {
                     cursor = database.queryFinalized(String.format(Locale.US, "SELECT uid, data, read_state, out, mention, mid FROM messages_v2 WHERE mid IN(%s) AND uid = %d", ids, dialogId));
@@ -14640,6 +14647,15 @@ public class MessagesStorage extends BaseController {
                             if (deletedMessages != null) {
                                 deletedMessages.add(message);
                             }
+                            if (tjKeptByDialog != null && !DialogObject.isEncryptedDialog(did) && !(message instanceof TLRPC.TL_messageService)) {
+                                // Secret chats stay out of this on purpose - they're deleted for good by design.
+                                ArrayList<TLRPC.Message> kept = tjKeptByDialog.get(did);
+                                if (kept == null) {
+                                    kept = new ArrayList<>();
+                                    tjKeptByDialog.put(did, kept);
+                                }
+                                kept.add(message);
+                            }
                             data.reuse();
                             if (DialogObject.isEncryptedDialog(did) || deleteFiles) {
                                 addFilesToDelete(message, filesToDelete, idsToDelete, namesToDelete, false);
@@ -14663,6 +14679,10 @@ public class MessagesStorage extends BaseController {
                 }
                 cursor.dispose();
                 cursor = null;
+
+                if (tjKeptByDialog != null && tjKeptByDialog.size() > 0) {
+                    saveTjDeletedMessages(tjKeptByDialog);
+                }
 
                 ArrayList<TopicKey> topicsToDelete = null;
 
@@ -15090,6 +15110,303 @@ public class MessagesStorage extends BaseController {
             }
         }
         return null;
+    }
+
+    // === Deleted/edited message retention (TJ) ===
+    // Local-only copies of messages the server told us to delete, and of messages before an
+    // edit overwrote them. Nothing here ever leaves the device or gets uploaded anywhere -
+    // it's purely for the local "deleted & edited messages" review screen.
+
+    private void saveTjDeletedMessages(LongSparseArray<ArrayList<TLRPC.Message>> byDialog) {
+        SQLitePreparedStatement state = null;
+        try {
+            database.beginTransaction();
+            state = database.executeFast("REPLACE INTO tj_deleted_messages VALUES(?, ?, ?, ?)");
+            int nowDate = getConnectionsManager().getCurrentTime();
+            for (int a = 0; a < byDialog.size(); a++) {
+                long did = byDialog.keyAt(a);
+                ArrayList<TLRPC.Message> messages = byDialog.valueAt(a);
+                for (int b = 0, N = messages.size(); b < N; b++) {
+                    TLRPC.Message message = messages.get(b);
+                    NativeByteBuffer data = new NativeByteBuffer(message.getObjectSize());
+                    message.serializeToStream(data);
+                    state.requery();
+                    state.bindLong(1, did);
+                    state.bindInteger(2, message.id);
+                    state.bindInteger(3, nowDate);
+                    state.bindByteBuffer(4, data);
+                    state.step();
+                    data.reuse();
+                }
+            }
+            state.dispose();
+            state = null;
+            database.commitTransaction();
+            pruneTjRetainedMessages();
+        } catch (Exception e) {
+            checkSQLException(e);
+        } finally {
+            if (state != null) {
+                state.dispose();
+            }
+        }
+    }
+
+    /** Called with the pre-edit copy of a message, right before an incoming edit overwrites it. */
+    public void saveTjMessageEdit(long dialogId, TLRPC.Message oldMessage) {
+        if (!TjSettingsActivity.isDeletedMessagesEnabled() || DialogObject.isEncryptedDialog(dialogId) || oldMessage == null) {
+            return;
+        }
+        storageQueue.postRunnable(() -> {
+            SQLitePreparedStatement state = null;
+            try {
+                NativeByteBuffer data = new NativeByteBuffer(oldMessage.getObjectSize());
+                oldMessage.serializeToStream(data);
+                state = database.executeFast("REPLACE INTO tj_message_edits VALUES(?, ?, ?, ?)");
+                state.requery();
+                state.bindLong(1, dialogId);
+                state.bindInteger(2, oldMessage.id);
+                state.bindInteger(3, oldMessage.edit_date != 0 ? oldMessage.edit_date : getConnectionsManager().getCurrentTime());
+                state.bindByteBuffer(4, data);
+                state.step();
+                data.reuse();
+                state.dispose();
+                state = null;
+                pruneTjRetainedMessages();
+            } catch (Exception e) {
+                checkSQLException(e);
+            } finally {
+                if (state != null) {
+                    state.dispose();
+                }
+            }
+        });
+    }
+
+    /** Total bytes both retention tables are using, in blob size - the size shown in settings. */
+    public long getTjRetainedMessagesSize() {
+        long size = 0;
+        SQLiteCursor cursor = null;
+        try {
+            cursor = database.queryFinalized("SELECT SUM(LENGTH(data)) FROM tj_deleted_messages");
+            if (cursor.next() && !cursor.isNull(0)) {
+                size += cursor.longValue(0);
+            }
+            cursor.dispose();
+            cursor = database.queryFinalized("SELECT SUM(LENGTH(data)) FROM tj_message_edits");
+            if (cursor.next() && !cursor.isNull(0)) {
+                size += cursor.longValue(0);
+            }
+            cursor.dispose();
+            cursor = null;
+        } catch (Exception e) {
+            checkSQLException(e);
+        } finally {
+            if (cursor != null) {
+                cursor.dispose();
+            }
+        }
+        return size;
+    }
+
+    /** Deletes oldest rows first, across both tables, until under the configured cap. */
+    private void pruneTjRetainedMessages() {
+        long capBytes = TjSettingsActivity.getDeletedMessagesStorageCapGb() * 1024L * 1024L * 1024L;
+        SQLiteCursor cursor = null;
+        try {
+            while (getTjRetainedMessagesSize() > capBytes) {
+                boolean deletedAny = false;
+                cursor = database.queryFinalized("SELECT uid, mid, date FROM tj_deleted_messages ORDER BY date ASC LIMIT 1");
+                if (cursor.next()) {
+                    long uid = cursor.longValue(0);
+                    int mid = cursor.intValue(1);
+                    cursor.dispose();
+                    cursor = null;
+                    database.executeFast(String.format(Locale.US, "DELETE FROM tj_deleted_messages WHERE uid = %d AND mid = %d", uid, mid)).stepThis().dispose();
+                    deletedAny = true;
+                } else {
+                    cursor.dispose();
+                    cursor = null;
+                }
+                cursor = database.queryFinalized("SELECT uid, mid, edit_date FROM tj_message_edits ORDER BY edit_date ASC LIMIT 1");
+                if (cursor.next()) {
+                    long uid = cursor.longValue(0);
+                    int mid = cursor.intValue(1);
+                    int editDate = cursor.intValue(2);
+                    cursor.dispose();
+                    cursor = null;
+                    database.executeFast(String.format(Locale.US, "DELETE FROM tj_message_edits WHERE uid = %d AND mid = %d AND edit_date = %d", uid, mid, editDate)).stepThis().dispose();
+                    deletedAny = true;
+                } else {
+                    cursor.dispose();
+                    cursor = null;
+                }
+                if (!deletedAny) {
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            checkSQLException(e);
+        } finally {
+            if (cursor != null) {
+                cursor.dispose();
+            }
+        }
+    }
+
+    /** Async wrapper for getTjRetainedMessagesSize(), for screens that can't block on the storage queue. */
+    public void getTjRetainedMessagesSizeAsync(Utilities.Callback<Long> callback) {
+        storageQueue.postRunnable(() -> {
+            long size = getTjRetainedMessagesSize();
+            AndroidUtilities.runOnUIThread(() -> callback.run(size));
+        });
+    }
+
+    /** Wipes both retention tables completely; reports the bytes freed back on the UI thread. */
+    public void clearTjRetainedMessages(Utilities.Callback<Long> callback) {
+        storageQueue.postRunnable(() -> {
+            long freed = getTjRetainedMessagesSize();
+            try {
+                database.executeFast("DELETE FROM tj_deleted_messages").stepThis().dispose();
+                database.executeFast("DELETE FROM tj_message_edits").stepThis().dispose();
+            } catch (Exception e) {
+                checkSQLException(e);
+            }
+            AndroidUtilities.runOnUIThread(() -> callback.run(freed));
+        });
+    }
+
+    /** Distinct dialog ids that currently have at least one retained deleted message. */
+    public void getTjDeletedMessageDialogs(Utilities.Callback<ArrayList<Long>> callback) {
+        storageQueue.postRunnable(() -> {
+            ArrayList<Long> dialogIds = new ArrayList<>();
+            SQLiteCursor cursor = null;
+            try {
+                cursor = database.queryFinalized("SELECT DISTINCT uid FROM tj_deleted_messages ORDER BY uid");
+                while (cursor.next()) {
+                    dialogIds.add(cursor.longValue(0));
+                }
+            } catch (Exception e) {
+                checkSQLException(e);
+            } finally {
+                if (cursor != null) {
+                    cursor.dispose();
+                }
+            }
+            AndroidUtilities.runOnUIThread(() -> callback.run(dialogIds));
+        });
+    }
+
+    /** Retained deleted messages for one dialog, newest first. */
+    public void getTjDeletedMessages(long dialogId, Utilities.Callback<ArrayList<MessageObject>> callback) {
+        storageQueue.postRunnable(() -> {
+            ArrayList<MessageObject> result = new ArrayList<>();
+            SQLiteCursor cursor = null;
+            try {
+                cursor = database.queryFinalized(String.format(Locale.US, "SELECT data, date FROM tj_deleted_messages WHERE uid = %d ORDER BY date DESC", dialogId));
+                while (cursor.next()) {
+                    NativeByteBuffer data = cursor.byteBufferValue(0);
+                    if (data != null) {
+                        TLRPC.Message message = TLRPC.Message.TLdeserialize(data, data.readInt32(false), false);
+                        data.reuse();
+                        if (message != null) {
+                            result.add(new MessageObject(currentAccount, message, false, false));
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                checkSQLException(e);
+            } finally {
+                if (cursor != null) {
+                    cursor.dispose();
+                }
+            }
+            AndroidUtilities.runOnUIThread(() -> callback.run(result));
+        });
+    }
+
+    /** Every retained pre-edit message across every dialog, newest first - for the flat browser list. */
+    public void getTjAllMessageEdits(Utilities.Callback<ArrayList<MessageObject>> callback) {
+        storageQueue.postRunnable(() -> {
+            ArrayList<MessageObject> result = new ArrayList<>();
+            SQLiteCursor cursor = null;
+            try {
+                cursor = database.queryFinalized("SELECT data FROM tj_message_edits ORDER BY edit_date DESC");
+                while (cursor.next()) {
+                    NativeByteBuffer data = cursor.byteBufferValue(0);
+                    if (data != null) {
+                        TLRPC.Message message = TLRPC.Message.TLdeserialize(data, data.readInt32(false), false);
+                        data.reuse();
+                        if (message != null) {
+                            result.add(new MessageObject(currentAccount, message, false, false));
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                checkSQLException(e);
+            } finally {
+                if (cursor != null) {
+                    cursor.dispose();
+                }
+            }
+            AndroidUtilities.runOnUIThread(() -> callback.run(result));
+        });
+    }
+
+    /** Every retained deleted message across every dialog, newest first - for the flat browser list. */
+    public void getTjAllDeletedMessages(Utilities.Callback<ArrayList<MessageObject>> callback) {
+        storageQueue.postRunnable(() -> {
+            ArrayList<MessageObject> result = new ArrayList<>();
+            SQLiteCursor cursor = null;
+            try {
+                cursor = database.queryFinalized("SELECT data FROM tj_deleted_messages ORDER BY date DESC");
+                while (cursor.next()) {
+                    NativeByteBuffer data = cursor.byteBufferValue(0);
+                    if (data != null) {
+                        TLRPC.Message message = TLRPC.Message.TLdeserialize(data, data.readInt32(false), false);
+                        data.reuse();
+                        if (message != null) {
+                            result.add(new MessageObject(currentAccount, message, false, false));
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                checkSQLException(e);
+            } finally {
+                if (cursor != null) {
+                    cursor.dispose();
+                }
+            }
+            AndroidUtilities.runOnUIThread(() -> callback.run(result));
+        });
+    }
+
+    /** A message's retained edit history, oldest first. */
+    public void getTjMessageEdits(long dialogId, int mid, Utilities.Callback<ArrayList<MessageObject>> callback) {
+        storageQueue.postRunnable(() -> {
+            ArrayList<MessageObject> result = new ArrayList<>();
+            SQLiteCursor cursor = null;
+            try {
+                cursor = database.queryFinalized(String.format(Locale.US, "SELECT data FROM tj_message_edits WHERE uid = %d AND mid = %d ORDER BY edit_date ASC", dialogId, mid));
+                while (cursor.next()) {
+                    NativeByteBuffer data = cursor.byteBufferValue(0);
+                    if (data != null) {
+                        TLRPC.Message message = TLRPC.Message.TLdeserialize(data, data.readInt32(false), false);
+                        data.reuse();
+                        if (message != null) {
+                            result.add(new MessageObject(currentAccount, message, false, false));
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                checkSQLException(e);
+            } finally {
+                if (cursor != null) {
+                    cursor.dispose();
+                }
+            }
+            AndroidUtilities.runOnUIThread(() -> callback.run(result));
+        });
     }
 
     private void updateDialogsWithDeletedMessagesInternal(long originalDialogId, long channelId, ArrayList<Integer> messages, ArrayList<Long> additionalDialogsToUpdate) {
@@ -16279,6 +16596,11 @@ public class MessagesStorage extends BaseController {
                                     TLRPC.Message oldMessage = TLRPC.Message.TLdeserialize(data, data.readInt32(false), false);
                                     oldMessage.readAttachPath(data, getUserConfig().clientUserId);
                                     data.reuse();
+                                    if (TjSettingsActivity.isDeletedMessagesEnabled() && !TextUtils.equals(oldMessage.message, message.message)) {
+                                        // load_type == -2 also fires for reaction-only pushes, which
+                                        // don't touch the text - only keep genuine content edits.
+                                        saveTjMessageEdit(MessageObject.getDialogId(message), oldMessage);
+                                    }
                                     if (reactionUpdates != null) {
                                         reactionUpdates.add(new SavedReactionsUpdate(selfId, oldMessage, message));
                                     }

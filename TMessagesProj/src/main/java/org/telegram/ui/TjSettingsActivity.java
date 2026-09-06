@@ -60,12 +60,71 @@ public class TjSettingsActivity extends BaseFragment {
     private static final String KEY_MENU_REPLY_PRIVATELY = "menu_reply_privately";
     private static final String KEY_DELETE_FOR_BOTH = "delete_for_both_default";
 
+    private static final String KEY_DELETED_MESSAGES_ENABLED = "deleted_messages_enabled";
+    private static final String KEY_DELETED_MESSAGES_ICON = "deleted_messages_icon";
+    private static final String KEY_DELETED_MESSAGES_COLOR = "deleted_messages_color";
+    private static final String KEY_DELETED_MESSAGES_DIM = "deleted_messages_dim";
+    private static final String KEY_DELETED_MESSAGES_CAP_GB = "deleted_messages_cap_gb";
+
     private static SharedPreferences getPrefs() {
         return ApplicationLoader.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
     }
 
     public static boolean isShowCallButtonEnabled() {
         return getPrefs().getBoolean(KEY_SHOW_CALL_BUTTON, false);
+    }
+
+    /**
+     * Local retention of messages the server reports deleted, and of prior versions of edited
+     * messages. Off by default - this is a deliberate opt-in, not a default behaviour change.
+     */
+    public static final int DELETED_ICON_TRASH = 0;
+    public static final int DELETED_ICON_CROSS = 1;
+
+    public static final int DELETED_COLOR_GREY = 0;
+    public static final int DELETED_COLOR_RED = 1;
+    public static final int DELETED_COLOR_BLACK = 2;
+
+    public static boolean isDeletedMessagesEnabled() {
+        return getPrefs().getBoolean(KEY_DELETED_MESSAGES_ENABLED, false);
+    }
+
+    public static void setDeletedMessagesEnabled(boolean value) {
+        getPrefs().edit().putBoolean(KEY_DELETED_MESSAGES_ENABLED, value).apply();
+    }
+
+    public static int getDeletedMessagesIcon() {
+        return getPrefs().getInt(KEY_DELETED_MESSAGES_ICON, DELETED_ICON_TRASH);
+    }
+
+    public static void setDeletedMessagesIcon(int icon) {
+        getPrefs().edit().putInt(KEY_DELETED_MESSAGES_ICON, icon).apply();
+    }
+
+    public static int getDeletedMessagesColor() {
+        return getPrefs().getInt(KEY_DELETED_MESSAGES_COLOR, DELETED_COLOR_GREY);
+    }
+
+    public static void setDeletedMessagesColor(int color) {
+        getPrefs().edit().putInt(KEY_DELETED_MESSAGES_COLOR, color).apply();
+    }
+
+    /** Whether a retained message renders dimmer than a normal one. On by default. */
+    public static boolean isDeletedMessagesDimmed() {
+        return getPrefs().getBoolean(KEY_DELETED_MESSAGES_DIM, true);
+    }
+
+    public static void setDeletedMessagesDimmed(boolean value) {
+        getPrefs().edit().putBoolean(KEY_DELETED_MESSAGES_DIM, value).apply();
+    }
+
+    /** Local storage cap for retained messages, in GB, 1-10. */
+    public static int getDeletedMessagesStorageCapGb() {
+        return Math.max(1, Math.min(10, getPrefs().getInt(KEY_DELETED_MESSAGES_CAP_GB, 2)));
+    }
+
+    public static void setDeletedMessagesStorageCapGb(int gb) {
+        getPrefs().edit().putInt(KEY_DELETED_MESSAGES_CAP_GB, Math.max(1, Math.min(10, gb))).apply();
     }
 
     public static void setShowCallButtonEnabled(boolean value) {
@@ -337,6 +396,7 @@ public class TjSettingsActivity extends BaseFragment {
     private static final int ID_MENU_FORWARD_NO_TAG = 9;
     private static final int ID_FOLDER_TAB_STYLE = 10;
     private static final int ID_GHOST_SETTINGS = 11;
+    private static final int ID_DELETED_MESSAGES = 18;
     private static final int ID_SUBTITLE_AUTO = 15;
     private static final int ID_MENU_REPLY_PRIVATELY = 16;
     private static final int ID_DELETE_FOR_BOTH = 17;
@@ -430,6 +490,10 @@ public class TjSettingsActivity extends BaseFragment {
                 presentFragment(new TjGhostSettingsActivity());
                 return;
             }
+            if (item.id == ID_DELETED_MESSAGES) {
+                presentFragment(new TjDeletedMessagesActivity());
+                return;
+            }
             if (item.viewType != VIEW_TYPE_CHECK) {
                 return;
             }
@@ -464,6 +528,9 @@ public class TjSettingsActivity extends BaseFragment {
         items.add(new Item(VIEW_TYPE_HEADER, 0, TjLocale.getString(R.string.TjGhostMode)));
         items.add(new Item(VIEW_TYPE_SETTING, ID_GHOST_SETTINGS, TjLocale.getString(R.string.TjGhostMode)));
         items.add(new Item(VIEW_TYPE_SHADOW, 0, TjLocale.getString(R.string.TjGhostModeInfo)));
+        items.add(new Item(VIEW_TYPE_HEADER, 0, TjLocale.getString(R.string.TjDeletedMessages)));
+        items.add(new Item(VIEW_TYPE_SETTING, ID_DELETED_MESSAGES, TjLocale.getString(R.string.TjDeletedMessages)));
+        items.add(new Item(VIEW_TYPE_SHADOW, 0, TjLocale.getString(R.string.TjDeletedEnableInfo)));
         items.add(new Item(VIEW_TYPE_HEADER, 0, LocaleController.getString(R.string.Filters)));
         items.add(new Item(VIEW_TYPE_SETTING, ID_FOLDER_TAB_STYLE, TjLocale.getString(R.string.TjFolderTabStyle)));
         items.add(new Item(VIEW_TYPE_SHADOW, 0, TjLocale.getString(R.string.TjFolderTabStyleInfo)));
@@ -547,9 +614,14 @@ public class TjSettingsActivity extends BaseFragment {
             } else if (item.viewType == VIEW_TYPE_SHADOW) {
                 ((TextInfoPrivacyCell) holder.itemView).setText(item.text);
             } else if (item.viewType == VIEW_TYPE_SETTING) {
-                String value = item.id == ID_GHOST_SETTINGS
-                    ? LocaleController.getString(isGhostModeEnabled() ? R.string.NotificationsOn : R.string.NotificationsOff)
-                    : folderTabStyleName();
+                String value;
+                if (item.id == ID_GHOST_SETTINGS) {
+                    value = LocaleController.getString(isGhostModeEnabled() ? R.string.NotificationsOn : R.string.NotificationsOff);
+                } else if (item.id == ID_DELETED_MESSAGES) {
+                    value = LocaleController.getString(isDeletedMessagesEnabled() ? R.string.NotificationsOn : R.string.NotificationsOff);
+                } else {
+                    value = folderTabStyleName();
+                }
                 ((TextSettingsCell) holder.itemView).setTextAndValue(item.text, value, false);
             } else {
                 boolean divider = position + 1 < items.size() && items.get(position + 1).viewType == VIEW_TYPE_CHECK;
