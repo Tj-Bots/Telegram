@@ -64,6 +64,8 @@ import com.google.android.exoplayer2.source.TrackGroupArray;
 import com.google.android.exoplayer2.source.dash.DashMediaSource;
 import com.google.android.exoplayer2.source.hls.HlsMediaSource;
 import com.google.android.exoplayer2.source.smoothstreaming.SsMediaSource;
+import com.google.android.exoplayer2.text.Cue;
+import com.google.android.exoplayer2.text.CueGroup;
 import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.MappingTrackSelector;
@@ -758,6 +760,24 @@ public class VideoPlayer implements Player.Listener, VideoListener, AnalyticsLis
     /** Passing null turns subtitles off. */
     public void selectSubtitleTrack(TjTrack track) {
         selectTrack(C.TRACK_TYPE_TEXT, track);
+    }
+
+    /** Receives the cues the text renderer decodes, so a view can draw them. */
+    public interface TjSubtitleListener {
+        void onSubtitleCues(List<Cue> cues);
+    }
+
+    private TjSubtitleListener subtitleListener;
+
+    public void setSubtitleListener(TjSubtitleListener listener) {
+        subtitleListener = listener;
+    }
+
+    @Override
+    public void onCues(CueGroup cueGroup) {
+        if (subtitleListener != null) {
+            subtitleListener.onSubtitleCues(cueGroup == null ? Collections.emptyList() : cueGroup.cues);
+        }
     }
 
     private TrackSelectionOverride getQualityTrackSelection(VideoUri videoUri) {

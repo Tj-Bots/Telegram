@@ -58,4 +58,16 @@
     <string name="TjGhostDontWarnAgain">不再显示</string>
     <string name="TjChatCountersUpdated">最后更新：%1$s</string>
     <string name="TjAudioTrack">音轨</string>
+    <string name="TjSubtitles">字幕</string>
+    <string name="TjSubtitlesOff">关闭</string>
+    <string name="TjSubtitleSettings">字幕设置</string>
+    <string name="TjSubtitleFontSize">字体大小</string>
+    <string name="TjSubtitleStyle">样式</string>
+    <string name="TjSubtitleSizeSmall">小</string>
+    <string name="TjSubtitleSizeMedium">中</string>
+    <string name="TjSubtitleSizeLarge">大</string>
+    <string name="TjSubtitleSizeHuge">特大</string>
+    <string name="TjSubtitleStyleOutline">描边</string>
+    <string name="TjSubtitleStyleShadow">阴影</string>
+    <string name="TjSubtitleStyleBox">背景色块</string>
 </resources>

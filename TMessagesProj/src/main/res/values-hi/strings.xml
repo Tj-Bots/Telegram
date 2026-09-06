@@ -58,4 +58,16 @@
     <string name="TjGhostDontWarnAgain">इसे दोबारा न दिखाएँ</string>
     <string name="TjChatCountersUpdated">अंतिम अपडेट: %1$s</string>
     <string name="TjAudioTrack">ऑडियो ट्रैक</string>
+    <string name="TjSubtitles">सबटाइटल</string>
+    <string name="TjSubtitlesOff">बंद</string>
+    <string name="TjSubtitleSettings">सबटाइटल सेटिंग्स</string>
+    <string name="TjSubtitleFontSize">फ़ॉन्ट आकार</string>
+    <string name="TjSubtitleStyle">शैली</string>
+    <string name="TjSubtitleSizeSmall">छोटा</string>
+    <string name="TjSubtitleSizeMedium">मध्यम</string>
+    <string name="TjSubtitleSizeLarge">बड़ा</string>
+    <string name="TjSubtitleSizeHuge">बहुत बड़ा</string>
+    <string name="TjSubtitleStyleOutline">आउटलाइन</string>
+    <string name="TjSubtitleStyleShadow">छाया</string>
+    <string name="TjSubtitleStyleBox">पृष्ठभूमि बॉक्स</string>
 </resources>

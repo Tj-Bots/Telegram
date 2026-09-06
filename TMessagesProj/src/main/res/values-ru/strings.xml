@@ -321,4 +321,16 @@
     <string name="TjGhostDontWarnAgain">Больше не показывать</string>
     <string name="TjChatCountersUpdated">Обновлено: %1$s</string>
     <string name="TjAudioTrack">Аудиодорожка</string>
+    <string name="TjSubtitles">Субтитры</string>
+    <string name="TjSubtitlesOff">Выключены</string>
+    <string name="TjSubtitleSettings">Настройки субтитров</string>
+    <string name="TjSubtitleFontSize">Размер шрифта</string>
+    <string name="TjSubtitleStyle">Стиль</string>
+    <string name="TjSubtitleSizeSmall">Маленький</string>
+    <string name="TjSubtitleSizeMedium">Средний</string>
+    <string name="TjSubtitleSizeLarge">Большой</string>
+    <string name="TjSubtitleSizeHuge">Очень большой</string>
+    <string name="TjSubtitleStyleOutline">Обводка</string>
+    <string name="TjSubtitleStyleShadow">Тень</string>
+    <string name="TjSubtitleStyleBox">Фон</string>
 </resources>

@@ -225,6 +225,7 @@ import org.telegram.ui.ActionBar.SimpleTextView;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.CheckBoxCell;
 import org.telegram.ui.Cells.PhotoPickerPhotoCell;
+import org.telegram.ui.Cells.RadioColorCell;
 import org.telegram.ui.Cells.TextSelectionHelper;
 import org.telegram.ui.Components.AlertsCreator;
 import org.telegram.ui.Components.AnimatedEmojiDrawable;
@@ -296,6 +297,7 @@ import org.telegram.ui.Components.StickersAlert;
 import org.telegram.ui.Components.TextViewSwitcher;
 import org.telegram.ui.Components.ThanosEffect;
 import org.telegram.ui.Components.Tooltip;
+import org.telegram.ui.Components.TjSubtitleView;
 import org.telegram.ui.Components.TranslateAlert2;
 import org.telegram.ui.Components.TypefaceSpan;
 import org.telegram.ui.Components.URLSpanReplacement;
@@ -902,6 +904,9 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
     private ActionBarMenuSlider.SpeedSlider speedItem;
     private LinearLayout audioTrackLayout;
     private int selectedAudioTrack = -1;
+    private LinearLayout subtitleTrackLayout;
+    private int selectedSubtitleTrack = -1;
+    private TjSubtitleView subtitleView;
     private ActionBarMenuSubItem loopItem;
     private ActionBarMenuSubItem galleryButton;
     private ActionBarPopupWindow.GapView galleryGap;
@@ -5817,6 +5822,10 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
         audioTrackLayout.setOrientation(LinearLayout.VERTICAL);
         audioTrackLayout.setVisibility(View.GONE);
         videoItem.getPopupLayout().addView(audioTrackLayout);
+        subtitleTrackLayout = new LinearLayout(activityContext);
+        subtitleTrackLayout.setOrientation(LinearLayout.VERTICAL);
+        subtitleTrackLayout.setVisibility(View.GONE);
+        videoItem.getPopupLayout().addView(subtitleTrackLayout);
         loopItem = videoItem.addSubItem(gallery_menu_loop, R.drawable.menu_video_loop, LocaleController.getString(R.string.VideoPlayerLoop));
         loopItem.setSelectorColor(0x0fffffff);
         castItemButton = new CastMediaRouteButton(activityContext) {
@@ -5944,6 +5953,11 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
                 }
             }
         });
+
+        // Above the video, below the controls: the controls push it up rather than cover it.
+        subtitleView = new TjSubtitleView(activityContext);
+        subtitleView.setVisibility(View.GONE);
+        containerView.addView(subtitleView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.LEFT | Gravity.TOP));
 
         bottomLayout = new FrameLayout(activityContext) {
             @Override
@@ -10232,6 +10246,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
         if (playbackState == ExoPlayer.STATE_READY) {
             // Tracks are only known once the player is ready.
             updateAudioTracksLayout();
+            updateSubtitleTracksLayout();
             if (aspectRatioFrameLayout != null && aspectRatioFrameLayout.getVisibility() != View.VISIBLE) {
                 aspectRatioFrameLayout.setVisibility(View.VISIBLE);
             }
@@ -10501,6 +10516,16 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
             if (firstFrameView != null) {
                 firstFrameView.clear();
             }
+            // A fresh file starts with subtitles off; the picker turns them on per video.
+            selectedSubtitleTrack = -1;
+            if (subtitleView != null) {
+                subtitleView.clear();
+            }
+            videoPlayer.setSubtitleListener(cues -> {
+                if (subtitleView != null) {
+                    subtitleView.setCues(selectedSubtitleTrack < 0 ? null : cues);
+                }
+            });
             videoPlayer.setDelegate(new VideoPlayer.VideoPlayerDelegate() {
 
                 private boolean firstState = true;
@@ -10967,8 +10992,13 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
                     currentMessageObject.cachedSavedTimestamp = progress;
                 }
             }
+            videoPlayer.setSubtitleListener(null);
             videoPlayer.releasePlayer(true);
             videoPlayer = null;
+            selectedSubtitleTrack = -1;
+            if (subtitleView != null) {
+                subtitleView.clear();
+            }
         } else {
             playerWasPlaying = false;
         }
@@ -13318,6 +13348,11 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
             }
         }
         isActionBarVisible = show;
+
+        if (subtitleView != null) {
+            // Lift the subtitles clear of the control bar while it is on screen.
+            subtitleView.setBottomOffset(navigationBarHeight + (show && videoPlayerControlVisible ? dp(52) : 0));
+        }
 
         if (photoViewerWebView != null) {
             photoViewerWebView.setTouchDisabled(isActionBarVisible);
@@ -23241,6 +23276,161 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
         gap.setTag(R.id.fit_width_tag, 1);
         gap.setColor(0xff181818);
         audioTrackLayout.addView(gap, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 8));
+    }
+
+    /**
+     * Subtitle tracks, in the same shape as the audio list: an "Off" row, one row per track named by
+     * its language, and a row that opens the appearance settings. Hidden when the file carries none.
+     */
+    private void updateSubtitleTracksLayout() {
+        if (subtitleTrackLayout == null) {
+            return;
+        }
+        java.util.ArrayList<VideoPlayer.TjTrack> tracks = null;
+        try {
+            if (videoPlayer != null) {
+                tracks = videoPlayer.getSubtitleTracks();
+            }
+        } catch (Exception e) {
+            FileLog.e(e);
+        }
+        subtitleTrackLayout.removeAllViews();
+        if (tracks == null || tracks.isEmpty()) {
+            subtitleTrackLayout.setVisibility(View.GONE);
+            selectedSubtitleTrack = -1;
+            return;
+        }
+        subtitleTrackLayout.setVisibility(View.VISIBLE);
+
+        final TextView header = new TextView(activityContext);
+        header.setText(TjLocale.getString(R.string.TjSubtitles));
+        header.setTypeface(AndroidUtilities.bold());
+        header.setPadding(dp(16), dp(9), dp(16), dp(8));
+        header.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
+        header.setTextColor(0xFFFFFFFF);
+        subtitleTrackLayout.addView(header, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
+
+        ActionBarMenuSubItem offItem = ActionBarMenuItem.addItem(subtitleTrackLayout, 0, TjLocale.getString(R.string.TjSubtitlesOff), true, null);
+        offItem.setChecked(selectedSubtitleTrack < 0);
+        offItem.setColors(0xfffafafa, 0xfffafafa);
+        offItem.setSelectorColor(0x0fffffff);
+        offItem.setOnClickListener(v -> {
+            if (videoPlayer != null) {
+                selectedSubtitleTrack = -1;
+                videoPlayer.selectSubtitleTrack(null);
+                if (subtitleView != null) {
+                    subtitleView.clear();
+                }
+                updateSubtitleTracksLayout();
+            }
+        });
+
+        for (int a = 0; a < tracks.size(); a++) {
+            final VideoPlayer.TjTrack track = tracks.get(a);
+            final int index = a;
+            ActionBarMenuSubItem item = ActionBarMenuItem.addItem(subtitleTrackLayout, 0, track.label, true, null);
+            item.setChecked(index == selectedSubtitleTrack);
+            item.setColors(0xfffafafa, 0xfffafafa);
+            item.setSelectorColor(0x0fffffff);
+            item.setOnClickListener(v -> {
+                if (videoPlayer != null) {
+                    selectedSubtitleTrack = index;
+                    videoPlayer.selectSubtitleTrack(track);
+                    updateSubtitleTracksLayout();
+                }
+            });
+        }
+
+        ActionBarMenuSubItem settingsItem = ActionBarMenuItem.addItem(subtitleTrackLayout, R.drawable.msg_settings, TjLocale.getString(R.string.TjSubtitleSettings), false, null);
+        settingsItem.setColors(0xfffafafa, 0xfffafafa);
+        settingsItem.setSelectorColor(0x0fffffff);
+        settingsItem.setOnClickListener(v -> {
+            if (videoItem != null) {
+                videoItem.closeSubMenu();
+            }
+            showSubtitleSettings();
+        });
+
+        ActionBarPopupWindow.GapView gap = new ActionBarPopupWindow.GapView(activityContext, resourcesProvider, Theme.key_actionBarDefaultSubmenuSeparator);
+        gap.setTag(R.id.fit_width_tag, 1);
+        gap.setColor(0xff181818);
+        subtitleTrackLayout.addView(gap, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 8));
+    }
+
+    /** Font size and the way the text is lifted off the picture - outline, shadow or a box. */
+    private void showSubtitleSettings() {
+        if (parentActivity == null) {
+            return;
+        }
+        final LinearLayout content = new LinearLayout(parentActivity);
+        content.setOrientation(LinearLayout.VERTICAL);
+
+        final int[] sizeNames = {R.string.TjSubtitleSizeSmall, R.string.TjSubtitleSizeMedium, R.string.TjSubtitleSizeLarge, R.string.TjSubtitleSizeHuge};
+        final int[] styleNames = {R.string.TjSubtitleStyleOutline, R.string.TjSubtitleStyleShadow, R.string.TjSubtitleStyleBox};
+        final RadioColorCell[] sizeCells = new RadioColorCell[TjSettingsActivity.SUBTITLE_FONT_SIZES.length];
+        final RadioColorCell[] styleCells = new RadioColorCell[styleNames.length];
+
+        final TextView sizeHeader = new TextView(parentActivity);
+        sizeHeader.setText(TjLocale.getString(R.string.TjSubtitleFontSize));
+        sizeHeader.setTypeface(AndroidUtilities.bold());
+        sizeHeader.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
+        sizeHeader.setTextColor(Theme.getColor(Theme.key_dialogTextBlue2));
+        sizeHeader.setPadding(dp(23), dp(8), dp(23), dp(4));
+        content.addView(sizeHeader, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
+
+        for (int a = 0; a < sizeCells.length; a++) {
+            final int index = a;
+            RadioColorCell cell = new RadioColorCell(parentActivity);
+            cell.setPadding(dp(4), 0, dp(4), 0);
+            cell.setCheckColor(Theme.getColor(Theme.key_radioBackground), Theme.getColor(Theme.key_dialogRadioBackgroundChecked));
+            cell.setTextAndValue(TjLocale.getString(sizeNames[a]), TjSettingsActivity.getSubtitleFontSize() == TjSettingsActivity.SUBTITLE_FONT_SIZES[a]);
+            cell.setBackground(Theme.createSelectorDrawable(Theme.getColor(Theme.key_listSelector), 2));
+            cell.setOnClickListener(v -> {
+                TjSettingsActivity.setSubtitleFontSize(TjSettingsActivity.SUBTITLE_FONT_SIZES[index]);
+                for (int b = 0; b < sizeCells.length; b++) {
+                    sizeCells[b].setChecked(b == index, true);
+                }
+                if (subtitleView != null) {
+                    subtitleView.updateAppearance();
+                }
+            });
+            sizeCells[a] = cell;
+            content.addView(cell, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 50));
+        }
+
+        final TextView styleHeader = new TextView(parentActivity);
+        styleHeader.setText(TjLocale.getString(R.string.TjSubtitleStyle));
+        styleHeader.setTypeface(AndroidUtilities.bold());
+        styleHeader.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
+        styleHeader.setTextColor(Theme.getColor(Theme.key_dialogTextBlue2));
+        styleHeader.setPadding(dp(23), dp(12), dp(23), dp(4));
+        content.addView(styleHeader, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
+
+        for (int a = 0; a < styleCells.length; a++) {
+            final int index = a;
+            RadioColorCell cell = new RadioColorCell(parentActivity);
+            cell.setPadding(dp(4), 0, dp(4), 0);
+            cell.setCheckColor(Theme.getColor(Theme.key_radioBackground), Theme.getColor(Theme.key_dialogRadioBackgroundChecked));
+            cell.setTextAndValue(TjLocale.getString(styleNames[a]), TjSettingsActivity.getSubtitleStyle() == a);
+            cell.setBackground(Theme.createSelectorDrawable(Theme.getColor(Theme.key_listSelector), 2));
+            cell.setOnClickListener(v -> {
+                TjSettingsActivity.setSubtitleStyle(index);
+                for (int b = 0; b < styleCells.length; b++) {
+                    styleCells[b].setChecked(b == index, true);
+                }
+                if (subtitleView != null) {
+                    subtitleView.updateAppearance();
+                }
+            });
+            styleCells[a] = cell;
+            content.addView(cell, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 50));
+        }
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(parentActivity, resourcesProvider);
+        builder.setTitle(TjLocale.getString(R.string.TjSubtitleSettings));
+        builder.setView(content);
+        builder.setPositiveButton(LocaleController.getString(R.string.Close), null);
+        showAlertDialog(builder);
     }
 
     private void chooseSpeed(float speed, boolean isFinal, boolean closeMenu) {

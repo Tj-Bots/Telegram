@@ -43,6 +43,9 @@ public class TjSettingsActivity extends BaseFragment {
     private static final String KEY_GHOST_READ = "ghost_hide_read";
     private static final String KEY_GHOST_WARNED = "ghost_warning_dismissed";
 
+    private static final String KEY_SUBTITLE_FONT_SIZE = "subtitle_font_size";
+    private static final String KEY_SUBTITLE_STYLE = "subtitle_style";
+
     private static final String KEY_FOLDER_TAB_STYLE = "folder_tab_style";
     private static final String KEY_FOLDER_EMOTICON_PREFIX = "folder_emoticon_";
 
@@ -117,6 +120,29 @@ public class TjSettingsActivity extends BaseFragment {
 
     public static void setGhostWarningDismissed(boolean value) {
         getPrefs().edit().putBoolean(KEY_GHOST_WARNED, value).apply();
+    }
+
+    public static final int SUBTITLE_STYLE_OUTLINE = 0;
+    public static final int SUBTITLE_STYLE_SHADOW = 1;
+    public static final int SUBTITLE_STYLE_BOX = 2;
+
+    /** Sizes offered in the player's subtitle settings, in dp. */
+    public static final int[] SUBTITLE_FONT_SIZES = {14, 18, 22, 26};
+
+    public static int getSubtitleFontSize() {
+        return getPrefs().getInt(KEY_SUBTITLE_FONT_SIZE, 18);
+    }
+
+    public static void setSubtitleFontSize(int size) {
+        getPrefs().edit().putInt(KEY_SUBTITLE_FONT_SIZE, size).apply();
+    }
+
+    public static int getSubtitleStyle() {
+        return getPrefs().getInt(KEY_SUBTITLE_STYLE, SUBTITLE_STYLE_OUTLINE);
+    }
+
+    public static void setSubtitleStyle(int style) {
+        getPrefs().edit().putInt(KEY_SUBTITLE_STYLE, style).apply();
     }
 
     public static int getFolderTabStyle() {

@@ -58,4 +58,16 @@
     <string name="TjGhostDontWarnAgain">אל תציג את זה שוב</string>
     <string name="TjChatCountersUpdated">עודכן לאחרונה: %1$s</string>
     <string name="TjAudioTrack">רצועת שמע</string>
+    <string name="TjSubtitles">כתוביות</string>
+    <string name="TjSubtitlesOff">כבויות</string>
+    <string name="TjSubtitleSettings">הגדרות כתוביות</string>
+    <string name="TjSubtitleFontSize">גודל גופן</string>
+    <string name="TjSubtitleStyle">סגנון</string>
+    <string name="TjSubtitleSizeSmall">קטן</string>
+    <string name="TjSubtitleSizeMedium">בינוני</string>
+    <string name="TjSubtitleSizeLarge">גדול</string>
+    <string name="TjSubtitleSizeHuge">גדול מאוד</string>
+    <string name="TjSubtitleStyleOutline">מסגרת</string>
+    <string name="TjSubtitleStyleShadow">צל</string>
+    <string name="TjSubtitleStyleBox">רקע מלא</string>
 </resources>

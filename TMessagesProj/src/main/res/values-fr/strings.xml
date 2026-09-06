@@ -58,4 +58,16 @@
     <string name="TjGhostDontWarnAgain">Ne plus afficher</string>
     <string name="TjChatCountersUpdated">Dernière mise à jour : %1$s</string>
     <string name="TjAudioTrack">Piste audio</string>
+    <string name="TjSubtitles">Sous-titres</string>
+    <string name="TjSubtitlesOff">Désactivés</string>
+    <string name="TjSubtitleSettings">Réglages des sous-titres</string>
+    <string name="TjSubtitleFontSize">Taille du texte</string>
+    <string name="TjSubtitleStyle">Style</string>
+    <string name="TjSubtitleSizeSmall">Petite</string>
+    <string name="TjSubtitleSizeMedium">Moyenne</string>
+    <string name="TjSubtitleSizeLarge">Grande</string>
+    <string name="TjSubtitleSizeHuge">Très grande</string>
+    <string name="TjSubtitleStyleOutline">Contour</string>
+    <string name="TjSubtitleStyleShadow">Ombre</string>
+    <string name="TjSubtitleStyleBox">Fond coloré</string>
 </resources>

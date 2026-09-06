@@ -11282,4 +11282,16 @@
     <string name="TjGhostDontWarnAgain">Don\'t show this again</string>
     <string name="TjChatCountersUpdated">Last updated: %1$s</string>
     <string name="TjAudioTrack">Audio track</string>
+    <string name="TjSubtitles">Subtitles</string>
+    <string name="TjSubtitlesOff">Off</string>
+    <string name="TjSubtitleSettings">Subtitle settings</string>
+    <string name="TjSubtitleFontSize">Font size</string>
+    <string name="TjSubtitleStyle">Style</string>
+    <string name="TjSubtitleSizeSmall">Small</string>
+    <string name="TjSubtitleSizeMedium">Medium</string>
+    <string name="TjSubtitleSizeLarge">Large</string>
+    <string name="TjSubtitleSizeHuge">Very large</string>
+    <string name="TjSubtitleStyleOutline">Outline</string>
+    <string name="TjSubtitleStyleShadow">Shadow</string>
+    <string name="TjSubtitleStyleBox">Background box</string>
 </resources>

@@ -1301,4 +1301,16 @@
     <string name="TjGhostDontWarnAgain">لا تعرض هذا مرة أخرى</string>
     <string name="TjChatCountersUpdated">آخر تحديث: %1$s</string>
     <string name="TjAudioTrack">المسار الصوتي</string>
+    <string name="TjSubtitles">الترجمة</string>
+    <string name="TjSubtitlesOff">إيقاف</string>
+    <string name="TjSubtitleSettings">إعدادات الترجمة</string>
+    <string name="TjSubtitleFontSize">حجم الخط</string>
+    <string name="TjSubtitleStyle">النمط</string>
+    <string name="TjSubtitleSizeSmall">صغير</string>
+    <string name="TjSubtitleSizeMedium">متوسط</string>
+    <string name="TjSubtitleSizeLarge">كبير</string>
+    <string name="TjSubtitleSizeHuge">كبير جدًا</string>
+    <string name="TjSubtitleStyleOutline">إطار</string>
+    <string name="TjSubtitleStyleShadow">ظل</string>
+    <string name="TjSubtitleStyleBox">خلفية ملونة</string>
 </resources>
