@@ -22173,6 +22173,8 @@ public class MessagesController extends BaseController implements NotificationCe
                     }
                     dialogs.add(d);
                 }
+            } else if (d instanceof TLRPC.TL_dialogFolder && (filter.flags & DIALOG_FILTER_FLAG_EXCLUDE_ARCHIVED) == 0) {
+                dialogs.add(d);
             }
         }
         try {
@@ -22387,6 +22389,11 @@ public class MessagesController extends BaseController implements NotificationCe
                             }
                             dialogs.add(d);
                         }
+                    } else if (d instanceof TLRPC.TL_dialogFolder && (sortingDialogFilter.flags & DIALOG_FILTER_FLAG_EXCLUDE_ARCHIVED) == 0) {
+                        // Folders normally never see the collapsed Archive row - it belongs only
+                        // to the unfiltered list - but a folder that isn't hiding archived chats
+                        // can offer the same way into Archive as the main list does.
+                        dialogs.add(d);
                     }
                 }
             }
