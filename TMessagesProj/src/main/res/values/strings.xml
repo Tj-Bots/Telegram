@@ -11281,4 +11281,5 @@
     <string name="TjGhostWarning">Ghost mode is not an official Telegram feature. Telegram may treat it as unusual behaviour, so use it at your own risk.</string>
     <string name="TjGhostDontWarnAgain">Don\'t show this again</string>
     <string name="TjChatCountersUpdated">Last updated: %1$s</string>
+    <string name="TjAudioTrack">Audio track</string>
 </resources>

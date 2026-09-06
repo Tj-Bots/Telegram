@@ -57,4 +57,5 @@
     <string name="TjGhostWarning">隐身模式并非 Telegram 官方功能。Telegram 可能将其视为异常行为，请自行承担风险。</string>
     <string name="TjGhostDontWarnAgain">不再显示</string>
     <string name="TjChatCountersUpdated">最后更新：%1$s</string>
+    <string name="TjAudioTrack">音轨</string>
 </resources>

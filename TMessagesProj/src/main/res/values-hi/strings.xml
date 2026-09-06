@@ -57,4 +57,5 @@
     <string name="TjGhostWarning">घोस्ट मोड Telegram की आधिकारिक सुविधा नहीं है। Telegram इसे असामान्य व्यवहार मान सकता है, इसलिए अपने जोखिम पर उपयोग करें।</string>
     <string name="TjGhostDontWarnAgain">इसे दोबारा न दिखाएँ</string>
     <string name="TjChatCountersUpdated">अंतिम अपडेट: %1$s</string>
+    <string name="TjAudioTrack">ऑडियो ट्रैक</string>
 </resources>

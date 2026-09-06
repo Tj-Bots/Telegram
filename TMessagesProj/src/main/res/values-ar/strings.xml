@@ -1300,4 +1300,5 @@
     <string name="TjGhostWarning">الوضع الخفي ليس ميزة رسمية في تيليجرام. قد يعتبره تيليجرام سلوكًا غير معتاد، فاستخدمه على مسؤوليتك.</string>
     <string name="TjGhostDontWarnAgain">لا تعرض هذا مرة أخرى</string>
     <string name="TjChatCountersUpdated">آخر تحديث: %1$s</string>
+    <string name="TjAudioTrack">المسار الصوتي</string>
 </resources>

@@ -206,6 +206,7 @@ import org.telegram.messenger.video.OldVideoPlayerRewinder;
 import org.telegram.messenger.video.VideoAds;
 import org.telegram.messenger.video.VideoFramesRewinder;
 import org.telegram.messenger.video.VideoPlayerRewinder;
+import org.telegram.messenger.TjLocale;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
@@ -899,6 +900,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
     private ActionBarMenuItem videoItem;
     private ActionBarMenuSubItem allMediaItem;
     private ActionBarMenuSlider.SpeedSlider speedItem;
+    private ActionBarMenuSubItem audioTrackItem;
     private ActionBarMenuSubItem loopItem;
     private ActionBarMenuSubItem galleryButton;
     private ActionBarPopupWindow.GapView galleryGap;
@@ -2193,6 +2195,9 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
     private final static int gallery_menu_chromecast = 24;
     private final static int gallery_menu_create_sticker = 25;
     private final static int gallery_menu_delete2 = 26;
+    private final static int gallery_menu_audio_track = 27;
+
+
 
     private final static int ads_sponsor_info = 101;
     private final static int ads_about = 102;
@@ -5733,6 +5738,8 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
                         menuItem.hideSubItem(gallery_menu_hide_translation);
                     }, 32);
                     updateCaptionTranslated();
+                } else if (id == gallery_menu_audio_track) {
+                    showAudioTrackPicker();
                 } else if (id == gallery_menu_loop) {
                     playerLooping = !playerLooping;
                     VideoPlayer.saveLooping(playerLooping, currentMessageObject);
@@ -5808,6 +5815,9 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
         videoQualityLayout = new LinearLayout(activityContext);
         videoQualityLayout.setOrientation(LinearLayout.VERTICAL);
         videoItem.getPopupLayout().addView(videoQualityLayout);
+        audioTrackItem = videoItem.addSubItem(gallery_menu_audio_track, R.drawable.msg_msgbubble3, TjLocale.getString(R.string.TjAudioTrack));
+        audioTrackItem.setSelectorColor(0x0fffffff);
+        audioTrackItem.setVisibility(View.GONE);
         loopItem = videoItem.addSubItem(gallery_menu_loop, R.drawable.menu_video_loop, LocaleController.getString(R.string.VideoPlayerLoop));
         loopItem.setSelectorColor(0x0fffffff);
         castItemButton = new CastMediaRouteButton(activityContext) {
@@ -10221,6 +10231,8 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
             }
         }
         if (playbackState == ExoPlayer.STATE_READY) {
+            // Tracks are only known once the player is ready.
+            updateAudioTrackItemVisibility();
             if (aspectRatioFrameLayout != null && aspectRatioFrameLayout.getVisibility() != View.VISIBLE) {
                 aspectRatioFrameLayout.setVisibility(View.VISIBLE);
             }
@@ -23176,6 +23188,45 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
                 Browser.openUrl(LaunchActivity.instance != null ? LaunchActivity.instance : activityContext, Uri.parse(currentMessageObject.sponsoredUrl), true, false, false, null, null, false, MessagesController.getInstance(currentAccount).sponsoredLinksInappAllow, false);
             }
         });
+    }
+
+    /** Shown only for videos that actually carry more than one audio track. */
+    private void updateAudioTrackItemVisibility() {
+        if (audioTrackItem == null) {
+            return;
+        }
+        int count = 0;
+        try {
+            if (videoPlayer != null) {
+                count = videoPlayer.getAudioTracks().size();
+            }
+        } catch (Exception e) {
+            FileLog.e(e);
+        }
+        audioTrackItem.setVisibility(count > 1 ? View.VISIBLE : View.GONE);
+    }
+
+    private void showAudioTrackPicker() {
+        if (videoPlayer == null || parentActivity == null) {
+            return;
+        }
+        final java.util.ArrayList<VideoPlayer.TjTrack> tracks = videoPlayer.getAudioTracks();
+        if (tracks.isEmpty()) {
+            return;
+        }
+        CharSequence[] labels = new CharSequence[tracks.size()];
+        for (int a = 0; a < tracks.size(); a++) {
+            labels[a] = tracks.get(a).label;
+        }
+        AlertDialog.Builder builder = new AlertDialog.Builder(parentActivity, resourcesProvider);
+        builder.setTitle(TjLocale.getString(R.string.TjAudioTrack));
+        builder.setItems(labels, (dialog, which) -> {
+            if (videoPlayer != null && which >= 0 && which < tracks.size()) {
+                videoPlayer.selectAudioTrack(tracks.get(which));
+            }
+        });
+        builder.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
+        showAlertDialog(builder);
     }
 
     private void chooseSpeed(float speed, boolean isFinal, boolean closeMenu) {

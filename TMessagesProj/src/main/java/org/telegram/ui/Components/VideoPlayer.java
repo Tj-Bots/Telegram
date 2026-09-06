@@ -93,6 +93,7 @@ import org.telegram.messenger.Utilities;
 import org.telegram.messenger.chromecast.ChromecastMedia;
 import org.telegram.messenger.chromecast.ChromecastMediaVariations;
 import org.telegram.messenger.secretmedia.ExtendedDefaultDataSourceFactory;
+import org.telegram.messenger.LocaleController;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.Stories.recorder.StoryEntry;
 
@@ -658,6 +659,104 @@ public class VideoPlayer implements Player.Listener, VideoListener, AnalyticsLis
             }
         }
         return selectedQualityIndex;
+    }
+
+    /**
+     * Audio and subtitle tracks, for videos that carry more than one. Follows the same
+     * MappedTrackInfo walk that getQualityTrackSelection uses.
+     */
+    public static class TjTrack {
+        public final int rendererIndex;
+        public final int groupIndex;
+        public final int trackIndex;
+        public final String label;
+        public final String language;
+
+        TjTrack(int rendererIndex, int groupIndex, int trackIndex, String label, String language) {
+            this.rendererIndex = rendererIndex;
+            this.groupIndex = groupIndex;
+            this.trackIndex = trackIndex;
+            this.label = label;
+            this.language = language;
+        }
+    }
+
+    private static String describeTrack(Format format, int fallbackNumber) {
+        String label = format.label;
+        if (label == null || label.isEmpty()) {
+            String lang = format.language;
+            if (lang != null && !lang.isEmpty() && !"und".equals(lang)) {
+                try {
+                    String display = new java.util.Locale(lang).getDisplayLanguage(LocaleController.getInstance().getCurrentLocale());
+                    label = display != null && !display.isEmpty() ? display : lang;
+                } catch (Exception e) {
+                    label = lang;
+                }
+            }
+        }
+        if (label == null || label.isEmpty()) {
+            label = "#" + fallbackNumber;
+        }
+        return label;
+    }
+
+    private ArrayList<TjTrack> getTracksOfType(int trackType) {
+        ArrayList<TjTrack> tracks = new ArrayList<>();
+        try {
+            final MappingTrackSelector.MappedTrackInfo info = trackSelector.getCurrentMappedTrackInfo();
+            if (info == null) {
+                return tracks;
+            }
+            for (int renderIndex = 0; renderIndex < info.getRendererCount(); ++renderIndex) {
+                if (info.getRendererType(renderIndex) != trackType) {
+                    continue;
+                }
+                final TrackGroupArray groups = info.getTrackGroups(renderIndex);
+                for (int groupIndex = 0; groupIndex < groups.length; ++groupIndex) {
+                    final TrackGroup group = groups.get(groupIndex);
+                    for (int trackIndex = 0; trackIndex < group.length; ++trackIndex) {
+                        final Format format = group.getFormat(trackIndex);
+                        tracks.add(new TjTrack(renderIndex, groupIndex, trackIndex,
+                                describeTrack(format, tracks.size() + 1), format.language));
+                    }
+                }
+            }
+        } catch (Exception e) {
+            FileLog.e(e);
+        }
+        return tracks;
+    }
+
+    public ArrayList<TjTrack> getAudioTracks() {
+        return getTracksOfType(C.TRACK_TYPE_AUDIO);
+    }
+
+    public ArrayList<TjTrack> getSubtitleTracks() {
+        return getTracksOfType(C.TRACK_TYPE_TEXT);
+    }
+
+    private void selectTrack(int trackType, TjTrack track) {
+        try {
+            final MappingTrackSelector.MappedTrackInfo info = trackSelector.getCurrentMappedTrackInfo();
+            TrackSelectionParameters.Builder builder = trackSelector.getParameters().buildUpon();
+            builder.setTrackTypeDisabled(trackType, track == null);
+            if (track != null && info != null) {
+                final TrackGroup group = info.getTrackGroups(track.rendererIndex).get(track.groupIndex);
+                builder.addOverride(new TrackSelectionOverride(group, track.trackIndex));
+            }
+            trackSelector.setParameters(builder.build());
+        } catch (Exception e) {
+            FileLog.e(e);
+        }
+    }
+
+    public void selectAudioTrack(TjTrack track) {
+        selectTrack(C.TRACK_TYPE_AUDIO, track);
+    }
+
+    /** Passing null turns subtitles off. */
+    public void selectSubtitleTrack(TjTrack track) {
+        selectTrack(C.TRACK_TYPE_TEXT, track);
     }
 
     private TrackSelectionOverride getQualityTrackSelection(VideoUri videoUri) {

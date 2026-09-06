@@ -57,4 +57,5 @@
     <string name="TjGhostWarning">מצב רפאים אינו תכונה רשמית של טלגרם. ייתכן שטלגרם תתייחס לזה כהתנהגות חריגה, אז השימוש על אחריותך.</string>
     <string name="TjGhostDontWarnAgain">אל תציג את זה שוב</string>
     <string name="TjChatCountersUpdated">עודכן לאחרונה: %1$s</string>
+    <string name="TjAudioTrack">רצועת שמע</string>
 </resources>

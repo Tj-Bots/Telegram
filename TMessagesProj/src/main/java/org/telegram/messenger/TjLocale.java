@@ -28,6 +28,7 @@ public class TjLocale {
 
         m = new HashMap<>();
         m.put("TjArchivedChats", "\u05e6\u05f3\u05d0\u05d8\u05d9\u05dd \u05d1\u05d0\u05e8\u05db\u05d9\u05d5\u05df");
+        m.put("TjAudioTrack", "\u05e8\u05e6\u05d5\u05e2\u05ea \u05e9\u05de\u05e2");
         m.put("TjBotApiIds", "\u05d4\u05e6\u05d2 \u05de\u05d6\u05d4\u05d9 \u05e6\u05f3\u05d0\u05d8 \u05d1\u05e4\u05d5\u05e8\u05de\u05d8 bot API");
         m.put("TjBotApiIdsInfo", "\u05de\u05e6\u05d9\u05d2 \u200e-100\u2026\u200e \u05dc\u05e1\u05d5\u05e4\u05e8-\u05d2\u05e8\u05d5\u05e4\u05d9\u05dd \u05d5\u05e2\u05e8\u05d5\u05e6\u05d9\u05dd \u05d1\u05de\u05e7\u05d5\u05dd \u05d4\u05de\u05d6\u05d4\u05d4 \u05d4\u05e4\u05e0\u05d9\u05de\u05d9 \u05d4\u05d2\u05d5\u05dc\u05de\u05d9.");
         m.put("TjBots", "\u05d1\u05d5\u05d8\u05d9\u05dd");
@@ -88,6 +89,7 @@ public class TjLocale {
 
         m = new HashMap<>();
         m.put("TjArchivedChats", "\u0627\u0644\u062f\u0631\u062f\u0634\u0627\u062a \u0627\u0644\u0645\u0624\u0631\u0634\u0641\u0629");
+        m.put("TjAudioTrack", "\u0627\u0644\u0645\u0633\u0627\u0631 \u0627\u0644\u0635\u0648\u062a\u064a");
         m.put("TjBotApiIds", "\u0625\u0638\u0647\u0627\u0631 \u0645\u0639\u0631\u0641\u0627\u062a \u0627\u0644\u062f\u0631\u062f\u0634\u0629 \u0628\u062a\u0646\u0633\u064a\u0642 bot API");
         m.put("TjBotApiIdsInfo", "\u064a\u0639\u0631\u0636 \u200e-100\u2026\u200e \u0644\u0644\u0645\u062c\u0645\u0648\u0639\u0627\u062a \u0627\u0644\u0643\u0628\u064a\u0631\u0629 \u0648\u0627\u0644\u0642\u0646\u0648\u0627\u062a \u0628\u062f\u0644\u0627\u064b \u0645\u0646 \u0627\u0644\u0645\u0639\u0631\u0641 \u0627\u0644\u062f\u0627\u062e\u0644\u064a.");
         m.put("TjBots", "\u0627\u0644\u0628\u0648\u062a\u0627\u062a");
@@ -148,6 +150,7 @@ public class TjLocale {
 
         m = new HashMap<>();
         m.put("TjArchivedChats", "\u0410\u0440\u0445\u0438\u0432\u043d\u044b\u0435 \u0447\u0430\u0442\u044b");
+        m.put("TjAudioTrack", "\u0410\u0443\u0434\u0438\u043e\u0434\u043e\u0440\u043e\u0436\u043a\u0430");
         m.put("TjBotApiIds", "\u041f\u043e\u043a\u0430\u0437\u044b\u0432\u0430\u0442\u044c ID \u0447\u0430\u0442\u043e\u0432 \u0432 \u0444\u043e\u0440\u043c\u0430\u0442\u0435 bot API");
         m.put("TjBotApiIdsInfo", "\u041f\u043e\u043a\u0430\u0437\u044b\u0432\u0430\u0435\u0442 \u200e-100\u2026\u200e \u0434\u043b\u044f \u0441\u0443\u043f\u0435\u0440\u0433\u0440\u0443\u043f\u043f \u0438 \u043a\u0430\u043d\u0430\u043b\u043e\u0432 \u0432\u043c\u0435\u0441\u0442\u043e \u0432\u043d\u0443\u0442\u0440\u0435\u043d\u043d\u0435\u0433\u043e ID.");
         m.put("TjBots", "\u0411\u043e\u0442\u044b");
@@ -208,6 +211,7 @@ public class TjLocale {
 
         m = new HashMap<>();
         m.put("TjArchivedChats", "Discussions archiv\u00e9es");
+        m.put("TjAudioTrack", "Piste audio");
         m.put("TjBotApiIds", "Afficher les ID au format bot API");
         m.put("TjBotApiIdsInfo", "Affiche \u200e-100\u2026\u200e pour les supergroupes et canaux au lieu de l'ID interne.");
         m.put("TjBots", "Bots");
@@ -268,6 +272,7 @@ public class TjLocale {
 
         m = new HashMap<>();
         m.put("TjArchivedChats", "\u5df2\u5f52\u6863\u804a\u5929");
+        m.put("TjAudioTrack", "\u97f3\u8f68");
         m.put("TjBotApiIds", "\u4ee5 bot API \u683c\u5f0f\u663e\u793a\u804a\u5929 ID");
         m.put("TjBotApiIdsInfo", "\u4e3a\u8d85\u7ea7\u7fa4\u7ec4\u548c\u9891\u9053\u663e\u793a \u200e-100\u2026\u200e \u800c\u4e0d\u662f\u5185\u90e8 ID\u3002");
         m.put("TjBots", "\u673a\u5668\u4eba");
@@ -328,6 +333,7 @@ public class TjLocale {
 
         m = new HashMap<>();
         m.put("TjArchivedChats", "\u0938\u0902\u0917\u094d\u0930\u0939\u093f\u0924 \u091a\u0948\u091f");
+        m.put("TjAudioTrack", "\u0911\u0921\u093f\u092f\u094b \u091f\u094d\u0930\u0948\u0915");
         m.put("TjBotApiIds", "\u091a\u0948\u091f \u0906\u0908\u0921\u0940 bot API \u092a\u094d\u0930\u093e\u0930\u0942\u092a \u092e\u0947\u0902 \u0926\u093f\u0916\u093e\u090f\u0901");
         m.put("TjBotApiIdsInfo", "\u0938\u0941\u092a\u0930\u0917\u094d\u0930\u0941\u092a \u0914\u0930 \u091a\u0948\u0928\u0932\u094b\u0902 \u0915\u0947 \u0932\u093f\u090f \u0906\u0902\u0924\u0930\u093f\u0915 \u0906\u0908\u0921\u0940 \u0915\u0947 \u092c\u091c\u093e\u092f \u200e-100\u2026\u200e \u0926\u093f\u0916\u093e\u0924\u093e \u0939\u0948\u0964");
         m.put("TjBots", "\u092c\u0949\u091f");
