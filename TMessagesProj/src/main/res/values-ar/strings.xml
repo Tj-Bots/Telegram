@@ -1352,5 +1352,6 @@
     <string name="TjSubtitleAuto">تشغيل الترجمة تلقائيًا</string>
     <string name="TjSubtitleAutoInfo">يختار مسار ترجمة بلغتك عند توفره في الفيديو، وإلا فبالإنجليزية.</string>
     <string name="TjReplyPrivately">الرد بشكل خاص</string>
+    <string name="TjEditHistoryEnable">عرض سجل التعديلات</string>
     <string name="TjDeleteForBoth">الحذف للطرفين افتراضيًا</string>
 </resources>

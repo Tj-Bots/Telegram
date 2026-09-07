@@ -11333,5 +11333,6 @@
     <string name="TjSubtitleAuto">Turn subtitles on automatically</string>
     <string name="TjSubtitleAutoInfo">Picks a subtitle track in your language when a video has one, otherwise English.</string>
     <string name="TjReplyPrivately">Reply privately</string>
+    <string name="TjEditHistoryEnable">View edit history</string>
     <string name="TjDeleteForBoth">Delete for both sides by default</string>
 </resources>

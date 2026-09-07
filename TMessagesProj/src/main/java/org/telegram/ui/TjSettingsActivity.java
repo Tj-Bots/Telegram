@@ -58,6 +58,7 @@ public class TjSettingsActivity extends BaseFragment {
     private static final String KEY_MENU_SAVE_TO_SAVED = "menu_save_to_saved";
     private static final String KEY_MENU_FORWARD_NO_TAG = "menu_forward_without_tag";
     private static final String KEY_MENU_REPLY_PRIVATELY = "menu_reply_privately";
+    private static final String KEY_MENU_EDIT_HISTORY = "menu_edit_history";
     private static final String KEY_DELETE_FOR_BOTH = "delete_for_both_default";
 
     private static final String KEY_DELETED_MESSAGES_ENABLED = "deleted_messages_enabled";
@@ -381,6 +382,11 @@ public class TjSettingsActivity extends BaseFragment {
         return getPrefs().getBoolean(KEY_MENU_FORWARD_NO_TAG, true);
     }
 
+    /** "View edit history" in the message menu, shown only for messages that were edited. */
+    public static boolean isEditHistoryEnabled() {
+        return getPrefs().getBoolean(KEY_MENU_EDIT_HISTORY, true);
+    }
+
     /**
      * Position of an account in the side menu. Accounts that were never reordered keep
      * a large order so they stay after the ones the user moved around.
@@ -417,6 +423,7 @@ public class TjSettingsActivity extends BaseFragment {
     private static final int ID_SUBTITLE_AUTO = 15;
     private static final int ID_MENU_REPLY_PRIVATELY = 16;
     private static final int ID_DELETE_FOR_BOTH = 17;
+    private static final int ID_MENU_EDIT_HISTORY = 19;
 
     private static class Item {
         final int viewType;
@@ -444,6 +451,7 @@ public class TjSettingsActivity extends BaseFragment {
             case ID_SUBTITLE_AUTO: return isSubtitleAutoEnabled();
             case ID_MENU_REPLY_PRIVATELY: return isReplyPrivatelyEnabled();
             case ID_DELETE_FOR_BOTH: return isDeleteForBothDefault();
+            case ID_MENU_EDIT_HISTORY: return isEditHistoryEnabled();
         }
         return false;
     }
@@ -463,6 +471,7 @@ public class TjSettingsActivity extends BaseFragment {
             case ID_SUBTITLE_AUTO: key = KEY_SUBTITLE_AUTO; break;
             case ID_MENU_REPLY_PRIVATELY: key = KEY_MENU_REPLY_PRIVATELY; break;
             case ID_DELETE_FOR_BOTH: key = KEY_DELETE_FOR_BOTH; break;
+            case ID_MENU_EDIT_HISTORY: key = KEY_MENU_EDIT_HISTORY; break;
         }
         if (key != null) {
             getPrefs().edit().putBoolean(key, value).apply();
@@ -560,6 +569,7 @@ public class TjSettingsActivity extends BaseFragment {
         items.add(new Item(VIEW_TYPE_CHECK, ID_MENU_COPY_LINK, TjLocale.getString(R.string.TjCopyMessageLink)));
         items.add(new Item(VIEW_TYPE_CHECK, ID_MENU_FORWARD_NO_TAG, TjLocale.getString(R.string.TjForwardWithoutTag)));
         items.add(new Item(VIEW_TYPE_CHECK, ID_MENU_REPLY_PRIVATELY, TjLocale.getString(R.string.TjReplyPrivately)));
+        items.add(new Item(VIEW_TYPE_CHECK, ID_MENU_EDIT_HISTORY, TjLocale.getString(R.string.TjEditHistoryEnable)));
         items.add(new Item(VIEW_TYPE_CHECK, ID_DELETE_FOR_BOTH, TjLocale.getString(R.string.TjDeleteForBoth)));
         items.add(new Item(VIEW_TYPE_SHADOW, 0, TjLocale.getString(R.string.TjMessageMenuInfo)));
     }

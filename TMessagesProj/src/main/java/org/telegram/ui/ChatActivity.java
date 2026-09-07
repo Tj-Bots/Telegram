@@ -1264,6 +1264,7 @@ public class ChatActivity extends BaseFragment implements
     public final static int OPTION_SAVE_TO_SAVED = 1009;
     public final static int OPTION_TJ_REPLY_PRIVATELY = 1010;
     public final static int OPTION_TJ_CLEAR_VIDEO_CACHE = 1011;
+    public final static int OPTION_TJ_EDIT_HISTORY = 1012;
 
     private final static int[] allowedNotificationsDuringChatListAnimations = new int[]{
             NotificationCenter.messagesRead,
@@ -33522,6 +33523,13 @@ public class ChatActivity extends BaseFragment implements
                 presentFragment(new MessageInfoActivity(selectedObject));
                 break;
             }
+            case OPTION_TJ_EDIT_HISTORY: {
+                if (getParentActivity() == null || selectedObject == null) {
+                    return;
+                }
+                presentFragment(new TjEditHistoryActivity(getDialogId(), selectedObject.getId(), selectedObject));
+                break;
+            }
             case OPTION_TJ_CLEAR_VIDEO_CACHE: {
                 if (selectedObject == null || selectedObject.getDocument() == null) {
                     break;
@@ -46662,6 +46670,11 @@ public class ChatActivity extends BaseFragment implements
             items.add(TjLocale.getString(R.string.TjSaveToSaved));
             options.add(OPTION_SAVE_TO_SAVED);
             icons.add(R.drawable.msg_saved);
+        }
+        if (message != null && message.isEdited() && !options.contains(OPTION_TJ_EDIT_HISTORY) && TjSettingsActivity.isEditHistoryEnabled()) {
+            items.add(TjLocale.getString(R.string.TjDeletedViewEdits));
+            options.add(OPTION_TJ_EDIT_HISTORY);
+            icons.add(R.drawable.msg_edit);
         }
         if (canClearVideoFromCache(message) && !options.contains(OPTION_TJ_CLEAR_VIDEO_CACHE)) {
             items.add(TjLocale.getString(R.string.TjClearVideoCache));

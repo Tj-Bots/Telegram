@@ -372,5 +372,6 @@
     <string name="TjSubtitleAuto">Включать субтитры автоматически</string>
     <string name="TjSubtitleAutoInfo">Выбирает дорожку субтитров на вашем языке, если она есть в видео, иначе английскую.</string>
     <string name="TjReplyPrivately">Ответить лично</string>
+    <string name="TjEditHistoryEnable">Показывать историю редактирования</string>
     <string name="TjDeleteForBoth">Удалять у обоих по умолчанию</string>
 </resources>

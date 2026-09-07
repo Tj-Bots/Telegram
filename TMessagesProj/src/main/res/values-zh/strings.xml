@@ -109,5 +109,6 @@
     <string name="TjSubtitleAuto">自动开启字幕</string>
     <string name="TjSubtitleAutoInfo">视频中有你的语言的字幕轨时优先选择，否则选择英文。</string>
     <string name="TjReplyPrivately">私聊回复</string>
+    <string name="TjEditHistoryEnable">查看编辑历史</string>
     <string name="TjDeleteForBoth">默认为双方删除</string>
 </resources>

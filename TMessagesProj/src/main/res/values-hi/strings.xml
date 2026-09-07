@@ -109,5 +109,6 @@
     <string name="TjSubtitleAuto">सबटाइटल अपने आप चालू करें</string>
     <string name="TjSubtitleAutoInfo">वीडियो में आपकी भाषा का सबटाइटल ट्रैक होने पर उसे चुनता है, अन्यथा अंग्रेज़ी।</string>
     <string name="TjReplyPrivately">निजी में उत्तर दें</string>
+    <string name="TjEditHistoryEnable">संपादन इतिहास देखें</string>
     <string name="TjDeleteForBoth">डिफ़ॉल्ट रूप से दोनों के लिए हटाएँ</string>
 </resources>

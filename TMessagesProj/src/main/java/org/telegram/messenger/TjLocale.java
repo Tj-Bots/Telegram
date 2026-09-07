@@ -69,6 +69,7 @@ public class TjLocale {
         m.put("TjDeletedViewDeletedEmpty", "\u05e2\u05d3\u05d9\u05d9\u05df \u05dc\u05d0 \u05e0\u05e9\u05de\u05e8\u05d5 \u05d4\u05d5\u05d3\u05e2\u05d5\u05ea \u05e9\u05e0\u05de\u05d7\u05e7\u05d5.");
         m.put("TjDeletedViewEdits", "\u05d4\u05d9\u05e1\u05d8\u05d5\u05e8\u05d9\u05d9\u05ea \u05e2\u05e8\u05d9\u05db\u05d4");
         m.put("TjDeletedViewEditsEmpty", "\u05e2\u05d3\u05d9\u05d9\u05df \u05dc\u05d0 \u05e0\u05e9\u05de\u05e8\u05d4 \u05d4\u05d9\u05e1\u05d8\u05d5\u05e8\u05d9\u05d9\u05ea \u05e2\u05e8\u05d9\u05db\u05d4.");
+        m.put("TjEditHistoryEnable", "\u05d4\u05e6\u05d2 \u05d4\u05d9\u05e1\u05d8\u05d5\u05e8\u05d9\u05d9\u05ea \u05e2\u05e8\u05d9\u05db\u05d4");
         m.put("TjFilterAdmins", "\u05de\u05e0\u05d4\u05dc\u05d9\u05dd \u05d1\u05dc\u05d1\u05d3");
         m.put("TjFilterAll", "\u05db\u05dc \u05d4\u05d7\u05d1\u05e8\u05d9\u05dd");
         m.put("TjFilterBots", "\u05d1\u05d5\u05d8\u05d9\u05dd \u05d1\u05dc\u05d1\u05d3");
@@ -182,6 +183,7 @@ public class TjLocale {
         m.put("TjDeletedViewDeletedEmpty", "\u0644\u0627 \u062a\u0648\u062c\u062f \u0631\u0633\u0627\u0626\u0644 \u0645\u062d\u0630\u0648\u0641\u0629 \u0645\u062d\u0641\u0648\u0638\u0629 \u0628\u0639\u062f.");
         m.put("TjDeletedViewEdits", "\u0633\u062c\u0644 \u0627\u0644\u062a\u0639\u062f\u064a\u0644\u0627\u062a");
         m.put("TjDeletedViewEditsEmpty", "\u0644\u0627 \u064a\u0648\u062c\u062f \u0633\u062c\u0644 \u062a\u0639\u062f\u064a\u0644\u0627\u062a \u0645\u062d\u0641\u0648\u0638 \u0628\u0639\u062f.");
+        m.put("TjEditHistoryEnable", "\u0639\u0631\u0636 \u0633\u062c\u0644 \u0627\u0644\u062a\u0639\u062f\u064a\u0644\u0627\u062a");
         m.put("TjFilterAdmins", "\u0627\u0644\u0645\u0634\u0631\u0641\u0648\u0646 \u0641\u0642\u0637");
         m.put("TjFilterAll", "\u0643\u0644 \u0627\u0644\u0623\u0639\u0636\u0627\u0621");
         m.put("TjFilterBots", "\u0627\u0644\u0628\u0648\u062a\u0627\u062a \u0641\u0642\u0637");
@@ -295,6 +297,7 @@ public class TjLocale {
         m.put("TjDeletedViewDeletedEmpty", "\u0423\u0434\u0430\u043b\u0451\u043d\u043d\u044b\u0445 \u0441\u043e\u043e\u0431\u0449\u0435\u043d\u0438\u0439 \u043f\u043e\u043a\u0430 \u043d\u0435 \u0441\u043e\u0445\u0440\u0430\u043d\u0435\u043d\u043e.");
         m.put("TjDeletedViewEdits", "\u0418\u0441\u0442\u043e\u0440\u0438\u044f \u0438\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u0439");
         m.put("TjDeletedViewEditsEmpty", "\u0418\u0441\u0442\u043e\u0440\u0438\u044f \u0438\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u0439 \u043f\u043e\u043a\u0430 \u043d\u0435 \u0441\u043e\u0445\u0440\u0430\u043d\u0435\u043d\u0430.");
+        m.put("TjEditHistoryEnable", "\u041f\u043e\u043a\u0430\u0437\u044b\u0432\u0430\u0442\u044c \u0438\u0441\u0442\u043e\u0440\u0438\u044e \u0440\u0435\u0434\u0430\u043a\u0442\u0438\u0440\u043e\u0432\u0430\u043d\u0438\u044f");
         m.put("TjFilterAdmins", "\u0422\u043e\u043b\u044c\u043a\u043e \u0430\u0434\u043c\u0438\u043d\u0438\u0441\u0442\u0440\u0430\u0442\u043e\u0440\u044b");
         m.put("TjFilterAll", "\u0412\u0441\u0435 \u0443\u0447\u0430\u0441\u0442\u043d\u0438\u043a\u0438");
         m.put("TjFilterBots", "\u0422\u043e\u043b\u044c\u043a\u043e \u0431\u043e\u0442\u044b");
@@ -408,6 +411,7 @@ public class TjLocale {
         m.put("TjDeletedViewDeletedEmpty", "Aucun message supprim\u00e9 conserv\u00e9 pour l'instant.");
         m.put("TjDeletedViewEdits", "Historique des modifications");
         m.put("TjDeletedViewEditsEmpty", "Aucun historique de modification conserv\u00e9 pour l'instant.");
+        m.put("TjEditHistoryEnable", "Voir l'historique des modifications");
         m.put("TjFilterAdmins", "Administrateurs uniquement");
         m.put("TjFilterAll", "Tous les membres");
         m.put("TjFilterBots", "Bots uniquement");
@@ -521,6 +525,7 @@ public class TjLocale {
         m.put("TjDeletedViewDeletedEmpty", "\u5c1a\u672a\u4fdd\u7559\u4efb\u4f55\u5df2\u5220\u9664\u7684\u6d88\u606f\u3002");
         m.put("TjDeletedViewEdits", "\u7f16\u8f91\u5386\u53f2");
         m.put("TjDeletedViewEditsEmpty", "\u5c1a\u672a\u4fdd\u7559\u4efb\u4f55\u7f16\u8f91\u5386\u53f2\u3002");
+        m.put("TjEditHistoryEnable", "\u67e5\u770b\u7f16\u8f91\u5386\u53f2");
         m.put("TjFilterAdmins", "\u4ec5\u7ba1\u7406\u5458");
         m.put("TjFilterAll", "\u6240\u6709\u6210\u5458");
         m.put("TjFilterBots", "\u4ec5\u673a\u5668\u4eba");
@@ -634,6 +639,7 @@ public class TjLocale {
         m.put("TjDeletedViewDeletedEmpty", "\u0905\u092d\u0940 \u0924\u0915 \u0915\u094b\u0908 \u0939\u091f\u093e\u092f\u093e \u0917\u092f\u093e \u0938\u0902\u0926\u0947\u0936 \u0928\u0939\u0940\u0902 \u0930\u0916\u093e \u0917\u092f\u093e \u0939\u0948\u0964");
         m.put("TjDeletedViewEdits", "\u0938\u0902\u092a\u093e\u0926\u0928 \u0907\u0924\u093f\u0939\u093e\u0938");
         m.put("TjDeletedViewEditsEmpty", "\u0905\u092d\u0940 \u0924\u0915 \u0915\u094b\u0908 \u0938\u0902\u092a\u093e\u0926\u0928 \u0907\u0924\u093f\u0939\u093e\u0938 \u0928\u0939\u0940\u0902 \u0930\u0916\u093e \u0917\u092f\u093e \u0939\u0948\u0964");
+        m.put("TjEditHistoryEnable", "\u0938\u0902\u092a\u093e\u0926\u0928 \u0907\u0924\u093f\u0939\u093e\u0938 \u0926\u0947\u0916\u0947\u0902");
         m.put("TjFilterAdmins", "\u0915\u0947\u0935\u0932 \u090f\u0921\u092e\u093f\u0928");
         m.put("TjFilterAll", "\u0938\u092d\u0940 \u0938\u0926\u0938\u094d\u092f");
         m.put("TjFilterBots", "\u0915\u0947\u0935\u0932 \u092c\u0949\u091f");

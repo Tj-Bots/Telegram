@@ -15,6 +15,7 @@ import org.telegram.messenger.FileLoader;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.R;
+import org.telegram.messenger.TjLocale;
 import org.telegram.messenger.UserObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
@@ -140,6 +141,10 @@ public class MessageInfoActivity extends BaseFragment {
         addRow(container, "Date", LocaleController.getInstance().getFormatterStats().format((long) msg.date * 1000), null);
         if (msg.edit_date != 0) {
             addRow(container, "Edited", LocaleController.getInstance().getFormatterStats().format((long) msg.edit_date * 1000), null);
+            if (TjSettingsActivity.isEditHistoryEnabled()) {
+                addNavigationRow(container, TjLocale.getString(R.string.TjDeletedViewEdits), () ->
+                    presentFragment(new TjEditHistoryActivity(messageObject.getDialogId(), msg.id, messageObject)));
+            }
         }
         if (msg.views != 0) {
             addRow(container, "Views", String.valueOf(msg.views), String.valueOf(msg.views));
@@ -245,6 +250,26 @@ public class MessageInfoActivity extends BaseFragment {
         valueView.setTextSize(15);
         valueView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
         row.addView(valueView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 0, 2, 0, 0));
+
+        container.addView(row, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
+        addDivider(container);
+    }
+
+    /** Same look as addRow, but tapping navigates to another fragment instead of copying text. */
+    private void addNavigationRow(LinearLayout container, String label, Runnable onClick) {
+        LinearLayout row = new LinearLayout(getContext());
+        row.setOrientation(LinearLayout.VERTICAL);
+        row.setPadding(0, AndroidUtilities.dp(10), 0, AndroidUtilities.dp(10));
+        row.setBackground(Theme.getSelectorDrawable(true));
+        row.setClickable(true);
+        row.setFocusable(true);
+        row.setOnClickListener(v -> onClick.run());
+
+        TextView labelView = new TextView(getContext());
+        labelView.setText(label);
+        labelView.setTextSize(15);
+        labelView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlueText4));
+        row.addView(labelView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT));
 
         container.addView(row, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
         addDivider(container);

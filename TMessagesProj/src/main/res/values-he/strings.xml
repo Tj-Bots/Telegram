@@ -109,5 +109,6 @@
     <string name="TjSubtitleAuto">הפעל כתוביות אוטומטית</string>
     <string name="TjSubtitleAutoInfo">בוחר רצועת כתוביות בשפה שלך כשיש כזו בוידאו, ואחרת באנגלית.</string>
     <string name="TjReplyPrivately">השב בפרטי</string>
+    <string name="TjEditHistoryEnable">הצג היסטוריית עריכה</string>
     <string name="TjDeleteForBoth">מחק לשני הצדדים כברירת מחדל</string>
 </resources>
