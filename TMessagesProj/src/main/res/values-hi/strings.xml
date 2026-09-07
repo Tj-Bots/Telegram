@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="TjSettings">TJ सेटिंग्स</string>
+    <string name="TjSettings">TjGram सेटिंग्स</string>
     <string name="TjMyProfile">मेरी प्रोफ़ाइल</string>
     <string name="TjMessageInfo">संदेश जानकारी</string>
     <string name="TjCopyMessageLink">संदेश लिंक कॉपी करें</string>
@@ -37,7 +37,7 @@
     <string name="TjContactsCount">संपर्क</string>
     <string name="TjChatIdHeader">चैट ID</string>
     <string name="TjChatsHeader">चैट</string>
-    <string name="TjMessageMenuInfo">चुनें कि संदेश पर देर तक दबाने पर कौन से TJ विकल्प दिखें।</string>
+    <string name="TjMessageMenuInfo">चुनें कि संदेश पर देर तक दबाने पर कौन से TjGram विकल्प दिखें।</string>
     <string name="TjChatCountersLoading">आपके चैट गिने जा रहे हैं…</string>
     <string name="TjChatCountersInfo">गणना इस डिवाइस पर पहले से लोड चैट से की जाती है।</string>
     <string name="TjFolderIcon">फ़ोल्डर आइकन</string>

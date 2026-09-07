@@ -103,6 +103,7 @@ import androidx.core.math.MathUtils;
 
 import org.telegram.PhoneFormat.PhoneFormat;
 import org.telegram.messenger.AccountInstance;
+import org.telegram.messenger.tj.TjConfig;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.AppGlobalConfig;
 import org.telegram.messenger.ApplicationLoader;
@@ -124,6 +125,7 @@ import org.telegram.messenger.ImageLocation;
 import org.telegram.messenger.ImageReceiver;
 import org.telegram.messenger.LiteMode;
 import org.telegram.messenger.LocaleController;
+import org.telegram.messenger.TjLocale;
 import org.telegram.messenger.MediaController;
 import org.telegram.messenger.MediaDataController;
 import org.telegram.messenger.MessageObject;
@@ -280,6 +282,18 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
 
     public ExpiredStoryView expiredStoryView;
     private boolean skipFrameUpdate;
+
+    @Override
+    public void draw(Canvas canvas) {
+        if (currentMessageObject != null && currentMessageObject.messageOwner.tjDeleted
+                && TjConfig.dimDeletedMessages()) {
+            int layer = canvas.saveLayerAlpha(0, 0, getWidth(), getHeight(), 199);
+            super.draw(canvas);
+            canvas.restoreToCount(layer);
+        } else {
+            super.draw(canvas);
+        }
+    }
 
     public ChannelRecommendationsCell channelRecommendationsCell;
     private final PostRunnableHolder postRunnableHolder = new PostRunnableHolder();
@@ -18461,6 +18475,17 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             timeString = LocaleController.formatSmallDateChat(currentMessageObject.realDate) + ", " + LocaleController.getInstance().getFormatterDay().format((long) (currentMessageObject.realDate) * 1000);
         } else if (currentMessageObject.isRepostPreview) {
             timeString = LocaleController.formatSmallDateChat(messageObject.messageOwner.date) + ", " + LocaleController.getInstance().getFormatterDay().format((long) (messageObject.messageOwner.date) * 1000);
+        } else if (messageObject.messageOwner.tjDeleted) {
+            String editedMarker = TjConfig.editedMark();
+            if (TextUtils.isEmpty(editedMarker)) {
+                editedMarker = getString(R.string.EditedMessage);
+            }
+            String deletedMarker = TjConfig.deletedMark();
+            String messageTime = LocaleController.getInstance().getFormatterDay()
+                    .format((long) messageObject.messageOwner.date * 1000);
+            timeString = edited
+                    ? TjLocale.formatString(R.string.TjDeletedEditedTime, editedMarker, deletedMarker, messageTime)
+                    : TjLocale.formatString(R.string.TjDeletedTime, deletedMarker, messageTime);
         } else if (edited) {
             timeString = AppGlobalConfig.getInstance(currentAccount).messagePrimaryEditedDate.get() ?
                 LocaleController.formatPmEditedDate(currentMessagesGroup != null ? currentMessagesGroup.getMaxEditDate() : messageObject.messageOwner.edit_date) :
@@ -18473,6 +18498,20 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             timeString = LocaleController.formatSeenDate(date);
         } else {
             timeString = LocaleController.getInstance().getFormatterDay().format((long) (messageObject.messageOwner.date) * 1000);
+        }
+        if (messageObject.isSecretMedia()) {
+            int mediaTtl = messageObject.messageOwner.ttl;
+            if (messageObject.messageOwner.media != null && messageObject.messageOwner.media.ttl_seconds > 0) {
+                mediaTtl = messageObject.messageOwner.media.ttl_seconds;
+            }
+            String lifetime = mediaTtl == 0x7FFFFFFF
+                    ? getString(R.string.TimerPeriodOnce)
+                    : LocaleController.formatTTLString(mediaTtl);
+            if (!TextUtils.isEmpty(lifetime)) {
+                timeString = messageObject.messageOwner.media_unread
+                        ? TjLocale.formatString(R.string.TjSecretMediaTime, lifetime, timeString)
+                        : TjLocale.formatString(R.string.TjSecretMediaViewedTime, lifetime, timeString);
+            }
         }
         if (currentMessageObject.messageOwner.video_processing_pending) {
             timeString = formatString(R.string.ScheduledTimeApprox, timeString);
@@ -27222,6 +27261,14 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                             sb.append("\n");
                             sb.append(currentMessageObject.caption);
                         }
+                    }
+                    if (currentMessageObject.messageOwner.tjDeleted) {
+                        sb.append("\n");
+                        sb.append(TjLocale.getString(R.string.TjAccessibilityDeletedMessage));
+                    }
+                    if (currentMessageObject.isSecretMedia() && !currentMessageObject.messageOwner.media_unread) {
+                        sb.append("\n");
+                        sb.append(TjLocale.getString(R.string.TjAccessibilityViewedOnce));
                     }
                     if (currentMessageObject.isOut()) {
                         if (currentMessageObject.isSent()) {

@@ -1,10 +1,13 @@
 package org.telegram.messenger;
 
+import android.content.Context;
+import android.content.res.Configuration;
 import android.text.TextUtils;
 
 import androidx.annotation.StringRes;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -65,24 +68,36 @@ public class TjLocale {
         m.put("TjGhostModeInfo", "\u05de\u05e6\u05d1 \u05e8\u05e4\u05d0\u05d9\u05dd \u05de\u05e1\u05ea\u05d9\u05e8 \u05d0\u05ea \u05d4\u05e4\u05e2\u05d9\u05dc\u05d5\u05ea \u05e9\u05dc\u05da \u05de\u05d0\u05d7\u05e8\u05d9\u05dd. \u05d1\u05d7\u05e8 \u05de\u05d4 \u05d4\u05d5\u05d0 \u05db\u05d5\u05dc\u05dc.");
         m.put("TjGhostModeOff", "\u05db\u05d1\u05d4 \u05de\u05e6\u05d1 \u05e8\u05e4\u05d0\u05d9\u05dd");
         m.put("TjGhostModeOn", "\u05d4\u05e4\u05e2\u05dc \u05de\u05e6\u05d1 \u05e8\u05e4\u05d0\u05d9\u05dd");
+        m.put("TjGhostSettings", "\u05d4\u05d2\u05d3\u05e8\u05d5\u05ea \u05de\u05e6\u05d1 \u05e8\u05e4\u05d0\u05d9\u05dd");
         m.put("TjGhostOnline", "\u05d4\u05d9\u05e9\u05d0\u05e8 \u05dc\u05d0 \u05de\u05d7\u05d5\u05d1\u05e8");
         m.put("TjGhostRead", "\u05d0\u05dc \u05ea\u05e9\u05dc\u05d7 \u05d0\u05d9\u05e9\u05d5\u05e8\u05d9 \u05e7\u05e8\u05d9\u05d0\u05d4");
+        m.put("TjGhostStoryRead", "\u05d0\u05dc \u05ea\u05e9\u05dc\u05d7 \u05e6\u05e4\u05d9\u05d5\u05ea \u05d1\u05e1\u05d8\u05d5\u05e8\u05d9\u05d6");
         m.put("TjGhostTyping", "\u05d0\u05dc \u05ea\u05e6\u05d9\u05d2 \u05e9\u05d0\u05e0\u05d9 \u05de\u05e7\u05dc\u05d9\u05d3");
+        m.put("TjGhostForceOffline", "\u05e9\u05dc\u05d7 \u05de\u05d9\u05d3 \u05e1\u05d8\u05d8\u05d5\u05e1 \u05dc\u05d0 \u05de\u05d7\u05d5\u05d1\u05e8");
+        m.put("TjGhostReadAfterReply", "\u05e1\u05de\u05df \u05db\u05e0\u05e7\u05e8\u05d0 \u05dc\u05d0\u05d7\u05e8 \u05e9\u05d0\u05e0\u05d9 \u05de\u05e9\u05d9\u05d1");
+        m.put("TjGhostReadAfterReplyInfo", "\u05de\u05e1\u05de\u05df \u05d4\u05d5\u05d3\u05e2\u05d4 \u05db\u05e0\u05e7\u05e8\u05d0\u05d4 \u05db\u05e9\u05de\u05e9\u05d9\u05d1\u05d9\u05dd \u05dc\u05d4 \u05d0\u05d5 \u05de\u05d2\u05d9\u05d1\u05d9\u05dd \u05e2\u05dc\u05d9\u05d4.");
+        m.put("TjGhostScheduleMessages", "\u05e9\u05dc\u05d7 \u05d1\u05d0\u05de\u05e6\u05e2\u05d5\u05ea \u05d4\u05d5\u05d3\u05e2\u05d5\u05ea \u05de\u05ea\u05d5\u05d6\u05de\u05e0\u05d5\u05ea");
+        m.put("TjGhostScheduleMessagesInfo", "\u05de\u05ea\u05d6\u05de\u05df \u05d4\u05d5\u05d3\u05e2\u05d5\u05ea \u05d9\u05d5\u05e6\u05d0\u05d5\u05ea \u05dc\u05d6\u05de\u05df \u05e7\u05e6\u05e8 \u05db\u05d3\u05d9 \u05e9\u05dc\u05d0 \u05ea\u05d9\u05e8\u05d0\u05d4 \u05de\u05d7\u05d5\u05d1\u05e8. \u05d1\u05e8\u05e9\u05ea \u05dc\u05d0 \u05d9\u05e6\u05d9\u05d1\u05d4 \u05d4\u05e9\u05dc\u05d9\u05d7\u05d4 \u05e2\u05dc\u05d5\u05dc\u05d4 \u05dc\u05d4\u05ea\u05e2\u05db\u05d1.");
         m.put("TjGhostWarning", "\u05de\u05e6\u05d1 \u05e8\u05e4\u05d0\u05d9\u05dd \u05d0\u05d9\u05e0\u05d5 \u05ea\u05db\u05d5\u05e0\u05d4 \u05e8\u05e9\u05de\u05d9\u05ea \u05e9\u05dc \u05d8\u05dc\u05d2\u05e8\u05dd. \u05d9\u05d9\u05ea\u05db\u05df \u05e9\u05d8\u05dc\u05d2\u05e8\u05dd \u05ea\u05ea\u05d9\u05d9\u05d7\u05e1 \u05dc\u05d6\u05d4 \u05db\u05d4\u05ea\u05e0\u05d4\u05d2\u05d5\u05ea \u05d7\u05e8\u05d9\u05d2\u05d4, \u05d0\u05d6 \u05d4\u05e9\u05d9\u05de\u05d5\u05e9 \u05e2\u05dc \u05d0\u05d7\u05e8\u05d9\u05d5\u05ea\u05da.");
         m.put("TjGoToFirstMessage", "\u05e2\u05d1\u05d5\u05e8 \u05dc\u05d4\u05d5\u05d3\u05e2\u05d4 \u05d4\u05e8\u05d0\u05e9\u05d5\u05e0\u05d4");
         m.put("TjGroups", "\u05e7\u05d1\u05d5\u05e6\u05d5\u05ea");
+        m.put("TjSupergroups", "סופר־קבוצות");
+        m.put("TjSecretChats", "צ׳אטים סודיים");
+        m.put("TjForums", "פורומים");
+        m.put("TjCreatorHeader", "יוצר");
+        m.put("TjAdministratorHeader", "מנהל");
         m.put("TjHidePhoneNumber", "\u05d4\u05e1\u05ea\u05e8 \u05d0\u05ea \u05de\u05e1\u05e4\u05e8 \u05d4\u05d8\u05dc\u05e4\u05d5\u05df \u05e9\u05dc\u05d9");
         m.put("TjHidePhoneNumberInfo", "\u05de\u05e1\u05ea\u05d9\u05e8 \u05d0\u05ea \u05de\u05e1\u05e4\u05e8 \u05d4\u05d8\u05dc\u05e4\u05d5\u05df \u05e9\u05dc\u05da \u05d1\u05ea\u05e4\u05e8\u05d9\u05d8 \u05d4\u05e6\u05d3 \u05d5\u05d1\u05e4\u05e8\u05d5\u05e4\u05d9\u05dc \u05e9\u05dc\u05da.");
         m.put("TjHidePinnedMessage", "\u05d4\u05e1\u05ea\u05e8 \u05d4\u05d5\u05d3\u05e2\u05d4 \u05de\u05d5\u05e6\u05de\u05d3\u05ea");
         m.put("TjMessageInfo", "\u05e4\u05e8\u05d8\u05d9 \u05d4\u05d5\u05d3\u05e2\u05d4");
         m.put("TjMessageMenuHeader", "\u05ea\u05e4\u05e8\u05d9\u05d8 \u05d4\u05d5\u05d3\u05e2\u05d4");
-        m.put("TjMessageMenuInfo", "\u05d1\u05d7\u05e8 \u05d0\u05d9\u05dc\u05d5 \u05de\u05d4\u05db\u05e4\u05ea\u05d5\u05e8\u05d9\u05dd \u05e9\u05dc TJ \u05d9\u05d5\u05e6\u05d2\u05d5 \u05d1\u05dc\u05d7\u05d9\u05e6\u05d4 \u05d0\u05e8\u05d5\u05db\u05d4 \u05e2\u05dc \u05d4\u05d5\u05d3\u05e2\u05d4.");
+        m.put("TjMessageMenuInfo", "\u05d1\u05d7\u05e8 \u05d0\u05d9\u05dc\u05d5 \u05de\u05db\u05e4\u05ea\u05d5\u05e8\u05d9 TjGram \u05d9\u05d5\u05e6\u05d2\u05d5 \u05d1\u05dc\u05d7\u05d9\u05e6\u05d4 \u05d0\u05e8\u05d5\u05db\u05d4 \u05e2\u05dc \u05d4\u05d5\u05d3\u05e2\u05d4.");
         m.put("TjMutedChats", "\u05e6\u05f3\u05d0\u05d8\u05d9\u05dd \u05de\u05d5\u05e9\u05ea\u05e7\u05d9\u05dd");
         m.put("TjMyProfile", "\u05d4\u05e4\u05e8\u05d5\u05e4\u05d9\u05dc \u05e9\u05dc\u05d9");
         m.put("TjPrivateChats", "\u05e6\u05f3\u05d0\u05d8\u05d9\u05dd \u05e4\u05e8\u05d8\u05d9\u05d9\u05dd");
         m.put("TjReplyPrivately", "\u05d4\u05e9\u05d1 \u05d1\u05e4\u05e8\u05d8\u05d9");
         m.put("TjSaveToSaved", "\u05e9\u05de\u05d5\u05e8 \u05d1\u05d4\u05d5\u05d3\u05e2\u05d5\u05ea \u05e9\u05de\u05d5\u05e8\u05d5\u05ea");
-        m.put("TjSettings", "\u05d4\u05d2\u05d3\u05e8\u05d5\u05ea TJ");
+        m.put("TjSettings", "\u05d4\u05d2\u05d3\u05e8\u05d5\u05ea TjGram");
         m.put("TjShowCallButton", "\u05d4\u05e6\u05d2 \u05db\u05e4\u05ea\u05d5\u05e8 \u05e9\u05d9\u05d7\u05d4 \u05d1\u05e6\u05f3\u05d0\u05d8\u05d9\u05dd \u05e4\u05e8\u05d8\u05d9\u05d9\u05dd");
         m.put("TjShowCallButtonInfo", "\u05db\u05d1\u05e8\u05d9\u05e8\u05ea \u05de\u05d7\u05d3\u05dc \u05de\u05d5\u05e6\u05d2 \u05e1\u05de\u05dc \u05d7\u05d9\u05e4\u05d5\u05e9 \u05d1\u05de\u05e7\u05d5\u05dd \u05e1\u05de\u05dc \u05d4\u05e9\u05d9\u05d7\u05d4 \u05d1\u05e6\u05f3\u05d0\u05d8\u05d9\u05dd \u05e4\u05e8\u05d8\u05d9\u05d9\u05dd.");
         m.put("TjShowPinnedMessage", "\u05d4\u05e6\u05d2 \u05d4\u05d5\u05d3\u05e2\u05d4 \u05de\u05d5\u05e6\u05de\u05d3\u05ea");
@@ -103,6 +118,115 @@ public class TjLocale {
         m.put("TjSubtitlesOff", "\u05db\u05d1\u05d5\u05d9\u05d5\u05ea");
         m.put("TjTotalChats", "\u05e1\u05d4\u05f4\u05db \u05e6\u05f3\u05d0\u05d8\u05d9\u05dd");
         m.put("TjUnreadChats", "\u05e6\u05f3\u05d0\u05d8\u05d9\u05dd \u05e9\u05dc\u05d0 \u05e0\u05e7\u05e8\u05d0\u05d5");
+        m.put("TjPrivacyArchive", "פרטיות וארכיון הודעות");
+        m.put("TjPrivacyArchiveInfo", "שליטה בהודעות שנשמרות מקומית, העברה מוגנת ומסנני הודעות.");
+        m.put("TjArchiveHeader", "ארכיון הודעות מקומי");
+        m.put("TjSaveDeletedMessages", "שמור הודעות שנמחקו");
+        m.put("TjSaveEditedMessages", "שמור היסטוריית עריכות");
+        m.put("TjSaveFormatting", "שמור עיצוב טקסט");
+        m.put("TjSaveReactions", "שמור תגובות");
+        m.put("TjSaveBotMessages", "שמור הודעות של בוטים");
+        m.put("TjArchiveInfo", "העותקים נשמרים רק במכשיר הזה. אי אפשר לשחזר הודעות שנמחקו לפני הפעלת האפשרות.");
+        m.put("TjArchiveMediaHeader", "קבצים מצורפים שמורים");
+        m.put("TjSaveMedia", "העתק מדיה שכבר הורדה");
+        m.put("TjSavePrivateMedia", "צ׳אטים פרטיים");
+        m.put("TjSavePublicGroupMedia", "קבוצות ציבוריות");
+        m.put("TjSavePrivateGroupMedia", "קבוצות פרטיות");
+        m.put("TjSavePublicChannelMedia", "ערוצים ציבוריים");
+        m.put("TjSavePrivateChannelMedia", "ערוצים פרטיים");
+        m.put("TjArchiveMediaInfo", "אפשר להעתיק רק מדיה שכבר הורדה למכשיר. הקבצים נשמרים בתיקייה הפרטית של TjGram.");
+        m.put("TjDeletedMarker", "סימון הודעה שנמחקה");
+        m.put("TjEditedMarker", "סימון הודעה שנערכה");
+        m.put("TjClearArchive", "נקה את הארכיון המקומי");
+        m.put("TjClearArchiveTitle", "לנקות את ארכיון ההודעות?");
+        m.put("TjClearArchiveText", "כל ההודעות המחוקות והגרסאות שנשמרו מקומית יימחקו. אי אפשר לבטל את הפעולה.");
+        m.put("TjArchiveCleared", "ארכיון ההודעות המקומי נוקה");
+        m.put("TjProtectedForwarding", "העלה מחדש הודעות מוגנות");
+        m.put("TjProtectedForwardingInfo", "כש־Telegram חוסם העברה רגילה, יישלח עותק חדש של הטקסט או המדיה שהורדה. פרטי המקור לא יישמרו.");
+        m.put("TjMessageFilters", "מסנני הודעות Regex");
+        m.put("TjFiltersInChats", "החל מסננים בתוך צ׳אטים");
+        m.put("TjFiltersCaseInsensitive", "התעלם מהבדל בין אותיות");
+        m.put("TjFilterExpressions", "ביטויי סינון");
+        m.put("TjFiltersInfo", "ביטויים רגולריים מסתירים הודעות תואמות רק במכשיר. ביטוי לא תקין יידחה ויוצג בעורך.");
+        m.put("TjSettingsInfo", "מצב רפאים, פרטיות, מראה ואפשרויות מתקדמות");
+        m.put("TjGhostSendWithoutSound", "שלח ללא צליל");
+        m.put("TjGhostSendWithoutSoundInfo", "שולח הודעות יוצאות ללא צליל כברירת מחדל כל עוד מצב רפאים פעיל.");
+        m.put("TjGhostOptionLocked", "האפשרות הזו לא תשתנה יחד עם מתג מצב הרפאים.");
+        m.put("TjGhostOptionUnlocked", "האפשרות הזו תשתנה יחד עם מתג מצב הרפאים.");
+        m.put("TjLikelyOffline", "כנראה לא מחובר");
+        m.put("TjDimDeletedMessages", "עמעם הודעות שנמחקו");
+        m.put("TjArchiveLimit", "מגבלת אחסון לארכיון");
+        m.put("TjDeleteKeepLocally", "השאר את ההודעה המחוקה במכשיר");
+        m.put("TjEditHistory", "היסטוריית עריכות");
+        m.put("TjEditHistoryCount", "היסטוריית עריכות (%1$d)");
+        m.put("TjReadUntil", "סמן כנקרא עד כאן");
+        m.put("TjMarkMediaViewed", "סמן את המדיה כנצפתה");
+        m.put("TjViewOnceSaveFailed", "לא ניתן היה לשמור את המדיה החד־פעמית. היא לא סומנה כנצפתה.");
+        m.put("TjClearFromCache", "נקה מהמטמון");
+        m.put("TjEnableChatGhost", "הפעל מצב רפאים בצ׳אט הזה");
+        m.put("TjDisableChatGhost", "כבה מצב רפאים בצ׳אט הזה");
+        m.put("TjChatGhostEnabled", "מצב רפאים הופעל בצ׳אט הזה");
+        m.put("TjChatGhostDisabled", "מצב רפאים כובה בצ׳אט הזה");
+        m.put("TjChatGhostInfo", "אישורי קריאה והקלדה מוסתרים בצ׳אט הזה. מצב מקוון חל על החשבון כולו.");
+        m.put("TjDeletedMarkerTrash", "פח אפור");
+        m.put("TjDeletedMarkerRedX", "איקס אדום");
+        m.put("TjDeletedMarkerDarkX", "איקס כהה");
+        m.put("TjDeletedMarkerBroom", "מטאטא");
+        m.put("TjDeletedTime", "%1$s %2$s");
+        m.put("TjDeletedEditedTime", "%1$s (%2$s) %3$s");
+        m.put("TjSecretMediaTime", "%1$s · %2$s");
+        m.put("TjSecretMediaViewedTime", "%1$s · %2$s ✓✓");
+        m.put("TjAccessibilityDeletedMessage", "הודעה שנמחקה ונשמרה במכשיר");
+        m.put("TjAccessibilityViewedOnce", "מדיה חד־פעמית שסומנה כנצפתה");
+        m.put("TjNoEditHistory", "אין עריכות שנשמרו מקומית");
+        m.put("TjEditRevision", "גרסה %1$d");
+        m.put("TjExtras", "תוספות");
+        m.put("TjLocalPremium", "פרימיום מקומי");
+        m.put("TjLocalPremiumInfo", "גורם ללקוח להתנהג מקומית כחשבון פרימיום. יכולות פרימיום בצד השרת עדיין עשויות להידחות על ידי טלגרם.");
+        m.put("TjHideSponsored", "הסתר פרסומות");
+        m.put("TjCrashReports", "שלח דוחות קריסה");
+        m.put("TjCrashReportsInfo", "כשהאפשרות פעילה, אבחון טכני של קריסות נשלח אל Firebase Crashlytics. האפשרות כבויה כברירת מחדל.");
+        m.put("TjShowGhostInDrawer", "הצג מצב רפאים במגירה");
+        m.put("TjShowKillInDrawer", "הצג סגירת אפליקציה במגירה");
+        m.put("TjKillApp", "סגור את האפליקציה");
+        m.put("TjKeepAlive", "שירות שמירה ברקע");
+        m.put("TjKeepAliveInfo", "מפעיל מחדש את שירות ההתראות ברקע אם Android עוצר אותו, לקבלת התראות אמינות יותר.");
+        m.put("TjSync", "סנכרון מצב קריאה");
+        m.put("TjSyncEnabled", "הפעל סנכרון");
+        m.put("TjSyncSecure", "השתמש בחיבור מאובטח");
+        m.put("TjSyncServer", "כתובת שרת");
+        m.put("TjSyncToken", "אסימון גישה");
+        m.put("TjSyncStatus", "מצב חיבור");
+        m.put("TjSyncDeviceId", "מזהה מכשיר");
+        m.put("TjSyncLastSent", "אירוע אחרון שנשלח");
+        m.put("TjSyncLastReceived", "אירוע אחרון שהתקבל");
+        m.put("TjSyncRegisterStatus", "קוד מצב רישום");
+        m.put("TjSyncNever", "אף פעם");
+        m.put("TjSyncForce", "כפה סנכרון מלא");
+        m.put("TjSyncInfo", "מסנכרן את מיקום הקריאה בין מכשירים דרך השרת והאסימון שסיפקת. לא מוגדר שירות חיצוני כברירת מחדל.");
+        m.put("TjSyncConnected", "מחובר");
+        m.put("TjSyncConnecting", "מתחבר…");
+        m.put("TjSyncError", "שגיאת חיבור");
+        m.put("TjSyncMissingConfig", "חסרים שרת או אסימון");
+        m.put("TjSyncDisabled", "כבוי");
+        m.put("TjXiaomiSuccess", "יש לך טלפון טוב.");
+        m.put("TjXiaomiFailure", "כדאי להתקין ROM מותאם אישית.");
+        m.put("TjJoinChannelTitle", "נשארים מעודכנים עם TjGram");
+        m.put("TjJoinChannelMessage", "אפשר להצטרף לערוץ הרשמי של TjGram לקבלת עדכונים, גרסאות חדשות והודעות חשובות. ההודעה הזו תוצג פעם אחת בלבד.");
+        m.put("TjJoinChannelAction", "הצטרפות לערוץ");
+        m.put("TjNotNow", "לא עכשיו");
+        m.put("TjCategories", "קטגוריות");
+        m.put("TjLinks", "קישורים");
+        m.put("TjCustomization", "התאמה אישית");
+        m.put("TjChannel", "ערוץ");
+        m.put("TjDiscussions", "דיונים");
+        m.put("TjSourceCode", "קוד מקור");
+        m.put("TjArchiveInsights", "ארכיון ומעקב");
+        m.put("TjDeletedAppearance", "מראה הודעות שנמחקו");
+        m.put("TjDeletedAppearanceInfo", "כאן אפשר לבחור כיצד יוצגו בצ׳אטים הודעות שנמחקו והיסטוריית עריכות שנשמרו.");
+        m.put("TjAdvancedSettings", "הגדרות תצוגה וצ׳אטים מתקדמות");
+        m.put("TjProtectedForwardFailed", "לא ניתן היה להכין %1$d הודעות מוגנות. שאר ההודעות נשלחו.");
+        m.put("TjReorderAccount", "גרירה לשינוי סדר החשבון");
         TRANSLATIONS.put("he", m);
 
         m = new HashMap<>();
@@ -161,7 +285,7 @@ public class TjLocale {
         m.put("TjPrivateChats", "\u0627\u0644\u062f\u0631\u062f\u0634\u0627\u062a \u0627\u0644\u062e\u0627\u0635\u0629");
         m.put("TjReplyPrivately", "\u0627\u0644\u0631\u062f \u0628\u0634\u0643\u0644 \u062e\u0627\u0635");
         m.put("TjSaveToSaved", "\u062d\u0641\u0638 \u0641\u064a \u0627\u0644\u0631\u0633\u0627\u0626\u0644 \u0627\u0644\u0645\u062d\u0641\u0648\u0638\u0629");
-        m.put("TjSettings", "\u0625\u0639\u062f\u0627\u062f\u0627\u062a TJ");
+        m.put("TjSettings", "\u0625\u0639\u062f\u0627\u062f\u0627\u062a TjGram");
         m.put("TjShowCallButton", "\u0625\u0638\u0647\u0627\u0631 \u0632\u0631 \u0627\u0644\u0627\u062a\u0635\u0627\u0644 \u0641\u064a \u0627\u0644\u0645\u062d\u0627\u062f\u062b\u0627\u062a \u0627\u0644\u062e\u0627\u0635\u0629");
         m.put("TjShowCallButtonInfo", "\u0627\u0641\u062a\u0631\u0627\u0636\u064a\u064b\u0627 \u064a\u0638\u0647\u0631 \u0631\u0645\u0632 \u0627\u0644\u0628\u062d\u062b \u0628\u062f\u0644\u0627\u064b \u0645\u0646 \u0631\u0645\u0632 \u0627\u0644\u0627\u062a\u0635\u0627\u0644 \u0641\u064a \u0627\u0644\u0645\u062d\u0627\u062f\u062b\u0627\u062a \u0627\u0644\u062e\u0627\u0635\u0629.");
         m.put("TjShowPinnedMessage", "\u0625\u0638\u0647\u0627\u0631 \u0627\u0644\u0631\u0633\u0627\u0644\u0629 \u0627\u0644\u0645\u062b\u0628\u062a\u0629");
@@ -240,7 +364,7 @@ public class TjLocale {
         m.put("TjPrivateChats", "\u041b\u0438\u0447\u043d\u044b\u0435 \u0447\u0430\u0442\u044b");
         m.put("TjReplyPrivately", "\u041e\u0442\u0432\u0435\u0442\u0438\u0442\u044c \u043b\u0438\u0447\u043d\u043e");
         m.put("TjSaveToSaved", "\u0421\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c \u0432 \u0418\u0437\u0431\u0440\u0430\u043d\u043d\u043e\u0435");
-        m.put("TjSettings", "\u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438 TJ");
+        m.put("TjSettings", "\u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438 TjGram");
         m.put("TjShowCallButton", "\u041f\u043e\u043a\u0430\u0437\u044b\u0432\u0430\u0442\u044c \u043a\u043d\u043e\u043f\u043a\u0443 \u0437\u0432\u043e\u043d\u043a\u0430 \u0432 \u043b\u0438\u0447\u043d\u044b\u0445 \u0447\u0430\u0442\u0430\u0445");
         m.put("TjShowCallButtonInfo", "\u041f\u043e \u0443\u043c\u043e\u043b\u0447\u0430\u043d\u0438\u044e \u0432 \u043b\u0438\u0447\u043d\u044b\u0445 \u0447\u0430\u0442\u0430\u0445 \u043f\u043e\u043a\u0430\u0437\u044b\u0432\u0430\u0435\u0442\u0441\u044f \u0437\u043d\u0430\u0447\u043e\u043a \u043f\u043e\u0438\u0441\u043a\u0430 \u0432\u043c\u0435\u0441\u0442\u043e \u0437\u043d\u0430\u0447\u043a\u0430 \u0437\u0432\u043e\u043d\u043a\u0430.");
         m.put("TjShowPinnedMessage", "\u041f\u043e\u043a\u0430\u0437\u0430\u0442\u044c \u0437\u0430\u043a\u0440\u0435\u043f\u043b\u0451\u043d\u043d\u043e\u0435 \u0441\u043e\u043e\u0431\u0449\u0435\u043d\u0438\u0435");
@@ -319,7 +443,7 @@ public class TjLocale {
         m.put("TjPrivateChats", "Discussions priv\u00e9es");
         m.put("TjReplyPrivately", "R\u00e9pondre en priv\u00e9");
         m.put("TjSaveToSaved", "Enregistrer dans les messages sauvegard\u00e9s");
-        m.put("TjSettings", "Param\u00e8tres TJ");
+        m.put("TjSettings", "Param\u00e8tres TjGram");
         m.put("TjShowCallButton", "Afficher le bouton d'appel dans les discussions priv\u00e9es");
         m.put("TjShowCallButtonInfo", "Par d\u00e9faut, l'ic\u00f4ne de recherche remplace l'ic\u00f4ne d'appel dans les discussions priv\u00e9es.");
         m.put("TjShowPinnedMessage", "Afficher le message \u00e9pingl\u00e9");
@@ -398,7 +522,7 @@ public class TjLocale {
         m.put("TjPrivateChats", "\u79c1\u804a");
         m.put("TjReplyPrivately", "\u79c1\u804a\u56de\u590d");
         m.put("TjSaveToSaved", "\u4fdd\u5b58\u5230\u6536\u85cf\u5939");
-        m.put("TjSettings", "TJ \u8bbe\u7f6e");
+        m.put("TjSettings", "TjGram \u8bbe\u7f6e");
         m.put("TjShowCallButton", "\u5728\u79c1\u804a\u4e2d\u663e\u793a\u901a\u8bdd\u6309\u94ae");
         m.put("TjShowCallButtonInfo", "\u9ed8\u8ba4\u5728\u79c1\u804a\u4e2d\u663e\u793a\u641c\u7d22\u56fe\u6807\u800c\u975e\u901a\u8bdd\u56fe\u6807\u3002");
         m.put("TjShowPinnedMessage", "\u663e\u793a\u7f6e\u9876\u6d88\u606f");
@@ -477,7 +601,7 @@ public class TjLocale {
         m.put("TjPrivateChats", "\u0928\u093f\u091c\u0940 \u091a\u0948\u091f");
         m.put("TjReplyPrivately", "\u0928\u093f\u091c\u0940 \u092e\u0947\u0902 \u0909\u0924\u094d\u0924\u0930 \u0926\u0947\u0902");
         m.put("TjSaveToSaved", "\u0938\u0939\u0947\u091c\u0947 \u0917\u090f \u0938\u0902\u0926\u0947\u0936\u094b\u0902 \u092e\u0947\u0902 \u0938\u0939\u0947\u091c\u0947\u0902");
-        m.put("TjSettings", "TJ \u0938\u0947\u091f\u093f\u0902\u0917\u094d\u0938");
+        m.put("TjSettings", "TjGram \u0938\u0947\u091f\u093f\u0902\u0917\u094d\u0938");
         m.put("TjShowCallButton", "\u0928\u093f\u091c\u0940 \u091a\u0948\u091f \u092e\u0947\u0902 \u0915\u0949\u0932 \u092c\u091f\u0928 \u0926\u093f\u0916\u093e\u090f\u0901");
         m.put("TjShowCallButtonInfo", "\u0921\u093f\u092b\u093c\u0949\u0932\u094d\u091f \u0930\u0942\u092a \u0938\u0947 \u0928\u093f\u091c\u0940 \u091a\u0948\u091f \u092e\u0947\u0902 \u0915\u0949\u0932 \u0906\u0907\u0915\u0928 \u0915\u0947 \u092c\u091c\u093e\u092f \u0916\u094b\u091c \u0906\u0907\u0915\u0928 \u0926\u093f\u0916\u0924\u093e \u0939\u0948\u0964");
         m.put("TjShowPinnedMessage", "\u092a\u093f\u0928 \u0915\u093f\u092f\u093e \u0938\u0902\u0926\u0947\u0936 \u0926\u093f\u0916\u093e\u090f\u0901");
@@ -507,9 +631,11 @@ public class TjLocale {
         try {
             LocaleController.LocaleInfo info = LocaleController.getInstance().getCurrentLocaleInfo();
             if (info != null) {
-                code = !TextUtils.isEmpty(info.pluralLangCode) ? info.pluralLangCode
+                // shortName identifies the language pack the user actually selected. pluralLangCode
+                // only selects grammatical plural rules and may point at a different/base language.
+                code = !TextUtils.isEmpty(info.shortName) ? info.shortName
                      : !TextUtils.isEmpty(info.baseLangCode) ? info.baseLangCode
-                     : info.shortName;
+                     : info.pluralLangCode;
             }
         } catch (Exception ignore) {
         }
@@ -531,6 +657,47 @@ public class TjLocale {
         return code;
     }
 
+    /** Full language tag, including a region such as pt-BR when Telegram provides one. */
+    private static String currentLanguageTag() {
+        String code = null;
+        try {
+            LocaleController.LocaleInfo info = LocaleController.getInstance().getCurrentLocaleInfo();
+            if (info != null) {
+                code = !TextUtils.isEmpty(info.shortName) ? info.shortName
+                        : !TextUtils.isEmpty(info.baseLangCode) ? info.baseLangCode
+                        : info.pluralLangCode;
+            }
+        } catch (Exception ignore) {
+        }
+        if (TextUtils.isEmpty(code)) {
+            return currentLanguage();
+        }
+        code = code.replace('_', '-');
+        if (code.equalsIgnoreCase("iw")) return "he";
+        if (code.equalsIgnoreCase("in")) return "id";
+        if (code.equalsIgnoreCase("ji")) return "yi";
+        return code;
+    }
+
+    private static String getLocalizedResource(@StringRes int res) {
+        try {
+            String tag = currentLanguageTag();
+            if (TextUtils.isEmpty(tag)) {
+                tag = currentLanguage();
+            }
+            if (TextUtils.isEmpty(tag)) {
+                return null;
+            }
+            Configuration configuration = new Configuration(
+                    ApplicationLoader.applicationContext.getResources().getConfiguration());
+            configuration.setLocale(Locale.forLanguageTag(tag));
+            Context localized = ApplicationLoader.applicationContext.createConfigurationContext(configuration);
+            return localized.getString(res);
+        } catch (Exception ignore) {
+            return null;
+        }
+    }
+
     public static String getString(@StringRes int res) {
         String key = null;
         try {
@@ -547,6 +714,10 @@ public class TjLocale {
                         return value;
                     }
                 }
+            }
+            String localized = getLocalizedResource(res);
+            if (localized != null) {
+                return localized;
             }
         }
         return LocaleController.getString(res);

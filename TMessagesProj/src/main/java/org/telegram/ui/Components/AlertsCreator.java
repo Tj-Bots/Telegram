@@ -96,6 +96,7 @@ import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.NotificationsController;
 import org.telegram.messenger.OneUIUtilities;
 import org.telegram.messenger.R;
+import org.telegram.messenger.TjLocale;
 import org.telegram.messenger.SecretChatHelper;
 import org.telegram.messenger.SendMessagesHelper;
 import org.telegram.messenger.SharedConfig;
@@ -153,6 +154,8 @@ import org.telegram.ui.Stories.recorder.ButtonWithCounterView;
 import org.telegram.ui.Stories.recorder.HintView2;
 import org.telegram.ui.ThemePreviewActivity;
 import org.telegram.ui.TjSettingsActivity;
+import org.telegram.messenger.tj.TjConfig;
+import org.telegram.messenger.tj.TjDeletionPolicy;
 import org.telegram.ui.TooManyCommunitiesActivity;
 import org.telegram.ui.community.cells.CommunityBanGroupConfirmCell;
 
@@ -7751,6 +7754,7 @@ public class AlertsCreator {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(activity, resourcesProvider);
         builder.setDimAlpha(hideDim != null ? .5f : .6f);
+        FrameLayout deleteOptions = new FrameLayout(activity);
         int count;
         if (selectedGroup != null) {
             count = selectedGroup.messages.size();
@@ -8041,7 +8045,6 @@ public class AlertsCreator {
                 return;
             } else if (!hasNotOut && myMessagesCount > 0 && hasNonDiceMessages) {
                 hasDeleteForAllCheck = true;
-                FrameLayout frameLayout = new FrameLayout(activity);
                 CheckBoxCell cell = new CheckBoxCell(activity, 1, resourcesProvider);
                 cell.setBackgroundDrawable(Theme.getSelectorDrawable(false));
                 if (chat != null && hasNotOut) {
@@ -8050,13 +8053,13 @@ public class AlertsCreator {
                     cell.setText(LocaleController.getString(R.string.DeleteMessagesOption), "", false, false);
                 }
                 cell.setPadding(LocaleController.isRTL ? dp(16) : dp(8), 0, LocaleController.isRTL ? dp(8) : dp(16), 0);
-                frameLayout.addView(cell, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 48, Gravity.TOP | Gravity.LEFT, 0, 0, 0, 0));
+                deleteOptions.addView(cell, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 48, Gravity.TOP | Gravity.LEFT, 0, 0, 0, 0));
                 cell.setOnClickListener(v -> {
                     CheckBoxCell cell12 = (CheckBoxCell) v;
                     deleteForAll[0] = !deleteForAll[0];
                     cell12.setChecked(deleteForAll[0], true);
                 });
-                builder.setView(frameLayout);
+                builder.setView(deleteOptions);
                 builder.setCustomViewOffset(9);
             }
         } else if (!scheduled && !isSavedMessages && !ChatObject.isChannel(chat) && encryptedChat == null) {
@@ -8098,7 +8101,6 @@ public class AlertsCreator {
             }
             if (myMessagesCount > 0 && hasNonDiceMessages && (user == null || !UserObject.isDeleted(user))) {
                 hasDeleteForAllCheck = true;
-                FrameLayout frameLayout = new FrameLayout(activity);
                 CheckBoxCell cell = new CheckBoxCell(activity, 1, resourcesProvider);
                 cell.setBackgroundDrawable(Theme.getSelectorDrawable(false));
                 if (canDeleteInbox) {
@@ -8109,7 +8111,7 @@ public class AlertsCreator {
                     cell.setText(LocaleController.getString(R.string.DeleteMessagesOption), "", false, false);
                 }
                 cell.setPadding(LocaleController.isRTL ? dp(16) : dp(8), 0, LocaleController.isRTL ? dp(8) : dp(16), 0);
-                frameLayout.addView(cell, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 48, Gravity.TOP | Gravity.LEFT, 0, 0, 0, 0));
+                deleteOptions.addView(cell, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 48, Gravity.TOP | Gravity.LEFT, 0, 0, 0, 0));
                 // Start ticked in a one-to-one chat: deleting only your own copy is rarely what
                 // anyone means. Deliberately not for groups or channels, where "delete for
                 // everyone" is a far less forgiving default than it is between two people.
@@ -8122,9 +8124,27 @@ public class AlertsCreator {
                     deleteForAll[0] = !deleteForAll[0];
                     cell1.setChecked(deleteForAll[0], true);
                 });
-                builder.setView(frameLayout);
+                builder.setView(deleteOptions);
                 builder.setCustomViewOffset(9);
             }
+        }
+
+        final boolean[] keepLocally = {false};
+        if (TjConfig.saveDeletedMessages() && !scheduled && !isSavedMessages && mode == ChatActivity.MODE_DEFAULT) {
+            CheckBoxCell keepCell = new CheckBoxCell(activity, 1, resourcesProvider);
+            keepCell.setBackgroundDrawable(Theme.getSelectorDrawable(false));
+            keepCell.setText(TjLocale.getString(R.string.TjDeleteKeepLocally), "", false, false);
+            keepCell.setPadding(LocaleController.isRTL ? dp(16) : dp(8), 0,
+                    LocaleController.isRTL ? dp(8) : dp(16), 0);
+            int top = deleteOptions.getChildCount() * 48;
+            deleteOptions.addView(keepCell, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 48,
+                    Gravity.TOP | Gravity.LEFT, 0, top, 0, 0));
+            keepCell.setOnClickListener(v -> {
+                keepLocally[0] = !keepLocally[0];
+                keepCell.setChecked(keepLocally[0], true);
+            });
+            builder.setView(deleteOptions);
+            builder.setCustomViewOffset(9);
         }
 
         AlertDialog.OnButtonClickListener deleteAction = (dialogInterface, i) -> {
@@ -8168,6 +8188,9 @@ public class AlertsCreator {
                     thisDialogId = mergeDialogId;
                 }
                 if (!ids.isEmpty()) {
+                    if (!keepLocally[0]) {
+                        TjDeletionPolicy.markLocalRemoval(currentAccount, thisDialogId, ids);
+                    }
                     MessagesController.getInstance(currentAccount).deleteMessages(ids, random_ids, encryptedChat, thisDialogId, topicId, deleteForAll[0], mode);
                 }
                 for (MessageObject msg: ephemeralMessages) {
@@ -8189,7 +8212,11 @@ public class AlertsCreator {
                             }
                         }
                     }
-                    MessagesController.getInstance(currentAccount).deleteMessages(ids, random_ids, encryptedChat, (a == 1 && mergeDialogId != 0) ? mergeDialogId : thisDialogId, topicId, deleteForAll[0], mode);
+                    long deleteDialogId = (a == 1 && mergeDialogId != 0) ? mergeDialogId : thisDialogId;
+                    if (!keepLocally[0]) {
+                        TjDeletionPolicy.markLocalRemoval(currentAccount, deleteDialogId, ids);
+                    }
+                    MessagesController.getInstance(currentAccount).deleteMessages(ids, random_ids, encryptedChat, deleteDialogId, topicId, deleteForAll[0], mode);
                     selectedMessages[a].clear();
                 }
             }

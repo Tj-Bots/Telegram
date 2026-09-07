@@ -1341,7 +1341,7 @@ public class FileLoadOperation {
         cancel(false);
     }
 
-    private void cancel(boolean deleteFiles) {
+    public void cancel(boolean deleteFiles) {
         Utilities.stageQueue.postRunnable(() -> {
             cancelOnStage(deleteFiles);
         });

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="TjSettings">Paramètres TJ</string>
+    <string name="TjSettings">Paramètres TjGram</string>
     <string name="TjMyProfile">Mon profil</string>
     <string name="TjMessageInfo">Infos du message</string>
     <string name="TjCopyMessageLink">Copier le lien du message</string>
@@ -37,7 +37,7 @@
     <string name="TjContactsCount">Contacts</string>
     <string name="TjChatIdHeader">Identifiants de discussion</string>
     <string name="TjChatsHeader">Discussions</string>
-    <string name="TjMessageMenuInfo">Choisissez les éléments TJ qui apparaissent lors d’un appui long sur un message.</string>
+    <string name="TjMessageMenuInfo">Choisissez les éléments TjGram qui apparaissent lors d’un appui long sur un message.</string>
     <string name="TjChatCountersLoading">Comptage de vos discussions…</string>
     <string name="TjChatCountersInfo">Les compteurs sont calculés à partir des discussions déjà chargées sur cet appareil.</string>
     <string name="TjFolderIcon">Icône du dossier</string>

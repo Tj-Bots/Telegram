@@ -8,6 +8,7 @@ import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.R;
+import org.telegram.messenger.UserConfig;
 import org.telegram.ui.TjSettingsActivity;
 
 import java.util.LinkedHashMap;
@@ -128,7 +129,7 @@ public class TjFolderIcons {
         if (filter.isDefault()) {
             return ALL_CHATS;
         }
-        String saved = TjSettingsActivity.getFolderEmoticon(filter.id);
+        String saved = TjSettingsActivity.getFolderEmoticon(UserConfig.selectedAccount, filter.id);
         if (!TextUtils.isEmpty(saved)) {
             return saved;
         }

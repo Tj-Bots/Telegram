@@ -16,6 +16,7 @@ import static org.telegram.ui.Components.Premium.LimitReachedBottomSheet.TYPE_BO
 import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
+import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -87,6 +88,8 @@ import androidx.core.content.pm.ShortcutManagerCompat;
 import androidx.core.graphics.ColorUtils;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
+import androidx.recyclerview.widget.ItemTouchHelper;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.gms.common.api.Status;
 import com.google.common.primitives.Longs;
@@ -132,6 +135,7 @@ import org.telegram.messenger.OpenAttachedMenuBotReceiver;
 import org.telegram.messenger.PushListenerController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.TjLocale;
+import org.telegram.messenger.tj.TjCommunity;
 import org.telegram.messenger.SendMessagesHelper;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.SharedPrefsHelper;
@@ -148,6 +152,7 @@ import org.telegram.messenger.utils.FrameMetricsOverlayView;
 import org.telegram.messenger.utils.LeakDetector;
 import org.telegram.messenger.utils.WindowVisibilityManager;
 import org.telegram.messenger.video.VideoAds;
+import org.telegram.messenger.tj.TjEasterEggs;
 import org.telegram.messenger.voip.VideoCapturerDevice;
 import org.telegram.messenger.voip.VoIPGroupNotification;
 import org.telegram.messenger.voip.VoIPPendingCall;
@@ -265,6 +270,7 @@ import android.graphics.Point;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import org.telegram.ui.Adapters.DrawerLayoutAdapter;
 import org.telegram.ui.Cells.DrawerAddCell;
+import org.telegram.ui.Cells.DrawerAccountsCell;
 import org.telegram.ui.Cells.DrawerProfileCell;
 import org.telegram.ui.Cells.DrawerUserCell;
 import org.telegram.ui.Components.RecyclerListView;
@@ -2707,6 +2713,8 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                                         }
                                     } else if ((url.startsWith("tg:scanqr") || url.startsWith("tg://scanqr"))) {
                                         scanQr = true;
+                                    } else if ((url.startsWith("tg:xiaomi") || url.startsWith("tg://xiaomi"))) {
+                                        TjEasterEggs.handleXiaomi(getLastFragment());
                                     } else if ((url.startsWith("tg:addcontact") || url.startsWith("tg://addcontact"))) {
                                         url = url.replace("tg:addcontact", "tg://telegram.org").replace("tg://addcontact", "tg://telegram.org");
                                         data = Uri.parse(url);
@@ -7079,12 +7087,45 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             // Re-check if the user updated their email from another client
             MessagesController.getInstance(currentAccount).checkPromoInfo(true);
         }
+        maybeShowTjCommunityPrompt();
         //if (refreshRateController != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
         //    refreshRateController.start();
         //}
     }
 
     public static Runnable whenResumed;
+
+    private void maybeShowTjCommunityPrompt() {
+        if (!TjCommunity.shouldShowJoinPrompt()
+                || !UserConfig.getInstance(currentAccount).isClientActivated()
+                || SharedConfig.isWaitingForPasscodeEnter
+                || (passcodeDialog != null && passcodeDialog.passcodeView.getVisibility() == View.VISIBLE)
+                || UserConfig.getInstance(currentAccount).unacceptedTermsOfService != null
+                || SharedConfig.pendingAppUpdate != null && SharedConfig.pendingAppUpdate.can_not_skip
+                || actionBarLayout == null || mainFragmentsStack.isEmpty()) {
+            return;
+        }
+        AndroidUtilities.runOnUIThread(this::showTjCommunityPrompt, 700);
+    }
+
+    private void showTjCommunityPrompt() {
+        if (!isResumed || !TjCommunity.shouldShowJoinPrompt()
+                || SharedConfig.isWaitingForPasscodeEnter
+                || (passcodeDialog != null && passcodeDialog.passcodeView.getVisibility() == View.VISIBLE)
+                || isFinishing()) {
+            return;
+        }
+        // This is deliberately installation-wide and opt-in. Switching accounts must not make it
+        // reappear, and TjGram never joins a Telegram channel on the user's behalf.
+        TjCommunity.markJoinPromptShown();
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(TjLocale.getString(R.string.TjJoinChannelTitle));
+        builder.setMessage(TjLocale.getString(R.string.TjJoinChannelMessage));
+        builder.setPositiveButton(TjLocale.getString(R.string.TjJoinChannelAction), (dialog, which) ->
+                Browser.openUrl(this, TjCommunity.CHANNEL_URL));
+        builder.setNegativeButton(TjLocale.getString(R.string.TjNotNow), null);
+        builder.show();
+    }
 
     private void invalidateTabletMode() {
         Boolean wasTablet = AndroidUtilities.getWasTablet();
@@ -8352,6 +8393,29 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         sideMenu.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
         sideMenu.setAllowItemsInteractionDuringAnimation(false);
         sideMenu.setAdapter(drawerLayoutAdapter = new DrawerLayoutAdapter(this, sideMenuItemAnimator, drawerLayoutContainer));
+        drawerLayoutAdapter.setAccountsListener(new DrawerAccountsCell.Listener() {
+            @Override
+            public void onAccountClick(int account) {
+                switchToAccount(account, true);
+                drawerLayoutContainer.closeDrawer(false);
+            }
+
+            @Override
+            public void onAccountPreview(int account) {
+                openAccountPreview(account);
+            }
+
+            @Override
+            public void onAddAccount() {
+                drawerLayoutContainer.closeDrawer(false);
+                openAddAccount();
+            }
+
+            @Override
+            public void onAccountsReordered(ArrayList<Integer> accounts) {
+                drawerLayoutAdapter.setAccountOrder(accounts);
+            }
+        });
         sideMenuContainer.addView(sideMenu, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
         drawerLayoutContainer.setDrawerLayout(sideMenuContainer, sideMenu);
         // The real container refuses to open unless this is switched on, and it defaults to off.
@@ -8448,6 +8512,10 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                 case 104:
                     toggleGhostMode();
                     break;
+                case 105:
+                    finishAndRemoveTask();
+                    android.os.Process.killProcess(android.os.Process.myPid());
+                    break;
                 case 101:
                     drawerLayoutContainer.closeDrawer(false);
                     presentFragment(new FiltersSetupActivity());
@@ -8458,10 +8526,186 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                     break;
                 case 103:
                     drawerLayoutContainer.closeDrawer(false);
-                    presentFragment(new TjSettingsActivity());
+                    presentFragment(new TjSettingsHomeActivity());
                     break;
             }
         });
+        final ItemTouchHelper sideMenuTouchHelper = new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP | ItemTouchHelper.DOWN, 0) {
+            private RecyclerView.ViewHolder selectedViewHolder;
+
+            @Override
+            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder,
+                                  @NonNull RecyclerView.ViewHolder target) {
+                if (viewHolder.getItemViewType() != target.getItemViewType()
+                        || !(viewHolder.itemView instanceof DrawerUserCell)) {
+                    return false;
+                }
+                drawerLayoutAdapter.swapElements(viewHolder.getAdapterPosition(), target.getAdapterPosition());
+                return true;
+            }
+
+            @Override
+            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+            }
+
+            @Override
+            public boolean isLongPressDragEnabled() {
+                return false;
+            }
+
+            @Override
+            public void onSelectedChanged(RecyclerView.ViewHolder viewHolder, int actionState) {
+                clearSelectedViewHolder();
+                if (actionState != ItemTouchHelper.ACTION_STATE_IDLE && viewHolder != null) {
+                    selectedViewHolder = viewHolder;
+                    sideMenu.cancelClickRunnables(false);
+                    View item = viewHolder.itemView;
+                    item.setBackgroundColor(Theme.getColor(Theme.key_dialogBackground));
+                    ObjectAnimator.ofFloat(item, View.TRANSLATION_Z, AndroidUtilities.dp(1)).setDuration(150).start();
+                }
+            }
+
+            @Override
+            public void clearView(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
+                clearSelectedViewHolder();
+            }
+
+            private void clearSelectedViewHolder() {
+                if (selectedViewHolder == null) {
+                    return;
+                }
+                View item = selectedViewHolder.itemView;
+                selectedViewHolder = null;
+                item.setTranslationX(0f);
+                item.setTranslationY(0f);
+                ObjectAnimator animator = ObjectAnimator.ofFloat(item, View.TRANSLATION_Z, 0f);
+                animator.addListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        int position = sideMenu.getChildAdapterPosition(item);
+                        if (position != RecyclerView.NO_POSITION) {
+                            drawerLayoutAdapter.notifyItemChanged(position);
+                        }
+                    }
+                });
+                animator.setDuration(150).start();
+            }
+
+            @Override
+            public void onChildDraw(@NonNull Canvas canvas, @NonNull RecyclerView recyclerView,
+                                    @NonNull RecyclerView.ViewHolder viewHolder, float dX, float dY,
+                                    int actionState, boolean isCurrentlyActive) {
+                if (!(viewHolder.itemView instanceof DrawerUserCell)) {
+                    return;
+                }
+                RecyclerView.ViewHolder before = recyclerView.findViewHolderForAdapterPosition(drawerLayoutAdapter.getFirstAccountPosition() - 1);
+                RecyclerView.ViewHolder after = recyclerView.findViewHolderForAdapterPosition(drawerLayoutAdapter.getLastAccountPosition() + 1);
+                View item = viewHolder.itemView;
+                if (before != null && before.itemView.getBottom() == item.getTop() && dY < 0f) {
+                    dY = 0f;
+                } else if (after != null && after.itemView.getTop() == item.getBottom() && dY > 0f) {
+                    dY = 0f;
+                }
+                item.setTranslationX(dX);
+                item.setTranslationY(dY);
+            }
+        });
+        sideMenuTouchHelper.attachToRecyclerView(sideMenu);
+        sideMenu.setOnItemLongClickListener((view, position) -> {
+            if (view instanceof DrawerUserCell) {
+                int accountNumber = ((DrawerUserCell) view).getAccountNumber();
+                if (accountNumber == currentAccount || AndroidUtilities.isTablet()) {
+                    sideMenuTouchHelper.startDrag(sideMenu.getChildViewHolder(view));
+                } else {
+                    BaseFragment preview = new DialogsActivity(null) {
+                        @Override
+                        public View createView(Context context) {
+                            View view = super.createView(context);
+                            TLRPC.User user = UserConfig.getInstance(getCurrentAccount()).getCurrentUser();
+                            if (user != null) {
+                                actionBar.setTitle(UserObject.getUserName(user));
+                            }
+                            return view;
+                        }
+
+                        @Override
+                        public void onTransitionAnimationEnd(boolean isOpen, boolean backward) {
+                            super.onTransitionAnimationEnd(isOpen, backward);
+                            if (!isOpen && backward) {
+                                drawerLayoutContainer.setDrawCurrentPreviewFragmentAbove(false);
+                                actionBarLayout.getView().invalidate();
+                            }
+                        }
+
+                        @Override
+                        public void onPreviewOpenAnimationEnd() {
+                            super.onPreviewOpenAnimationEnd();
+                            drawerLayoutContainer.setAllowOpenDrawer(false, false);
+                            drawerLayoutContainer.setDrawCurrentPreviewFragmentAbove(false);
+                            actionBarLayout.getView().invalidate();
+                        }
+                    };
+                    preview.setCurrentAccount(accountNumber);
+                    actionBarLayout.presentFragmentAsPreview(preview);
+                    drawerLayoutContainer.setDrawCurrentPreviewFragmentAbove(true);
+                }
+                return true;
+            }
+            if (drawerLayoutAdapter.getId(position) == 104) {
+                drawerLayoutContainer.closeDrawer(false);
+                presentFragment(new TjPrivacySettingsActivity(true));
+                return true;
+            }
+            return false;
+        });
+    }
+
+    private void openAddAccount() {
+        for (int a = UserConfig.MAX_ACCOUNT_COUNT - 1; a >= 0; a--) {
+            if (!UserConfig.getInstance(a).isClientActivated()) {
+                presentFragment(new LoginActivity(a));
+                return;
+            }
+        }
+    }
+
+    private void openAccountPreview(int accountNumber) {
+        TLRPC.User accountUser = UserConfig.getInstance(accountNumber).getCurrentUser();
+        Bundle previewArgs = new Bundle();
+        if (accountUser != null) {
+            previewArgs.putString("tj_account_preview_title", UserObject.getUserName(accountUser));
+        }
+        BaseFragment preview = new DialogsActivity(previewArgs) {
+            @Override
+            public View createView(Context context) {
+                View view = super.createView(context);
+                TLRPC.User user = UserConfig.getInstance(getCurrentAccount()).getCurrentUser();
+                if (user != null) {
+                    actionBar.setTitle(UserObject.getUserName(user));
+                }
+                return view;
+            }
+
+            @Override
+            public void onTransitionAnimationEnd(boolean isOpen, boolean backward) {
+                super.onTransitionAnimationEnd(isOpen, backward);
+                if (!isOpen && backward) {
+                    drawerLayoutContainer.setDrawCurrentPreviewFragmentAbove(false);
+                    actionBarLayout.getView().invalidate();
+                }
+            }
+
+            @Override
+            public void onPreviewOpenAnimationEnd() {
+                super.onPreviewOpenAnimationEnd();
+                drawerLayoutContainer.setAllowOpenDrawer(false, false);
+                drawerLayoutContainer.setDrawCurrentPreviewFragmentAbove(false);
+                actionBarLayout.getView().invalidate();
+            }
+        };
+        preview.setCurrentAccount(accountNumber);
+        actionBarLayout.presentFragmentAsPreview(preview);
+        drawerLayoutContainer.setDrawCurrentPreviewFragmentAbove(true);
     }
 
     /** Ghost mode from the drawer. Turning it on warns once, unless that was dismissed. */

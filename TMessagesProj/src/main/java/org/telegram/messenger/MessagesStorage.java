@@ -35,6 +35,9 @@ import org.telegram.SQLite.SQLiteDatabase;
 import org.telegram.SQLite.SQLiteException;
 import org.telegram.SQLite.SQLitePreparedStatement;
 import org.telegram.messenger.support.LongSparseIntArray;
+import org.telegram.messenger.tj.TjConfig;
+import org.telegram.messenger.tj.TjDeletionPolicy;
+import org.telegram.messenger.tj.TjMessageArchive;
 import org.telegram.messenger.utils.EphemeralMessagesHelper;
 import org.telegram.tgnet.NativeByteBuffer;
 import org.telegram.tgnet.RequestDelegate;
@@ -14307,7 +14310,7 @@ public class MessagesStorage extends BaseController {
         try {
             String midsStr = TextUtils.join(",", mids);
             database.executeFast(String.format(Locale.US, "UPDATE messages_v2 SET read_state = read_state | 2 WHERE mid IN (%s) AND uid = %d", midsStr, dialogId)).stepThis().dispose();
-            if (date != 0) {
+            if (date != 0 && !TjConfig.saveDeletedMessages()) {
                 cursor = database.queryFinalized(String.format(Locale.US, "SELECT mid, ttl FROM messages_v2 WHERE mid IN (%s) AND uid = %d AND ttl > 0", midsStr, dialogId));
                 ArrayList<Integer> arrayList = null;
                 while (cursor.next()) {
@@ -14514,6 +14517,103 @@ public class MessagesStorage extends BaseController {
     }
 
     private ArrayList<Long> markMessagesAsDeletedInternal(long dialogId, ArrayList<Integer> messages, boolean deleteFiles, int mode, int threadMessageId) {
+        if (mode == ChatActivity.MODE_DEFAULT && TjConfig.saveDeletedMessages()) {
+            ArrayList<Integer> messagesToDelete = filterRemoteDeletionsToKeep(dialogId, messages);
+            if (messagesToDelete.size() != messages.size()) {
+                if (messagesToDelete.isEmpty()) {
+                    return new ArrayList<>();
+                }
+                return markMessagesAsDeletedInternal(dialogId, messagesToDelete, deleteFiles, mode, threadMessageId, false);
+            }
+        }
+        return markMessagesAsDeletedInternal(dialogId, messages, deleteFiles, mode, threadMessageId, false);
+    }
+
+    /**
+     * Keeps server-side deletions in Telegram's own message table. This preserves the
+     * unread counter, dialog preview/date and sorting. User-initiated removals are
+     * recorded by TjDeletionPolicy and continue through Telegram's normal delete path.
+     */
+    private ArrayList<Integer> filterRemoteDeletionsToKeep(long dialogId, ArrayList<Integer> messages) {
+        ArrayList<Integer> result = new ArrayList<>(messages);
+        if (messages.isEmpty()) {
+            return result;
+        }
+        SQLiteCursor cursor = null;
+        LongSparseArray<ArrayList<Integer>> retainedByDialog = new LongSparseArray<>();
+        try {
+            String ids = TextUtils.join(",", messages);
+            String query = dialogId != 0
+                    ? String.format(Locale.US, "SELECT uid, data, mid FROM messages_v2 WHERE mid IN(%s) AND uid = %d", ids, dialogId)
+                    : String.format(Locale.US, "SELECT uid, data, mid FROM messages_v2 WHERE mid IN(%s) AND is_channel = 0", ids);
+            cursor = database.queryFinalized(query);
+            while (cursor.next()) {
+                long did = cursor.longValue(0);
+                int mid = cursor.intValue(2);
+                if (TjDeletionPolicy.isLocalRemoval(currentAccount, did, mid)) {
+                    continue;
+                }
+                NativeByteBuffer data = cursor.byteBufferValue(1);
+                if (data == null) {
+                    continue;
+                }
+                TLRPC.Message message = TLRPC.Message.TLdeserialize(data, data.readInt32(false), false);
+                if (message != null) {
+                    message.readAttachPath(data, getUserConfig().getClientUserId());
+                    message.tjDeleted = true;
+                    persistTjDeletedMarker(did, mid, message);
+                    if (TjMessageArchive.getInstance().saveDeleted(currentAccount, message)) {
+                        result.remove((Integer) mid);
+                        ArrayList<Integer> retained = retainedByDialog.get(did);
+                        if (retained == null) {
+                            retainedByDialog.put(did, retained = new ArrayList<>());
+                        }
+                        retained.add(mid);
+                    }
+                }
+                data.reuse();
+            }
+        } catch (Exception error) {
+            checkSQLException(error);
+            return new ArrayList<>(messages);
+        } finally {
+            if (cursor != null) {
+                cursor.dispose();
+            }
+        }
+        for (int i = 0; i < retainedByDialog.size(); i++) {
+            long did = retainedByDialog.keyAt(i);
+            ArrayList<Integer> ids = retainedByDialog.valueAt(i);
+            AndroidUtilities.runOnUIThread(() -> getNotificationCenter().postNotificationName(
+                    NotificationCenter.tjMessagesDeleted, did, ids));
+        }
+        return result;
+    }
+
+    /** Persists the local tombstone in Telegram's custom_params column on the storage queue. */
+    private void persistTjDeletedMarker(long dialogId, int messageId, TLRPC.Message message) throws Exception {
+        NativeByteBuffer customParams = MessageCustomParamsHelper.writeLocalParams(message);
+        if (customParams == null) return;
+        SQLitePreparedStatement marker = null;
+        try {
+            marker = database.executeFast("UPDATE messages_v2 SET custom_params = ? WHERE mid = ? AND uid = ?");
+            marker.bindByteBuffer(1, customParams);
+            marker.bindInteger(2, messageId);
+            marker.bindLong(3, dialogId);
+            marker.step();
+            marker.dispose();
+            marker = database.executeFast("UPDATE messages_topics SET custom_params = ? WHERE mid = ? AND uid = ?");
+            marker.bindByteBuffer(1, customParams);
+            marker.bindInteger(2, messageId);
+            marker.bindLong(3, dialogId);
+            marker.step();
+        } finally {
+            if (marker != null) marker.dispose();
+            customParams.reuse();
+        }
+    }
+
+    private ArrayList<Long> markMessagesAsDeletedInternal(long dialogId, ArrayList<Integer> messages, boolean deleteFiles, int mode, int threadMessageId, boolean ignored) {
         SQLiteCursor cursor = null;
         SQLitePreparedStatement state = null;
         try {
@@ -14630,13 +14730,15 @@ public class MessagesStorage extends BaseController {
                                 }
                             }
                         }
-                        if (!DialogObject.isEncryptedDialog(did) && !deleteFiles && did != currentUser) {
+                        if (!TjConfig.saveDeletedMessages()
+                                && !DialogObject.isEncryptedDialog(did) && !deleteFiles && did != currentUser) {
                             continue;
                         }
                         NativeByteBuffer data = cursor.byteBufferValue(1);
                         if (data != null) {
                             TLRPC.Message message = TLRPC.Message.TLdeserialize(data, data.readInt32(false), false);
                             message.readAttachPath(data, currentUser);
+                            TjMessageArchive.getInstance().saveDeleted(currentAccount, message);
                             if (deletedMessages != null) {
                                 deletedMessages.add(message);
                             }
@@ -15356,13 +15458,14 @@ public class MessagesStorage extends BaseController {
                             }
                         }
                     }
-                    if (!DialogObject.isEncryptedDialog(did) && !deleteFiles) {
+                    if (!TjConfig.saveDeletedMessages() && !DialogObject.isEncryptedDialog(did) && !deleteFiles) {
                         continue;
                     }
                     NativeByteBuffer data = cursor.byteBufferValue(1);
                     if (data != null) {
                         TLRPC.Message message = TLRPC.Message.TLdeserialize(data, data.readInt32(false), false);
                         message.readAttachPath(data, getUserConfig().clientUserId);
+                        TjMessageArchive.getInstance().saveDeleted(currentAccount, message);
                         data.reuse();
                         addFilesToDelete(message, filesToDelete, idsToDelete, namesToDelete, false);
                     }
@@ -16302,6 +16405,7 @@ public class MessagesStorage extends BaseController {
                                     if (oldMessage.out && !message.out) {
                                         message.out = oldMessage.out;
                                     }
+                                    TjMessageArchive.getInstance().saveEdited(currentAccount, oldMessage, message);
                                     if (!sameMedia) {
                                         addFilesToDelete(oldMessage, filesToDelete, idsToDelete, namesToDelete, false);
                                     }

@@ -57477,6 +57477,7 @@ public class TLRPC {
         public long random_id; //custom
         public int local_id = 0; //custom
         public long dialog_id; //custom
+        public boolean tjDeleted; //custom, local archive marker
         public int ttl; //custom
         public int destroyTime; //custom
         public long destroyTimeMillis; //custom

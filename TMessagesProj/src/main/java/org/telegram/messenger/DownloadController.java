@@ -24,6 +24,8 @@ import org.telegram.SQLite.SQLiteCursor;
 import org.telegram.SQLite.SQLitePreparedStatement;
 import org.telegram.tgnet.NativeByteBuffer;
 import org.telegram.tgnet.TLRPC;
+import org.telegram.messenger.tj.TjConfig;
+import org.telegram.messenger.tj.TjMessageFilter;
 import org.telegram.tgnet.tl.TL_account;
 import org.telegram.tgnet.tl.TL_stories;
 import org.telegram.ui.Components.Bulletin;
@@ -862,6 +864,9 @@ public class DownloadController extends BaseController implements NotificationCe
         if (message == null || message.media instanceof TLRPC.TL_messageMediaStory) {
             return canPreloadStories() ? 2 : 0;
         }
+        if (TjConfig.messageFilters() && TjMessageFilter.isFiltered(new MessageObject(currentAccount, message, false, false), null)) {
+            return 0;
+        }
         int type;
         boolean isVideo;
         if ((isVideo = MessageObject.isVideoMessage(message)) || MessageObject.isGifMessage(message) || MessageObject.isRoundVideoMessage(message) || MessageObject.isGameMessage(message)) {
@@ -942,6 +947,9 @@ public class DownloadController extends BaseController implements NotificationCe
     public int canDownloadMedia(TLRPC.Message message, TLRPC.MessageMedia media) {
         if (message == null || media instanceof TLRPC.TL_messageMediaStory) {
             return canPreloadStories() ? 2 : 0;
+        }
+        if (TjConfig.messageFilters() && TjMessageFilter.isFiltered(new MessageObject(currentAccount, message, false, false), null)) {
+            return 0;
         }
         int type;
         boolean isVideo = false;

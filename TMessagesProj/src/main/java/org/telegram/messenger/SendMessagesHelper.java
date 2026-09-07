@@ -58,6 +58,8 @@ import org.telegram.messenger.utils.EphemeralMessagesHelper;
 import org.telegram.messenger.utils.tlutils.AmountUtils;
 import org.telegram.messenger.utils.tlutils.TLKeyboardHelper;
 import org.telegram.messenger.utils.tlutils.TlUtils;
+import org.telegram.messenger.tj.TjGhostController;
+import org.telegram.messenger.tj.TjProtectedForwarder;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.NativeByteBuffer;
 import org.telegram.tgnet.RequestDelegate;
@@ -2069,7 +2071,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         boolean forwardFromMyName,
         boolean hideCaption,
         boolean notify,
-        int scheduleDate,
+        int scheduleDateOriginal,
         int scheduleRepeatPeriod,
         MessageObject replyToTopMsg,
         int video_timestamp,
@@ -2078,6 +2080,14 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         MessageSuggestionParams suggestionParams
     ) {
         if (messages == null || messages.isEmpty()) {
+            return 0;
+        }
+        final int scheduleDate = TjGhostController.getAutomaticScheduleDate(
+                currentAccount, peer, scheduleDateOriginal, false, false, false, false);
+        if (DialogObject.isEncryptedDialog(peer) && TjProtectedForwarder.shouldReupload(currentAccount, messages)) {
+            TjProtectedForwarder.reupload(currentAccount, messages, peer, forwardFromMyName,
+                    hideCaption, notify, scheduleDate, scheduleRepeatPeriod, replyToTopMsg,
+                    video_timestamp, payStars, monoForumPeerId, suggestionParams);
             return 0;
         }
         int sendResult = 0;
@@ -2106,6 +2116,12 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                 AlertsCreator.ensurePaidMessageConfirmation(currentAccount, peer, Math.max(1, messages.size()), newPayStars -> {
                     sendMessage(messages, peer, forwardFromMyName, hideCaption, notify, scheduleDate, scheduleRepeatPeriod, replyToTopMsg, video_timestamp, newPayStars, monoForumPeerId, suggestionParams);
                 });
+                return 0;
+            }
+            if (TjProtectedForwarder.shouldReupload(currentAccount, messages)) {
+                TjProtectedForwarder.reupload(currentAccount, messages, peer, forwardFromMyName,
+                        hideCaption, notify, scheduleDate, scheduleRepeatPeriod, replyToTopMsg,
+                        video_timestamp, payStars, monoForumPeerId, suggestionParams);
                 return 0;
             }
             if (DialogObject.isUserDialog(peer)) {
@@ -3817,6 +3833,19 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         BaseFragment parentFragment,
         Runnable callback
     ) {
+        sendReaction(messageObject, visibleReactions, addedReaction, big, addToRecent, parentFragment, callback, null);
+    }
+
+    public void sendReaction(
+        MessageObject messageObject,
+        ArrayList<ReactionsLayoutInBubble.VisibleReaction> visibleReactions,
+        ReactionsLayoutInBubble.VisibleReaction addedReaction,
+        boolean big,
+        boolean addToRecent,
+        BaseFragment parentFragment,
+        Runnable callback,
+        Runnable errorCallback
+    ) {
         if (messageObject == null || parentFragment == null) {
             return;
         }
@@ -3857,6 +3886,13 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                 getMessagesController().processUpdates((TLRPC.Updates) response, false);
                 if (callback != null) {
                     AndroidUtilities.runOnUIThread(callback);
+                }
+            } else {
+                if (BuildVars.LOGS_ENABLED) {
+                    FileLog.e("sendReaction failed: " + (error == null ? "empty response" : error.code + " " + error.text));
+                }
+                if (errorCallback != null) {
+                    AndroidUtilities.runOnUIThread(errorCallback);
                 }
             }
         });
@@ -4356,6 +4392,16 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         if (replyQuote != null && replyQuote.message != null && replyToMsg != null) {
             replyToMsg = replyQuote.message;
         }
+
+        scheduleDate = TjGhostController.getAutomaticScheduleDate(
+                currentAccount,
+                peer,
+                scheduleDate,
+                document != null,
+                photo != null,
+                retryMessageObject != null,
+                isWelcomeMessageTemplate || quick_reply_shortcut_id != 0 || !TextUtils.isEmpty(quick_reply_shortcut)
+        );
 
         String originalPath = null;
         if (params != null && params.containsKey("originalPath")) {

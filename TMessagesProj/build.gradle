@@ -4,6 +4,10 @@ apply plugin: 'com.android.library'
 apply plugin: 'org.telegram.lottie-meta'
 apply plugin: 'idea'
 
+def enableTjCrashlytics = providers.gradleProperty('ENABLE_TJ_CRASHLYTICS')
+        .map { it.toBoolean() }
+        .getOrElse(false)
+
 idea {
     module {
         excludeDirs += [
@@ -50,6 +54,10 @@ dependencies {
     compileOnly 'org.checkerframework:checker-qual:2.5.2'
     compileOnly 'org.checkerframework:checker-compat-qual:2.5.0'
     implementation 'com.google.firebase:firebase-messaging:22.0.0'
+    if (enableTjCrashlytics) {
+        implementation platform('com.google.firebase:firebase-bom:32.1.0')
+        implementation 'com.google.firebase:firebase-crashlytics'
+    }
     implementation 'com.google.firebase:firebase-datatransport:18.1.0'
     implementation 'com.google.firebase:firebase-appindexing:20.0.0'
     implementation 'com.google.android.gms:play-services-maps:18.1.0'
@@ -63,6 +71,7 @@ dependencies {
     implementation 'com.google.mlkit:language-id:17.0.6'
     implementation 'com.android.billingclient:billing:8.0.0'
     implementation 'com.google.code.gson:gson:2.11.0'
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
     implementation 'com.google.guava:guava:31.1-android'
     implementation 'com.google.android.play:integrity:1.3.0'
     implementation 'com.google.android.gms:play-services-safetynet:18.0.1'

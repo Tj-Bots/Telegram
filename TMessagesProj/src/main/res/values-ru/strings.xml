@@ -263,7 +263,7 @@
     <string name="RemindTodayAt">\'Отправить сегодня в\' HH:mm</string>
     <string name="RemindDayAt">\'Отправить\' d MMM \'в\' HH:mm</string>
     <string name="RemindDayYearAt">\'Напомнить\' d MMM yyyy \'в\' HH:mm</string>
-    <string name="TjSettings">Настройки TJ</string>
+    <string name="TjSettings">Настройки TjGram</string>
     <string name="TjMyProfile">Мой профиль</string>
     <string name="TjMessageInfo">Информация о сообщении</string>
     <string name="TjCopyMessageLink">Скопировать ссылку на сообщение</string>
@@ -300,7 +300,7 @@
     <string name="TjContactsCount">Контакты</string>
     <string name="TjChatIdHeader">ID чатов</string>
     <string name="TjChatsHeader">Чаты</string>
-    <string name="TjMessageMenuInfo">Выберите, какие пункты TJ показывать при долгом нажатии на сообщение.</string>
+    <string name="TjMessageMenuInfo">Выберите, какие пункты TjGram показывать при долгом нажатии на сообщение.</string>
     <string name="TjChatCountersLoading">Считаем ваши чаты…</string>
     <string name="TjChatCountersInfo">Счётчики считаются по чатам, уже загруженным на этом устройстве.</string>
     <string name="TjFolderIcon">Значок папки</string>

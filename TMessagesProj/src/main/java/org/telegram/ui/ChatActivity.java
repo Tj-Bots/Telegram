@@ -199,8 +199,16 @@ import org.telegram.messenger.utils.RectFMergeBounding;
 import org.telegram.messenger.utils.ViewOutlineProviderImpl;
 import org.telegram.messenger.utils.tlutils.TLKeyboardHelper;
 import org.telegram.messenger.utils.tlutils.TlUtils;
+import org.telegram.messenger.tj.TjGhostController;
+import org.telegram.messenger.tj.TjHistoryController;
+import org.telegram.messenger.tj.TjConfig;
+import org.telegram.messenger.tj.TjDeletionPolicy;
+import org.telegram.messenger.tj.TjMessageArchive;
+import org.telegram.messenger.tj.TjMessageFilter;
+import org.telegram.messenger.tj.TjProtectedForwarder;
 import org.telegram.messenger.voip.VoIPService;
 import org.telegram.tgnet.ConnectionsManager;
+import org.telegram.tgnet.NativeByteBuffer;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.tgnet.tl.TL_account;
@@ -1261,6 +1269,10 @@ public class ChatActivity extends BaseFragment implements
     public final static int OPTION_COPY_DEEPLINK = 1007;
     public final static int OPTION_SAVE_TO_SAVED = 1009;
     public final static int OPTION_TJ_REPLY_PRIVATELY = 1010;
+    public final static int OPTION_TJ_EDIT_HISTORY = 1011;
+    public final static int OPTION_TJ_TTL = 1012;
+    public final static int OPTION_TJ_READ_UNTIL = 1013;
+    public final static int OPTION_TJ_CLEAR_CACHE = 1014;
 
     private final static int[] allowedNotificationsDuringChatListAnimations = new int[]{
             NotificationCenter.messagesRead,
@@ -1654,6 +1666,7 @@ public class ChatActivity extends BaseFragment implements
     private final static int select_range = 1002;
     private final static int forward_no_tag = 1003;
     private final static int toggle_pinned_visibility = 1008;
+    private final static int toggle_chat_ghost = 1015;
     private final static int edit = 23;
     private final static int add_shortcut = 24;
     private final static int save_to = 25;
@@ -2943,6 +2956,7 @@ public class ChatActivity extends BaseFragment implements
             .add(NotificationCenter.didLoadSendAsPeers)
             .add(NotificationCenter.closeChatActivity)
             .add(NotificationCenter.messagesDeleted)
+            .add(NotificationCenter.tjMessagesDeleted)
             .add(NotificationCenter.historyCleared)
             .add(NotificationCenter.messageReceivedByServer)
             .add(NotificationCenter.messageReceivedByAck)
@@ -3866,6 +3880,20 @@ public class ChatActivity extends BaseFragment implements
                     showDialog(AlertsCreator.createTTLAlert(getParentActivity(), currentEncryptedChat, themeDelegate).create());
                 } else if (id == jump_to_first_message) {
                     jumpToDate(1);
+                } else if (id == toggle_chat_ghost) {
+                    boolean enabled = !TjConfig.chatGhostEnabled(currentAccount, dialog_id);
+                    TjConfig.setChatGhostEnabled(currentAccount, dialog_id, enabled);
+                    if (headerItem != null) {
+                        View item = headerItem.getSubItem(toggle_chat_ghost);
+                        if (item instanceof org.telegram.ui.ActionBar.ActionBarMenuSubItem) {
+                            ((org.telegram.ui.ActionBar.ActionBarMenuSubItem) item).setText(TjLocale.getString(
+                                    enabled ? R.string.TjDisableChatGhost : R.string.TjEnableChatGhost));
+                        }
+                    }
+                    BulletinFactory.of(ChatActivity.this).createSimpleBulletin(
+                            R.raw.chats_infotip,
+                            TjLocale.getString(enabled ? R.string.TjChatGhostEnabled : R.string.TjChatGhostDisabled),
+                            TjLocale.getString(R.string.TjChatGhostInfo)).show();
                 } else if (id == toggle_pinned_visibility) {
                     SharedPreferences preferences = MessagesController.getNotificationsSettings(currentAccount);
                     // pinnedMessageView is created lazily and never released, so it cannot tell us
@@ -4508,6 +4536,9 @@ public class ChatActivity extends BaseFragment implements
                     LocaleController.getString(UserObject.isBotForum(currentUser) ? R.string.ClearAllHistory : R.string.ClearHistory));
             }
             headerItem.lazilyAddSubItem(jump_to_first_message, R.drawable.msg_go_up, TjLocale.getString(R.string.TjGoToFirstMessage));
+            headerItem.lazilyAddSubItem(toggle_chat_ghost, R.drawable.msg_markunread,
+                    TjLocale.getString(TjConfig.chatGhostEnabled(currentAccount, dialog_id)
+                            ? R.string.TjDisableChatGhost : R.string.TjEnableChatGhost));
             pinnedVisibilityItem = headerItem.lazilyAddSubItem(toggle_pinned_visibility, R.drawable.msg_pin, TjLocale.getString(R.string.TjHidePinnedMessage));
             headerItem.hideSubItem(toggle_pinned_visibility);
             boolean addedSettings = false;
@@ -12288,7 +12319,7 @@ public class ChatActivity extends BaseFragment implements
     }
 
     private void openForward(boolean fromActionBar, boolean asCopy) {
-        if (isPeerNoForwards() || hasSelectedNoforwardsMessage()) {
+        if (!TjConfig.protectedForwarding() && (isPeerNoForwards() || hasSelectedNoforwardsMessage())) {
             // We should update text if user changed locale without re-opening chat activity
             String str;
             if (isPeerNoForwards()) {
@@ -12361,7 +12392,9 @@ public class ChatActivity extends BaseFragment implements
         Bundle args = new Bundle();
         args.putBoolean("onlySelect", true);
         args.putInt("dialogsType", DialogsActivity.DIALOGS_TYPE_FORWARD);
-        args.putInt("messagesCount", canForwardMessagesCount);
+        int selectedCount = selectedMessagesIds[0].size() + selectedMessagesIds[1].size();
+        args.putInt("messagesCount", TjConfig.protectedForwarding() &&
+                (isPeerNoForwards() || hasSelectedNoforwardsMessage()) ? selectedCount : canForwardMessagesCount);
         args.putInt("hasPoll", hasPoll);
         args.putBoolean("hasInvoice", hasInvoice);
         args.putBoolean("canSelectTopics", true);
@@ -14444,7 +14477,7 @@ public class ChatActivity extends BaseFragment implements
         }
         int result = getSendMessagesHelper().sendMessage(arrayList, dialog_id, fromMyName, hideCaption, notify, scheduleDate, 0, getThreadMessage(), -1, payStars, getSendMonoForumPeerId(), getSendMessageSuggestionParams());
         AlertsCreator.showSendMediaAlert(result, this, themeDelegate);
-        if (result != 0) {
+        if (result != 0 || TjGhostController.wasAutomaticallyScheduled(currentAccount, dialog_id)) {
             AndroidUtilities.runOnUIThread(() -> {
                 waitingForSendingMessageLoad = false;
                 hideFieldPanel(true);
@@ -19178,7 +19211,8 @@ public class ChatActivity extends BaseFragment implements
                         cantDeleteMessagesCount--;
                     }
                     boolean noforwards = isPeerNoForwards();
-                    if (chatMode == MODE_SCHEDULED || !messageObject.canForwardMessage() || noforwards) {
+                    boolean canReupload = TjProtectedForwarder.canReupload(currentAccount, messageObject);
+                    if (chatMode == MODE_SCHEDULED || !messageObject.canForwardMessage() && !canReupload || noforwards && !canReupload) {
                         cantForwardMessagesCount--;
                     } else {
                         canForwardMessagesCount--;
@@ -19215,7 +19249,8 @@ public class ChatActivity extends BaseFragment implements
                         cantDeleteMessagesCount++;
                     }
                     boolean noforwards = isPeerNoForwards();
-                    if (chatMode == MODE_SCHEDULED || !messageObject.canForwardMessage() || noforwards) {
+                    boolean canReupload = TjProtectedForwarder.canReupload(currentAccount, messageObject);
+                    if (chatMode == MODE_SCHEDULED || !messageObject.canForwardMessage() && !canReupload || noforwards && !canReupload) {
                         cantForwardMessagesCount++;
                     } else {
                         canForwardMessagesCount++;
@@ -20773,6 +20808,10 @@ public class ChatActivity extends BaseFragment implements
         int loaded_max_id = (Integer) args[12];
         int loaded_mentions_count = chatWasReset ? 0 : (Integer) args[13];
 
+        if (TjConfig.messageFilters() && (TjConfig.filtersInChats() || ChatObject.isChannel(currentChat))) {
+            TjMessageFilter.removeFiltered(messArr);
+        }
+
         if (loaded_mentions_count < 0) {
             loaded_mentions_count *= -1;
             hasAllMentionsLocal = false;
@@ -21052,6 +21091,10 @@ public class ChatActivity extends BaseFragment implements
         }
         if (load_type == 1) {
             Collections.reverse(messArr);
+        }
+        if (chatMode == MODE_DEFAULT && did == dialog_id) {
+            TjHistoryController.mergeDeletedMessages(
+                    currentAccount, messArr, messagesDict, dialog_id, (int) getTopicId());
         }
         if (currentEncryptedChat == null && chatMode != MODE_QUICK_REPLIES) {
             getMediaDataController().loadReplyMessagesForMessages(messArr, dialog_id, chatMode, 0, null, classGuid, null);
@@ -22059,7 +22102,7 @@ public class ChatActivity extends BaseFragment implements
                 int mode = (Integer) args[3];
                 if (mode != chatMode && chatMode != MODE_SAVED && chatMode != MODE_SUGGESTIONS) {
                     if (chatMode != MODE_SCHEDULED && mode == MODE_SCHEDULED && !isPaused && LaunchActivity.getSafeLastFragment() == this && messagePreviewParams == null) {
-                        if (!arr.isEmpty() && arr.get(0).getId() < 0) {
+                        if (!TjGhostController.wasAutomaticallyScheduled(currentAccount, dialog_id) && !arr.isEmpty() && arr.get(0).getId() < 0) {
                             openScheduledMessages(arr.get(0).getId(), arr.get(0).messageOwner != null && arr.get(0).messageOwner.video_processing_pending);
                         }
                     }
@@ -22080,7 +22123,11 @@ public class ChatActivity extends BaseFragment implements
         } else if (id == NotificationCenter.didLoadSendAsPeers) {
             loadSendAsPeers(true);
         } else if (id == NotificationCenter.didLoadSponsoredMessages) {
-            addSponsoredMessages(true);
+            if (TjConfig.hideSponsoredMessages()) {
+                removeHiddenSponsoredMessages();
+            } else {
+                addSponsoredMessages(true);
+            }
         } else if (id == NotificationCenter.closeChats) {
             if (args != null && args.length > 0) {
                 long did = (Long) args[0];
@@ -22348,6 +22395,22 @@ public class ChatActivity extends BaseFragment implements
             removeUnreadPlane(true);
             if (updated && chatAdapter != null) {
                 chatAdapter.notifyDataSetChanged(false);
+            }
+        } else if (id == NotificationCenter.tjMessagesDeleted) {
+            long retainedDialogId = (Long) args[0];
+            if (retainedDialogId != dialog_id || chatMode != MODE_DEFAULT) {
+                return;
+            }
+            ArrayList<Integer> retainedIds = (ArrayList<Integer>) args[1];
+            for (Integer messageId : retainedIds) {
+                MessageObject message = messagesDict[0].get(messageId);
+                if (message != null) {
+                    message.messageOwner.tjDeleted = true;
+                    message.deleted = false;
+                    if (chatAdapter != null) {
+                        chatAdapter.updateRowWithMessageObject(message, false, false);
+                    }
+                }
             }
         } else if (id == NotificationCenter.messagesDeleted) {
             boolean scheduled = (Boolean) args[2];
@@ -24999,6 +25062,10 @@ public class ChatActivity extends BaseFragment implements
     private Pattern sponsoredUrlPattern;
     private MessageObject botSponsoredMessage;
     private void addSponsoredMessages(boolean animated) {
+        if (TjConfig.hideSponsoredMessages()) {
+            removeHiddenSponsoredMessages();
+            return;
+        }
         if (sponsoredMessagesAdded || chatMode != 0 || !ChatObject.isChannel(currentChat) && !UserObject.isBot(currentUser) || !forwardEndReached[0] || getUserConfig().isPremium() && getMessagesController().isSponsoredDisabled() || isReport()) {
             return;
         }
@@ -25048,6 +25115,28 @@ public class ChatActivity extends BaseFragment implements
                 notPushedSponsoredMessages.clear();
             }
             processNewMessages(res.messages, false);
+        }
+    }
+
+    private void removeHiddenSponsoredMessages() {
+        boolean changed = false;
+        for (int i = messages.size() - 1; i >= 0; i--) {
+            MessageObject message = messages.get(i);
+            if (message != null && message.isSponsored()) {
+                messages.remove(i);
+                messagesDict[0].remove(message.getId());
+                changed = true;
+            }
+        }
+        if (botSponsoredMessage != null) {
+            botSponsoredMessage = null;
+            updateTopPanel(true);
+            changed = true;
+        }
+        sponsoredMessagesAdded = false;
+        sponsoredMessagesPostsBetween = 0;
+        if (changed && chatAdapter != null) {
+            chatAdapter.notifyDataSetChanged();
         }
     }
 
@@ -25399,6 +25488,12 @@ public class ChatActivity extends BaseFragment implements
         processNewMessages(arr, true);
     }
     private void processNewMessages(ArrayList<MessageObject> arr, final boolean animatedFromBottom) {
+        if (TjConfig.messageFilters() && (TjConfig.filtersInChats() || ChatObject.isChannel(currentChat))) {
+            TjMessageFilter.removeFiltered(arr);
+        }
+        if (arr.isEmpty()) {
+            return;
+        }
         FileLog.d("processNewMessages " + arr.size() + " messages");
 
         final boolean isBot = UserObject.isBot(currentUser);
@@ -26398,6 +26493,16 @@ public class ChatActivity extends BaseFragment implements
             MessageObject obj = chatAdapter != null && chatAdapter.isFiltered ? filteredMessagesDict.get(mid) :  messagesDict[loadIndex].get(mid);
             if (selectedObject != null && obj == selectedObject || obj != null && selectedObjectGroup != null && selectedObjectGroup == groupedMessagesMap.get(obj.getGroupId())) {
                 closeMenu();
+            }
+            if (obj != null && chatMode == MODE_DEFAULT && TjConfig.saveDeletedMessages()
+                    && !TjDeletionPolicy.isLocalRemoval(currentAccount, obj.getDialogId(), mid)) {
+                TjMessageArchive.getInstance().saveDeleted(currentAccount, obj.messageOwner);
+                obj.messageOwner.tjDeleted = true;
+                obj.deleted = false;
+                if (chatAdapter != null) {
+                    chatAdapter.updateRowWithMessageObject(obj, false, false);
+                }
+                continue;
             }
             if (PhotoViewer.isPlayingMessage(obj)) {
                 PhotoViewer.getInstance().closePhoto(false, false);
@@ -32880,6 +32985,7 @@ public class ChatActivity extends BaseFragment implements
     }
 
     Runnable updateReactionRunnable;
+    private final LongSparseArray<Integer> reactionMutationGenerations = new LongSparseArray<>();
 
     private void showMultipleReactionsPromo(View cell, ReactionsLayoutInBubble.VisibleReaction visibleReaction, int currentChosenReactions) {
         if (SharedConfig.multipleReactionsPromoShowed || cell == null || visibleReaction == null || getUserConfig().isPremium()) {
@@ -32904,6 +33010,26 @@ public class ChatActivity extends BaseFragment implements
                     document,
                     LocaleController.getString(R.string.ChatMultipleReactionsPromo)
             ).setDuration(Bulletin.DURATION_PROLONG).show();
+        }
+    }
+
+    private TLRPC.TL_messageReactions copyReactions(TLRPC.TL_messageReactions reactions) {
+        if (reactions == null) {
+            return null;
+        }
+        NativeByteBuffer data = null;
+        try {
+            data = new NativeByteBuffer(reactions.getObjectSize());
+            reactions.serializeToStream(data);
+            data.rewind();
+            return TLRPC.TL_messageReactions.TLdeserialize(data, data.readInt32(true), true);
+        } catch (Exception error) {
+            FileLog.e(error);
+            return null;
+        } finally {
+            if (data != null) {
+                data.reuse();
+            }
         }
     }
 
@@ -32980,6 +33106,11 @@ public class ChatActivity extends BaseFragment implements
         }
 
         ReactionsEffectOverlay.removeCurrent(false);
+        final boolean hadReactionsBefore = primaryMessage.messageOwner.reactions != null;
+        final TLRPC.TL_messageReactions reactionsBefore = copyReactions(primaryMessage.messageOwner.reactions);
+        final long reactionMutationKey = primaryMessage.getId();
+        final int reactionMutationGeneration = reactionMutationGenerations.get(reactionMutationKey, 0) + 1;
+        reactionMutationGenerations.put(reactionMutationKey, reactionMutationGeneration);
         final int currentChosenReactions = primaryMessage.getChoosenReactions().size();
         final boolean added = primaryMessage.selectReaction(visibleReaction, bigEmoji, fromDoubleTap);
         int messageIdForCell = primaryMessage.getId();
@@ -33039,6 +33170,21 @@ public class ChatActivity extends BaseFragment implements
                     closeMenu();
                 }
             }
+        }, () -> {
+            if (reactionMutationGenerations.get(reactionMutationKey, 0) != reactionMutationGeneration) {
+                return;
+            }
+            if (hadReactionsBefore && reactionsBefore == null) {
+                return;
+            }
+            primaryMessage.messageOwner.reactions = reactionsBefore;
+            MessageObject messageInDict = messagesDict[0].get(primaryMessage.getId());
+            if (messageInDict != null && messageInDict != primaryMessage) {
+                messageInDict.messageOwner.reactions = reactionsBefore;
+            }
+            updateMessageAnimated(messageInDict != null ? messageInDict : primaryMessage, true);
+            BulletinFactory.of(ChatActivity.this).createErrorBulletin(
+                    LocaleController.getString(R.string.ErrorOccurred), themeDelegate).show();
         });
 
         if (fromDoubleTap || withoutAnimation) {
@@ -33409,6 +33555,50 @@ public class ChatActivity extends BaseFragment implements
         }
         boolean preserveDim = false;
         switch (option) {
+            case OPTION_TJ_EDIT_HISTORY:
+                presentFragment(new TjMessageHistoryActivity(selectedObject));
+                break;
+            case OPTION_TJ_TTL:
+                final MessageObject viewOnceObject = selectedObject;
+                TjMessageArchive.getInstance().saveViewOnce(currentAccount, viewOnceObject.messageOwner, success -> {
+                    if (!success) {
+                        BulletinFactory.of(ChatActivity.this).createErrorBulletin(
+                                TjLocale.getString(R.string.TjViewOnceSaveFailed), themeDelegate).show();
+                        return;
+                    }
+                    TjGhostController.allowReadRequest(currentAccount, dialog_id, viewOnceObject.getId());
+                    int mediaTtl = viewOnceObject.messageOwner.ttl;
+                    if (viewOnceObject.messageOwner.media != null) {
+                        mediaTtl = Math.max(mediaTtl, viewOnceObject.messageOwner.media.ttl_seconds);
+                    }
+                    if (currentEncryptedChat != null) {
+                        getMessagesController().markMessageAsRead(dialog_id,
+                                viewOnceObject.messageOwner.random_id, Integer.MIN_VALUE);
+                    } else {
+                        getMessagesController().markMessageAsRead2(dialog_id, viewOnceObject.getId(),
+                                null, mediaTtl == 0x7FFFFFFF ? 0 : mediaTtl,
+                                0, false);
+                    }
+                    viewOnceObject.messageOwner.destroyTime = 0;
+                    viewOnceObject.messageOwner.destroyTimeMillis = 0;
+                    viewOnceObject.setContentIsRead();
+                    ArrayList<Integer> viewedIds = new ArrayList<>();
+                    viewedIds.add(viewOnceObject.getId());
+                    getMessagesStorage().markMessagesContentAsRead(dialog_id, viewedIds,
+                            getConnectionsManager().getCurrentTime(), getConnectionsManager().getCurrentTime());
+                    if (chatAdapter != null) {
+                        chatAdapter.updateRowWithMessageObject(viewOnceObject, false, false);
+                    }
+                });
+                break;
+            case OPTION_TJ_READ_UNTIL:
+                TjGhostController.sendReadReceipt(currentAccount,
+                        getMessagesController().getInputPeer(selectedObject.messageOwner.peer_id),
+                        selectedObject.getId());
+                break;
+            case OPTION_TJ_CLEAR_CACHE:
+                clearSelectedVideoFromCache();
+                break;
             case OPTION_RETRY: {
                 final MessageObject object = selectedObject;
                 final MessageObject.GroupedMessages group = selectedObjectGroup;
@@ -46609,11 +46799,69 @@ public class ChatActivity extends BaseFragment implements
             options.add(OPTION_MESSAGE_INFO);
             icons.add(R.drawable.msg_info);
         }
+        if (message != null && message.getId() > 0 && message.messageOwner.from_id != null
+                && message.messageOwner.from_id.user_id != getUserConfig().getClientUserId()
+                && TjMessageArchive.getInstance().hasRevisionsSync(currentAccount,
+                message.getDialogId(), message.getId())) {
+            items.add(TjLocale.getString(R.string.TjEditHistory));
+            options.add(OPTION_TJ_EDIT_HISTORY);
+            icons.add(R.drawable.msg_log);
+        }
+        if (message != null && message.isSecretMedia() && !message.messageOwner.tjDeleted) {
+            items.add(TjLocale.getString(R.string.TjMarkMediaViewed));
+            options.add(OPTION_TJ_TTL);
+            icons.add(R.drawable.msg_autodelete);
+        }
+        if (hasVideoCache(message)) {
+            items.add(TjLocale.getString(R.string.TjClearFromCache));
+            options.add(OPTION_TJ_CLEAR_CACHE);
+            icons.add(R.drawable.msg_clearcache);
+        }
+        if (message != null && TjConfig.hideReads() && !message.messageOwner.tjDeleted
+                && message.messageOwner.from_id != null
+                && message.messageOwner.from_id.user_id != getUserConfig().getClientUserId()) {
+            items.add(TjLocale.getString(R.string.TjReadUntil));
+            options.add(OPTION_TJ_READ_UNTIL);
+            icons.add(R.drawable.msg_view_file);
+        }
         if (canSaveToSavedMessages(message) && !options.contains(OPTION_SAVE_TO_SAVED) && TjSettingsActivity.isSaveToSavedEnabled()) {
             items.add(TjLocale.getString(R.string.TjSaveToSaved));
             options.add(OPTION_SAVE_TO_SAVED);
             icons.add(R.drawable.msg_saved);
         }
+    }
+
+    private boolean hasVideoCache(MessageObject message) {
+        if (message == null || !message.isVideo() || message.getDocument() == null) {
+            return false;
+        }
+        FileLoader loader = FileLoader.getInstance(currentAccount);
+        String fileName = FileLoader.getAttachFileName(message.getDocument());
+        Float progress = ImageLoader.getInstance().getFileProgress(fileName);
+        return loader.isLoadingFile(fileName) || progress != null && progress > 0f && progress < 1f;
+    }
+
+    private void clearSelectedVideoFromCache() {
+        MessageObject message = selectedObject;
+        if (message == null || message.getDocument() == null) {
+            return;
+        }
+        FileLoader loader = FileLoader.getInstance(currentAccount);
+        String fileName = FileLoader.getAttachFileName(message.getDocument());
+        Float progress = ImageLoader.getInstance().getFileProgress(fileName);
+        final long clearedBytes = progress == null ? 0L
+                : (long) (message.getDocument().size * Math.max(0f, Math.min(1f, progress)));
+        loader.cancelLoadFile(message.getDocument(), true, cancelled -> {
+            if (!cancelled) return;
+            BulletinFactory.of(this).createSimpleBulletin(
+                    R.raw.ic_delete,
+                    LocaleController.formatString(R.string.CacheWasCleared,
+                            AndroidUtilities.formatFileSize(clearedBytes)))
+                    .show();
+            if (chatAdapter != null) {
+                chatAdapter.updateRowWithMessageObject(message, false, false);
+            }
+        });
     }
 
     /**

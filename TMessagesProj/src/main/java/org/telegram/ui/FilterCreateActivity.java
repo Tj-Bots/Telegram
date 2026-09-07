@@ -1153,7 +1153,7 @@ public class FilterCreateActivity extends BaseFragment {
             icon.setBackground(Theme.createSelectorDrawable(Theme.getColor(Theme.key_listSelector), Theme.RIPPLE_MASK_CIRCLE_20DP));
             icon.setPadding(dp(8), dp(8), dp(8), dp(8));
             icon.setOnClickListener(v -> {
-                TjSettingsActivity.setFolderEmoticon(filter.id, emoticon);
+                TjSettingsActivity.setFolderEmoticon(currentAccount, filter.id, emoticon);
                 if (sheet[0] != null) {
                     sheet[0].dismiss();
                 }

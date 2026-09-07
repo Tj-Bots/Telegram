@@ -176,12 +176,11 @@ public class EmuDetector {
         return this;
     }
 
-    public boolean detect() {
+    public synchronized boolean detect() {
         if (detected) {
             return detectResult;
         }
         try {
-            detected = true;
             if (!detectResult) {
                 detectResult = checkBasic();
             }
@@ -194,9 +193,10 @@ public class EmuDetector {
             if (!detectResult) {
                 detectResult = EmuInputDevicesDetector.detect();
             }
+            detected = true;
             return detectResult;
         } catch (Exception ignore) {
-
+            detected = true;
         }
         return false;
     }

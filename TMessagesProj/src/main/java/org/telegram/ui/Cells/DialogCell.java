@@ -84,6 +84,7 @@ import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
 import org.telegram.messenger.Utilities;
+import org.telegram.messenger.tj.TjMessageFilter;
 import org.telegram.messenger.utils.DrawableUtils;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLObject;
@@ -294,6 +295,10 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
         if (message != null) {
             lastSendState = message.messageOwner.send_state;
         }
+        if (TjMessageFilter.isFiltered(message, null)) {
+            TjMessageFilter.blurPreview(message);
+        }
+
         if (!animated) {
             lastStatusDrawableParams = -1;
         }

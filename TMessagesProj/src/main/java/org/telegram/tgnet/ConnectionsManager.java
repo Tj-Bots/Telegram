@@ -43,6 +43,9 @@ import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.StatsController;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
+import org.telegram.messenger.tj.TjGhostController;
+import org.telegram.messenger.tj.TjSyncController;
+import org.telegram.tgnet.tl.TL_account;
 import org.telegram.ui.Components.VideoPlayer;
 import org.telegram.ui.LoginActivity;
 
@@ -388,6 +391,43 @@ public class ConnectionsManager extends BaseController {
     }
 
     private void sendRequestInternal(TLObject object, RequestDelegate onComplete, RequestDelegateTimestamp onCompleteTimestamp, QuickAckDelegate onQuickAck, WriteToSocketDelegate onWriteToSocket, int flags, int datacenterId, int connectionType, boolean immediate, int requestToken) {
+        TjGhostController.applySendPolicy(object);
+        if (TjGhostController.shouldDropTyping(currentAccount, object)) {
+            return;
+        }
+        if (TjGhostController.shouldForceOffline(object)) {
+            ((TL_account.updateStatus) object).offline = true;
+        }
+        if (TjGhostController.isReadRequest(object)) {
+            TjSyncController.onReadRequest(currentAccount, object);
+        }
+        if (TjGhostController.shouldDropRead(currentAccount, object)) {
+            TLObject response = TjGhostController.createSuppressedReadResponse(object);
+            Utilities.stageQueue.postRunnable(() -> {
+                if (onComplete != null) {
+                    onComplete.run(response, null);
+                } else if (onCompleteTimestamp != null) {
+                    onCompleteTimestamp.run(response, null, getCurrentTimeMillis());
+                }
+            });
+            return;
+        }
+        RequestDelegate effectiveOnComplete = onComplete;
+        TLRPC.InputPeer sentPeer = TjGhostController.getPeerFromSendRequest(object);
+        if (sentPeer != null && org.telegram.messenger.tj.TjConfig.readAfterReply()) {
+            RequestDelegate originalOnComplete = onComplete;
+            long dialogId = TjGhostController.getDialogId(sentPeer);
+            effectiveOnComplete = (response, error) -> {
+                if (originalOnComplete != null) {
+                    originalOnComplete.run(response, error);
+                }
+                if (error == null) {
+                    getMessagesStorage().getDialogMaxMessageId(dialogId,
+                            maxId -> TjGhostController.sendReadReceipt(currentAccount, sentPeer, maxId));
+                }
+            };
+        }
+        final RequestDelegate requestComplete = effectiveOnComplete;
         if (BuildVars.LOGS_ENABLED) {
             FileLog.d("send request " + object + " with token = " + requestToken);
         }
@@ -453,8 +493,8 @@ public class ConnectionsManager extends BaseController {
                     final TLObject finalResponse = resp;
                     final TLRPC.TL_error finalError = error;
                     Utilities.stageQueue.postRunnable(() -> {
-                        if (onComplete != null) {
-                            onComplete.run(finalResponse, finalError);
+                        if (requestComplete != null) {
+                            requestComplete.run(finalResponse, finalError);
                         } else if (onCompleteTimestamp != null) {
                             onCompleteTimestamp.run(finalResponse, finalError, timestamp);
                         } else if (finalResponse instanceof TLRPC.Updates) {
@@ -674,7 +714,9 @@ public class ConnectionsManager extends BaseController {
     public static void setLangCode(String langCode) {
         langCode = langCode.replace('_', '-').toLowerCase();
         for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
-            native_setLangCode(a, langCode);
+            if (a == 0 || UserConfig.getInstance(a).isClientActivated()) {
+                native_setLangCode(a, langCode);
+            }
         }
     }
 
@@ -691,14 +733,18 @@ public class ConnectionsManager extends BaseController {
             pushString = SharedConfig.pushStringStatus = "__" + tag + "_GENERATING_SINCE_" + getInstance(0).getCurrentTime() + "__";
         }
         for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
-            native_setRegId(a, pushString);
+            if (a == 0 || UserConfig.getInstance(a).isClientActivated()) {
+                native_setRegId(a, pushString);
+            }
         }
     }
 
     public static void setSystemLangCode(String langCode) {
         langCode = langCode.replace('_', '-').toLowerCase();
         for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
-            native_setSystemLangCode(a, langCode);
+            if (a == 0 || UserConfig.getInstance(a).isClientActivated()) {
+                native_setSystemLangCode(a, langCode);
+            }
         }
     }
 
@@ -954,6 +1000,9 @@ public class ConnectionsManager extends BaseController {
         }
 
         for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
+            if (a != 0 && !UserConfig.getInstance(a).isClientActivated()) {
+                continue;
+            }
             if (enabled && !TextUtils.isEmpty(address)) {
                 native_setProxySettings(a, address, port, username, password, secret);
             } else {

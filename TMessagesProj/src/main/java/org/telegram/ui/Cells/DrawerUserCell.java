@@ -46,7 +46,9 @@ public class DrawerUserCell extends FrameLayout implements NotificationCenter.No
 
 
     private int accountNumber;
+    private int observedAccount = -1;
     private RectF rect = new RectF();
+    private int reorderInset;
 
     public DrawerUserCell(Context context) {
         super(context);
@@ -90,20 +92,14 @@ public class DrawerUserCell extends FrameLayout implements NotificationCenter.No
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
         textView.setTextColor(Theme.getColor(Theme.key_chats_menuItemText));
-        for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; i++){
-            NotificationCenter.getInstance(i).addObserver(this, NotificationCenter.currentUserPremiumStatusChanged);
-            NotificationCenter.getInstance(i).addObserver(this, NotificationCenter.updateInterfaces);
-        }
+        observeAccount(accountNumber);
         NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.emojiLoaded);
     }
 
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
-        for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; i++){
-            NotificationCenter.getInstance(i).removeObserver(this, NotificationCenter.currentUserPremiumStatusChanged);
-            NotificationCenter.getInstance(i).removeObserver(this, NotificationCenter.updateInterfaces);
-        }
+        unobserveAccount();
         NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.emojiLoaded);
 
         if (textView.getRightDrawable() instanceof AnimatedEmojiDrawable.WrapSizeDrawable) {
@@ -130,6 +126,9 @@ public class DrawerUserCell extends FrameLayout implements NotificationCenter.No
     }
 
     public void setAccount(int account) {
+        if (isAttachedToWindow() && account != observedAccount) {
+            observeAccount(account);
+        }
         accountNumber = account;
         TLRPC.User user = UserConfig.getInstance(accountNumber).getCurrentUser();
         if (user == null) {
@@ -164,15 +163,39 @@ public class DrawerUserCell extends FrameLayout implements NotificationCenter.No
         return accountNumber;
     }
 
+    public void setReorderHandleVisible(boolean visible) {
+        reorderInset = visible ? AndroidUtilities.dp(34) : 0;
+        invalidate();
+    }
+
+    private void observeAccount(int account) {
+        if (observedAccount == account) {
+            return;
+        }
+        unobserveAccount();
+        observedAccount = account;
+        NotificationCenter.getInstance(account).addObserver(this, NotificationCenter.currentUserPremiumStatusChanged);
+        NotificationCenter.getInstance(account).addObserver(this, NotificationCenter.updateInterfaces);
+    }
+
+    private void unobserveAccount() {
+        if (observedAccount < 0) {
+            return;
+        }
+        NotificationCenter.getInstance(observedAccount).removeObserver(this, NotificationCenter.currentUserPremiumStatusChanged);
+        NotificationCenter.getInstance(observedAccount).removeObserver(this, NotificationCenter.updateInterfaces);
+        observedAccount = -1;
+    }
+
     @Override
     protected void onDraw(Canvas canvas) {
         if (UserConfig.getActivatedAccountsCount() <= 1 || !NotificationsController.getInstance(accountNumber).showBadgeNumber) {
-            textView.setRightPadding(0);
+            textView.setRightPadding(reorderInset);
             return;
         }
         int counter = MessagesStorage.getInstance(accountNumber).getMainUnreadCount();
         if (counter <= 0) {
-            textView.setRightPadding(0);
+            textView.setRightPadding(reorderInset);
             return;
         }
 
@@ -180,7 +203,7 @@ public class DrawerUserCell extends FrameLayout implements NotificationCenter.No
         int countTop = AndroidUtilities.dp(12.5f);
         int textWidth = (int) Math.ceil(Theme.dialogs_countTextPaint.measureText(text));
         int countWidth = Math.max(AndroidUtilities.dp(10), textWidth);
-        int countLeft = getMeasuredWidth() - countWidth - AndroidUtilities.dp(25);
+        int countLeft = getMeasuredWidth() - countWidth - AndroidUtilities.dp(25) - reorderInset;
 
         int x = countLeft - AndroidUtilities.dp(5.5f);
         rect.set(x, countTop, x + countWidth + AndroidUtilities.dp(14), countTop + AndroidUtilities.dp(23));
@@ -188,7 +211,7 @@ public class DrawerUserCell extends FrameLayout implements NotificationCenter.No
 
         canvas.drawText(text, rect.left + (rect.width() - textWidth) / 2, countTop + AndroidUtilities.dp(16), Theme.dialogs_countTextPaint);
 
-        textView.setRightPadding(countWidth + AndroidUtilities.dp(14 + 12));
+        textView.setRightPadding(countWidth + AndroidUtilities.dp(14 + 12) + reorderInset);
     }
 
     @Override

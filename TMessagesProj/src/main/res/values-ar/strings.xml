@@ -1243,7 +1243,7 @@
     <string name="RemindTodayAt">\'ذكّرني اليوم عند\' HH:mm</string>
     <string name="RemindDayAt">\'ذكّرني بتاريخ\' d MMM \'عند\' HH:mm</string>
     <string name="RemindDayYearAt">\'ذكّرني بتاريخ\' d MMM yyyy \'عند\' HH:mm</string>
-    <string name="TjSettings">إعدادات TJ</string>
+    <string name="TjSettings">إعدادات TjGram</string>
     <string name="TjMyProfile">ملفي الشخصي</string>
     <string name="TjMessageInfo">معلومات الرسالة</string>
     <string name="TjCopyMessageLink">نسخ رابط الرسالة</string>
@@ -1280,7 +1280,7 @@
     <string name="TjContactsCount">جهات الاتصال</string>
     <string name="TjChatIdHeader">معرّفات المحادثات</string>
     <string name="TjChatsHeader">المحادثات</string>
-    <string name="TjMessageMenuInfo">اختر عناصر TJ التي تظهر عند الضغط مطولاً على رسالة.</string>
+    <string name="TjMessageMenuInfo">اختر عناصر TjGram التي تظهر عند الضغط مطولاً على رسالة.</string>
     <string name="TjChatCountersLoading">جارٍ حساب محادثاتك…</string>
     <string name="TjChatCountersInfo">يتم حساب الأرقام من المحادثات المحمّلة على هذا الجهاز.</string>
     <string name="TjFolderIcon">أيقونة المجلد</string>

@@ -8503,7 +8503,10 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         }
         SpannableStringBuilder ssb = new SpannableStringBuilder();
         TLRPC.User self = UserConfig.getInstance(currentAccount).getCurrentUser();
-        String name = self != null ? UserObject.getUserName(self) : null;
+        String name = getArguments() != null ? getArguments().getString("tj_account_preview_title") : null;
+        if (TextUtils.isEmpty(name)) {
+            name = self != null ? UserObject.getUserName(self) : null;
+        }
         if (TextUtils.isEmpty(name)) {
             name = getString(R.string.AppName);
         }
@@ -13857,6 +13860,13 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             io.setTranslationY(-dp(64));
             return;
         }
+
+        io.add(R.drawable.msg_archive, getString(R.string.ArchivedChats), () -> {
+            Bundle args = new Bundle();
+            args.putInt("folderId", 1);
+            presentFragment(new DialogsActivity(args));
+        });
+        io.addGap();
 
         final boolean isCurrentThemeDark;
         if (resourceProvider != null) {

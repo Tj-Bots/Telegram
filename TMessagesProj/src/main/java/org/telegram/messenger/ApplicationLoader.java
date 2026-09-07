@@ -37,6 +37,8 @@ import com.google.android.gms.common.GooglePlayServicesUtil;
 
 import org.json.JSONObject;
 import org.telegram.messenger.voip.VideoCapturerDevice;
+import org.telegram.messenger.tj.TjConfig;
+import org.telegram.messenger.tj.TjSyncController;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.BaseFragment;
@@ -213,8 +215,10 @@ public class ApplicationLoader extends Application {
 
                     boolean isSlow = isConnectionSlow();
                     for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
-                        ConnectionsManager.getInstance(a).checkConnection();
-                        FileLoader.getInstance(a).onNetworkChanged(isSlow);
+                        if (a == 0 || UserConfig.getInstance(a).isClientActivated()) {
+                            ConnectionsManager.getInstance(a).checkConnection();
+                            FileLoader.getInstance(a).onNetworkChanged(isSlow);
+                        }
                     }
                 }
             };
@@ -245,8 +249,13 @@ public class ApplicationLoader extends Application {
 
         SharedConfig.loadConfig();
         SharedPrefsHelper.init(applicationContext);
-        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) { //TODO improve account
+        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
             UserConfig.getInstance(a).loadConfig();
+        }
+        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
+            if (a != 0 && !UserConfig.getInstance(a).isClientActivated()) {
+                continue;
+            }
             MessagesController.getInstance(a);
             if (a == 0) {
                 SharedConfig.pushStringStatus = "__FIREBASE_GENERATING_SINCE_" + ConnectionsManager.getInstance(a).getCurrentTime() + "__";
@@ -267,9 +276,11 @@ public class ApplicationLoader extends Application {
         }
 
         MediaController.getInstance();
-        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) { //TODO improve account
-            ContactsController.getInstance(a).checkAppAccount();
-            DownloadController.getInstance(a);
+        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
+            if (UserConfig.getInstance(a).isClientActivated()) {
+                ContactsController.getInstance(a).checkAppAccount();
+                DownloadController.getInstance(a);
+            }
         }
         BillingController.getInstance().startConnection();
     }
@@ -321,6 +332,7 @@ public class ApplicationLoader extends Application {
         if (applicationContext == null) {
             applicationContext = getApplicationContext();
         }
+        updateTjCrashReports(TjConfig.crashReportsEnabled());
 
         NativeLoader.initNativeLibs(ApplicationLoader.applicationContext);
 
@@ -348,11 +360,32 @@ public class ApplicationLoader extends Application {
         }
 
         applicationHandler = new Handler(applicationContext.getMainLooper());
+        TjSyncController.restart();
 
         AndroidUtilities.runOnUIThread(ApplicationLoader::startPushService);
 
         LauncherIconController.tryFixLauncherIconIfNeeded();
         ProxyRotationController.init();
+    }
+
+    public static void updateTjCrashReports(boolean enabled) {
+        try {
+            Class<?> crashlyticsClass = Class.forName("com.google.firebase.crashlytics.FirebaseCrashlytics");
+            Object crashlytics = crashlyticsClass.getMethod("getInstance").invoke(null);
+            for (java.lang.reflect.Method method : crashlyticsClass.getMethods()) {
+                if (method.getName().equals("setCrashlyticsCollectionEnabled") && method.getParameterCount() == 1) {
+                    method.invoke(crashlytics, enabled);
+                    break;
+                }
+            }
+            if (!enabled) {
+                crashlyticsClass.getMethod("deleteUnsentReports").invoke(crashlytics);
+            }
+        } catch (ClassNotFoundException ignored) {
+            // Expected when Crashlytics is not enabled for this build.
+        } catch (Throwable error) {
+            FileLog.e("Tj Crashlytics initialization failed", error);
+        }
     }
 
     public static void startPushService() {

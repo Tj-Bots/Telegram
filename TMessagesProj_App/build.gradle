@@ -207,3 +207,11 @@ android {
 // notifications fall back gracefully (already wrapped in try/catch in
 // PushListenerController) instead of relying on a fake Firebase config.
 // apply plugin: 'com.google.gms.google-services'
+
+// Crashlytics is opt-in because the checked-in google-services.json is not a
+// real Firebase registration for this fork. Enable only with valid Firebase
+// configuration: ./gradlew ... -PENABLE_TJ_CRASHLYTICS=true
+if (providers.gradleProperty('ENABLE_TJ_CRASHLYTICS').map { it.toBoolean() }.getOrElse(false)) {
+    apply plugin: 'com.google.gms.google-services'
+    apply plugin: 'com.google.firebase.crashlytics'
+}

@@ -1094,7 +1094,7 @@ public class FiltersSetupActivity extends BaseFragment implements NotificationCe
                         // so it would fall through to the generic icon. Flag-based suggestions -
                         // Groups, Bots, Channels and the rest - already resolve their own.
                         if (!TextUtils.isEmpty(suggested.filter.emoticon)) {
-                            TjSettingsActivity.setFolderEmoticon(filter.id, suggested.filter.emoticon);
+                            TjSettingsActivity.setFolderEmoticon(currentAccount, filter.id, suggested.filter.emoticon);
                         }
                         FilterCreateActivity.saveFilterToServer(filter, filter.flags, filter.name, filter.entities, filter.title_noanimate, filter.color, filter.alwaysShow, filter.neverShow, filter.pinnedDialogs, true, true, true, true, true, FiltersSetupActivity.this, () -> {
                             getMessagesController().suggestedFilters.remove(suggested);

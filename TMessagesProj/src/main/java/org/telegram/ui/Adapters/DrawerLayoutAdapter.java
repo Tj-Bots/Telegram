@@ -9,6 +9,7 @@
 package org.telegram.ui.Adapters;
 
 import android.content.Context;
+import android.graphics.drawable.GradientDrawable;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -21,12 +22,14 @@ import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.TjLocale;
+import org.telegram.messenger.tj.TjConfig;
 import org.telegram.ui.TjSettingsActivity;
 import org.telegram.ui.ActionBar.DrawerLayoutContainer;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.DividerCell;
 import org.telegram.ui.Cells.DrawerActionCell;
 import org.telegram.ui.Cells.DrawerAddCell;
+import org.telegram.ui.Cells.DrawerAccountsCell;
 import org.telegram.ui.Cells.DrawerProfileCell;
 import org.telegram.ui.Cells.DrawerUserCell;
 import org.telegram.ui.Cells.EmptyCell;
@@ -35,6 +38,8 @@ import org.telegram.ui.Components.SideMenultItemAnimator;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter {
 
@@ -45,6 +50,7 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter {
     private boolean accountsShown;
     public DrawerProfileCell profileCell;
     private SideMenultItemAnimator itemAnimator;
+    private DrawerAccountsCell.Listener accountsListener;
 
     public DrawerLayoutAdapter(Context context, SideMenultItemAnimator animator, DrawerLayoutContainer drawerLayoutContainer) {
         mContext = context;
@@ -56,11 +62,11 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter {
     }
 
     private int getAccountRowsCount() {
-        int count = accountNumbers.size() + 1;
-        if (accountNumbers.size() < UserConfig.MAX_ACCOUNT_COUNT) {
-            count++;
-        }
-        return count;
+        return 2; // One bounded account card followed by its divider.
+    }
+
+    public void setAccountsListener(DrawerAccountsCell.Listener listener) {
+        accountsListener = listener;
     }
 
     @Override
@@ -111,7 +117,7 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter {
     @Override
     public boolean isEnabled(RecyclerView.ViewHolder holder) {
         int itemType = holder.getItemViewType();
-        return itemType == 3 || itemType == 4 || itemType == 5 || itemType == 6;
+        return itemType == 3;
     }
 
     @Override
@@ -139,6 +145,9 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter {
                 break;
             case 5:
                 view = new DrawerAddCell(mContext);
+                break;
+            case 6:
+                view = new DrawerAccountsCell(mContext);
                 break;
             case 1:
             default:
@@ -171,9 +180,44 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter {
             case 4: {
                 DrawerUserCell drawerUserCell = (DrawerUserCell) holder.itemView;
                 drawerUserCell.setAccount(accountNumbers.get(position - 2));
+                applyAccountCardStyle(drawerUserCell, position);
+                break;
+            }
+            case 5: {
+                applyAccountCardStyle(holder.itemView, position);
+                break;
+            }
+            case 6: {
+                DrawerAccountsCell cell = (DrawerAccountsCell) holder.itemView;
+                RecyclerView.LayoutParams params = (RecyclerView.LayoutParams) cell.getLayoutParams();
+                params.leftMargin = params.rightMargin = AndroidUtilities.dp(12);
+                params.topMargin = params.bottomMargin = AndroidUtilities.dp(8);
+                cell.setLayoutParams(params);
+                cell.setAccounts(accountNumbers, accountsListener);
                 break;
             }
         }
+    }
+
+    private void applyAccountCardStyle(View view, int position) {
+        RecyclerView.LayoutParams params = (RecyclerView.LayoutParams) view.getLayoutParams();
+        params.leftMargin = params.rightMargin = AndroidUtilities.dp(12);
+        int first = getFirstAccountPosition();
+        int last = 1 + accountNumbers.size();
+        if (accountNumbers.size() < UserConfig.MAX_ACCOUNT_COUNT) {
+            last++;
+        }
+        params.topMargin = position == first ? AndroidUtilities.dp(8) : 0;
+        params.bottomMargin = position == last ? AndroidUtilities.dp(8) : 0;
+        view.setLayoutParams(params);
+
+        float radius = AndroidUtilities.dp(14);
+        float top = position == first ? radius : 0;
+        float bottom = position == last ? radius : 0;
+        GradientDrawable background = new GradientDrawable();
+        background.setColor(Theme.multAlpha(Theme.getColor(Theme.key_chats_menuItemText), 0.07f));
+        background.setCornerRadii(new float[]{top, top, top, top, bottom, bottom, bottom, bottom});
+        view.setBackground(background);
     }
 
     @Override
@@ -185,21 +229,8 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter {
         }
         i -= 2;
         if (accountsShown) {
-            if (i < accountNumbers.size()) {
-                return 4;
-            } else {
-                if (accountNumbers.size() < UserConfig.MAX_ACCOUNT_COUNT) {
-                    if (i == accountNumbers.size()){
-                        return 5;
-                    } else if (i == accountNumbers.size() + 1) {
-                        return 2;
-                    }
-                } else {
-                    if (i == accountNumbers.size()) {
-                        return 2;
-                    }
-                }
-            }
+            if (i == 0) return 6;
+            if (i == 1) return 2;
             i -= getAccountRowsCount();
         }
         if (i < 0 || i >= items.size() || items.get(i) == null) {
@@ -214,15 +245,31 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter {
         if (idx1 < 0 || idx2 < 0 || idx1 >= accountNumbers.size() || idx2 >= accountNumbers.size()) {
             return;
         }
-        final UserConfig userConfig1 = UserConfig.getInstance(accountNumbers.get(idx1));
-        final UserConfig userConfig2 = UserConfig.getInstance(accountNumbers.get(idx2));
-        final int tempLoginTime = userConfig1.loginTime;
-        userConfig1.loginTime = userConfig2.loginTime;
-        userConfig2.loginTime = tempLoginTime;
-        userConfig1.saveConfig(false);
-        userConfig2.saveConfig(false);
         Collections.swap(accountNumbers, idx1, idx2);
+        saveAccountOrder();
         notifyItemMoved(fromIndex, toIndex);
+    }
+
+    public void setAccountOrder(ArrayList<Integer> order) {
+        if (order == null || order.size() != accountNumbers.size()
+                || !order.containsAll(accountNumbers)) {
+            return;
+        }
+        accountNumbers.clear();
+        accountNumbers.addAll(order);
+        saveAccountOrder();
+    }
+
+    private void saveAccountOrder() {
+        StringBuilder value = new StringBuilder();
+        for (Integer account : accountNumbers) {
+            long userId = UserConfig.getInstance(account).getClientUserId();
+            if (userId == 0) continue;
+            if (value.length() > 0) value.append(',');
+            value.append(userId);
+        }
+        MessagesController.getGlobalMainSettings().edit()
+                .putString("tj_account_order_v1", value.toString()).apply();
     }
 
     private void resetItems() {
@@ -232,16 +279,23 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter {
                 accountNumbers.add(a);
             }
         }
-        Collections.sort(accountNumbers, (o1, o2) -> {
-            long l1 = UserConfig.getInstance(o1).loginTime;
-            long l2 = UserConfig.getInstance(o2).loginTime;
-            if (l1 > l2) {
-                return 1;
-            } else if (l1 < l2) {
-                return -1;
+        Map<Long, Integer> ranks = new HashMap<>();
+        String savedOrder = MessagesController.getGlobalMainSettings()
+                .getString("tj_account_order_v1", "");
+        String[] userIds = savedOrder.split(",");
+        for (int i = 0; i < userIds.length; i++) {
+            try {
+                ranks.put(Long.parseLong(userIds[i]), i);
+            } catch (NumberFormatException ignore) {
             }
-            return 0;
+        }
+        Collections.sort(accountNumbers, (o1, o2) -> {
+            int r1 = ranks.getOrDefault(UserConfig.getInstance(o1).getClientUserId(), Integer.MAX_VALUE);
+            int r2 = ranks.getOrDefault(UserConfig.getInstance(o2).getClientUserId(), Integer.MAX_VALUE);
+            if (r1 != r2) return Integer.compare(r1, r2);
+            return Integer.compare(o1, o2);
         });
+        saveAccountOrder();
 
         items.clear();
         if (!UserConfig.getInstance(UserConfig.selectedAccount).isClientActivated()) {
@@ -256,11 +310,15 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter {
         int savedIcon = R.drawable.msg_saved;
         int settingsIcon = R.drawable.msg_settings_old;
 
-        // TjGram menu. `null` is a divider row.
-        boolean ghostOn = TjSettingsActivity.isGhostModeEnabled();
-        items.add(new Item(104, TjLocale.getString(ghostOn ? R.string.TjGhostModeOff : R.string.TjGhostModeOn), ghostOn ? R.drawable.tj_ghost_off : R.drawable.tj_ghost));
-        items.add(null);
+        // TjGram menu. Keep the profile first, followed by the Ghost controls.
         items.add(new Item(100, TjLocale.getString(R.string.TjMyProfile), R.drawable.msg_openprofile));
+        if (TjConfig.showGhostInDrawer()) {
+            boolean ghostOn = TjSettingsActivity.isGhostModeEnabled();
+            items.add(new Item(104, TjLocale.getString(ghostOn ? R.string.TjGhostModeOff : R.string.TjGhostModeOn), ghostOn ? R.drawable.tj_ghost_off : R.drawable.tj_ghost));
+        }
+        if (TjConfig.showKillInDrawer()) {
+            items.add(new Item(105, TjLocale.getString(R.string.TjKillApp), R.drawable.msg_disable));
+        }
         UserConfig me = UserConfig.getInstance(UserConfig.selectedAccount);
         if (me != null && me.isPremium()) {
             if (me.getEmojiStatus() != null) {
