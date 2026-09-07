@@ -42,6 +42,7 @@ public class DrawerAccountsCell extends FrameLayout {
     private final ArrayList<Integer> accounts = new ArrayList<>();
     private Listener listener;
     private AccountDragState activeDrag;
+    private RecyclerView.ItemAnimator savedItemAnimator;
 
     public DrawerAccountsCell(Context context) {
         super(context);
@@ -92,6 +93,15 @@ public class DrawerAccountsCell extends FrameLayout {
     private void startAccountDrag(AccountRow source, int account, float rawY) {
         listView.stopScroll();
         listView.requestDisallowInterceptTouchEvent(true);
+        // A move-animation lasts longer than the gap between two ACTION_MOVE events during a
+        // fast drag, so findChildViewUnder/getChildAdapterPosition below would keep reading
+        // positions from a list that's still mid-animation from the last swap - each of those
+        // stale reads could trigger another swap before the layout caught up, cascading into
+        // rows jumping around instead of a clean single-step reorder. Disabling the animator
+        // for the duration of the drag keeps every notifyItemMoved instantly reflected in
+        // layout, so each move event always sees the list's true current order.
+        savedItemAnimator = listView.getItemAnimator();
+        listView.setItemAnimator(null);
 
         DrawerUserCell dragView = new DrawerUserCell(getContext());
         dragView.setAccount(account);
@@ -160,6 +170,8 @@ public class DrawerAccountsCell extends FrameLayout {
         }
         activeDrag = null;
         listView.requestDisallowInterceptTouchEvent(false);
+        listView.setItemAnimator(savedItemAnimator);
+        savedItemAnimator = null;
         if (state.changed && listener != null) {
             listener.onAccountsReordered(new ArrayList<>(accounts));
         }
