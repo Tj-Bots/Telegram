@@ -98,7 +98,7 @@ public class DrawerAccountsCell extends FrameLayout {
         dragView.setReorderHandleVisible(false);
         dragView.setBackground(Theme.createRoundRectDrawable(
                 AndroidUtilities.dp(10),
-                Theme.multAlpha(Theme.getColor(Theme.key_chats_menuItemText), 0.10f)));
+                Theme.multAlpha(Theme.getColor(Theme.key_chats_menuItemText), 0.16f)));
         addView(dragView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 48));
 
         int[] sourceLocation = new int[2];
@@ -354,7 +354,7 @@ public class DrawerAccountsCell extends FrameLayout {
             Drawable selector = Theme.createSelectorDrawable(Theme.getColor(Theme.key_listSelector), 2);
             if (rowSelected) {
                 GradientDrawable fill = new GradientDrawable();
-                fill.setColor(Theme.multAlpha(Theme.getColor(Theme.key_chats_menuItemText), 0.10f));
+                fill.setColor(Theme.multAlpha(Theme.getColor(Theme.key_chats_menuItemText), 0.16f));
                 fill.setCornerRadius(AndroidUtilities.dp(10));
                 setBackground(new LayerDrawable(new Drawable[]{fill, selector}));
             } else {
