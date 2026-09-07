@@ -66,88 +66,12 @@ public class TjSettingsActivity extends BaseFragment {
     private static final String KEY_MENU_REPLY_PRIVATELY = "menu_reply_privately";
     private static final String KEY_DELETE_FOR_BOTH = "delete_for_both_default";
 
-    private static final String KEY_DELETED_MESSAGES_ENABLED = "deleted_messages_enabled";
-    private static final String KEY_DELETED_MESSAGES_ICON = "deleted_messages_icon";
-    private static final String KEY_DELETED_MESSAGES_COLOR = "deleted_messages_color";
-    private static final String KEY_DELETED_MESSAGES_DIM = "deleted_messages_dim";
-    private static final String KEY_DELETED_MESSAGES_CAP_GB = "deleted_messages_cap_gb";
-
     private static SharedPreferences getPrefs() {
         return ApplicationLoader.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
     }
 
     public static boolean isShowCallButtonEnabled() {
         return getPrefs().getBoolean(KEY_SHOW_CALL_BUTTON, false);
-    }
-
-    /**
-     * Local retention of messages the server reports deleted, and of prior versions of edited
-     * messages. Off by default - this is a deliberate opt-in, not a default behaviour change.
-     */
-    public static final int DELETED_ICON_TRASH = 0;
-    public static final int DELETED_ICON_CROSS = 1;
-
-    public static final int DELETED_COLOR_GREY = 0;
-    public static final int DELETED_COLOR_RED = 1;
-    public static final int DELETED_COLOR_BLACK = 2;
-
-    public static boolean isDeletedMessagesEnabled() {
-        return getPrefs().getBoolean(KEY_DELETED_MESSAGES_ENABLED, false);
-    }
-
-    public static void setDeletedMessagesEnabled(boolean value) {
-        getPrefs().edit().putBoolean(KEY_DELETED_MESSAGES_ENABLED, value).apply();
-    }
-
-    public static int getDeletedMessagesIcon() {
-        return getPrefs().getInt(KEY_DELETED_MESSAGES_ICON, DELETED_ICON_TRASH);
-    }
-
-    public static void setDeletedMessagesIcon(int icon) {
-        getPrefs().edit().putInt(KEY_DELETED_MESSAGES_ICON, icon).apply();
-    }
-
-    public static int getDeletedMessagesColor() {
-        return getPrefs().getInt(KEY_DELETED_MESSAGES_COLOR, DELETED_COLOR_GREY);
-    }
-
-    public static void setDeletedMessagesColor(int color) {
-        getPrefs().edit().putInt(KEY_DELETED_MESSAGES_COLOR, color).apply();
-    }
-
-    /** The badge drawable for a retained/deleted message, matching the chosen icon. */
-    public static int getDeletedMessagesIconDrawable() {
-        return getDeletedMessagesIcon() == DELETED_ICON_CROSS ? R.drawable.msg_close : R.drawable.msg_delete;
-    }
-
-    /** The resolved ARGB color for a retained/deleted message's badge and dim tint. */
-    public static int getDeletedMessagesColorArgb() {
-        switch (getDeletedMessagesColor()) {
-            case DELETED_COLOR_RED:
-                return 0xFFE53935;
-            case DELETED_COLOR_BLACK:
-                return 0xFF000000;
-            default:
-                return 0xFF9E9E9E;
-        }
-    }
-
-    /** Whether a retained message renders dimmer than a normal one. On by default. */
-    public static boolean isDeletedMessagesDimmed() {
-        return getPrefs().getBoolean(KEY_DELETED_MESSAGES_DIM, true);
-    }
-
-    public static void setDeletedMessagesDimmed(boolean value) {
-        getPrefs().edit().putBoolean(KEY_DELETED_MESSAGES_DIM, value).apply();
-    }
-
-    /** Local storage cap for retained messages, in GB, 1-10. */
-    public static int getDeletedMessagesStorageCapGb() {
-        return Math.max(1, Math.min(10, getPrefs().getInt(KEY_DELETED_MESSAGES_CAP_GB, 2)));
-    }
-
-    public static void setDeletedMessagesStorageCapGb(int gb) {
-        getPrefs().edit().putInt(KEY_DELETED_MESSAGES_CAP_GB, Math.max(1, Math.min(10, gb))).apply();
     }
 
     public static void setShowCallButtonEnabled(boolean value) {

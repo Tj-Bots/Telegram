@@ -9845,10 +9845,6 @@ public class MessageObject {
         return messageOwner != null && (messageOwner.flags & TLRPC.MESSAGE_FLAG_EDITED) != 0 && messageOwner.edit_date != 0 && !messageOwner.edit_hide;
     }
 
-    /** True for a message the server deleted but this client retained locally - stays visible, dimmed. */
-    public boolean isTjRetainedDeleted() {
-        return messageOwner != null && messageOwner.tjLocallyDeleted;
-    }
 
     public boolean isContentUnread() {
         return messageOwner.media_unread;

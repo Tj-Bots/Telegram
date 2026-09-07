@@ -57501,7 +57501,6 @@ public class TLRPC {
         public String translatedToLanguage; //custom
         public TL_textWithEntities translatedText; //custom
         public TL_iv.RichMessage translatedRichMessage; //custom
-        public boolean tjLocallyDeleted; //custom
         public TL_textWithEntities translatedVoiceTranscription; //custom
         public TranslateController.PollText translatedPoll; //custom
         public TL_stories.StoryItem replyStory; //custom
