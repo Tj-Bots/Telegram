@@ -421,6 +421,10 @@ public class TjSettingsActivity extends BaseFragment {
     private static final int ID_MENU_SAVE_TO_SAVED = 8;
     private static final int ID_MENU_FORWARD_NO_TAG = 9;
     private static final int ID_FOLDER_TAB_STYLE = 10;
+    private static final int ID_GHOST_MODE = 11;
+    private static final int ID_GHOST_TYPING = 12;
+    private static final int ID_GHOST_ONLINE = 13;
+    private static final int ID_GHOST_READ = 14;
     private static final int ID_SUBTITLE_AUTO = 15;
     private static final int ID_MENU_REPLY_PRIVATELY = 16;
     private static final int ID_DELETE_FOR_BOTH = 17;
