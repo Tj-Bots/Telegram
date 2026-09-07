@@ -1,14 +1,19 @@
 package org.telegram.ui.Cells;
 
+import android.content.ClipData;
 import android.content.Context;
+import android.os.Build;
 import android.graphics.drawable.GradientDrawable;
+import android.view.DragEvent;
+import android.view.HapticFeedbackConstants;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.FrameLayout;
 
 import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -19,7 +24,6 @@ import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
 
 import java.util.ArrayList;
-import java.util.Collections;
 
 /** A bounded, independently scrollable account card for the side drawer. */
 public class DrawerAccountsCell extends FrameLayout {
@@ -34,10 +38,9 @@ public class DrawerAccountsCell extends FrameLayout {
     private static final int MAX_VISIBLE_ROWS = 5;
     private final RecyclerListView listView;
     private final AccountsAdapter adapter = new AccountsAdapter();
-    private final ItemTouchHelper touchHelper;
     private final ArrayList<Integer> accounts = new ArrayList<>();
     private Listener listener;
-    private boolean accountDragActive;
+    private AccountDragState activeDrag;
 
     public DrawerAccountsCell(Context context) {
         super(context);
@@ -52,85 +55,84 @@ public class DrawerAccountsCell extends FrameLayout {
         listView.setAdapter(adapter);
         listView.setNestedScrollingEnabled(true);
         listView.setOverScrollMode(OVER_SCROLL_IF_CONTENT_SCROLLS);
+        listView.setOnDragListener((view, event) -> handleAccountDrag(event));
         addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
+    }
 
-        touchHelper = new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP | ItemTouchHelper.DOWN, 0) {
-            @Override
-            public boolean isLongPressDragEnabled() {
+    private boolean handleAccountDrag(DragEvent event) {
+        Object stateObject = event.getLocalState();
+        if (!(stateObject instanceof AccountDragState)) {
+            return false;
+        }
+        AccountDragState state = (AccountDragState) stateObject;
+        switch (event.getAction()) {
+            case DragEvent.ACTION_DRAG_STARTED:
                 return true;
-            }
-
-            @Override
-            public int getMovementFlags(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
-                int position = viewHolder.getAdapterPosition();
-                if (position < 0 || position >= accounts.size()) {
-                    return makeMovementFlags(0, 0);
-                }
-                int account = accounts.get(position);
-                int dragFlags = accountDragActive || account == UserConfig.selectedAccount || AndroidUtilities.isTablet()
-                        ? ItemTouchHelper.UP | ItemTouchHelper.DOWN
-                        : 0;
-                return makeMovementFlags(dragFlags, 0);
-            }
-
-            @Override
-            public void onSelectedChanged(RecyclerView.ViewHolder viewHolder, int actionState) {
-                accountDragActive = actionState == ItemTouchHelper.ACTION_STATE_DRAG;
-                super.onSelectedChanged(viewHolder, actionState);
-            }
-
-            @Override
-            public boolean onMove(@NonNull RecyclerView recyclerView,
-                                  @NonNull RecyclerView.ViewHolder source,
-                                  @NonNull RecyclerView.ViewHolder target) {
-                int from = source.getAdapterPosition();
-                int to = target.getAdapterPosition();
-                if (from < 0 || to < 0 || from >= accounts.size() || to >= accounts.size()) {
+            case DragEvent.ACTION_DRAG_LOCATION:
+                if (activeDrag != state) {
                     return false;
                 }
-                Collections.swap(accounts, from, to);
-                adapter.notifyItemMoved(from, to);
+                moveDraggedAccount(state, event.getX(), event.getY());
                 return true;
-            }
+            case DragEvent.ACTION_DROP:
+                finishAccountDrag(state);
+                return true;
+            case DragEvent.ACTION_DRAG_ENDED:
+                finishAccountDrag(state);
+                return true;
+            default:
+                return true;
+        }
+    }
 
-            @Override
-            public void clearView(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
-                super.clearView(recyclerView, viewHolder);
-                accountDragActive = false;
-                if (listener != null) {
-                    listener.onAccountsReordered(new ArrayList<>(accounts));
-                }
-            }
+    private void moveDraggedAccount(AccountDragState state, float x, float y) {
+        int edge = AndroidUtilities.dp(36);
+        if (y < edge) {
+            listView.scrollBy(0, -AndroidUtilities.dp(12));
+        } else if (y > listView.getHeight() - edge) {
+            listView.scrollBy(0, AndroidUtilities.dp(12));
+        }
 
-            @Override
-            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
-            }
-        });
-        touchHelper.attachToRecyclerView(listView);
-        listView.setOnItemClickListener((view, position) -> {
-            if (listener == null) {
-                return;
-            }
-            if (position >= 0 && position < accounts.size()) {
-                listener.onAccountClick(accounts.get(position));
-            } else if (position == accounts.size() && accounts.size() < UserConfig.MAX_ACCOUNT_COUNT) {
-                listener.onAddAccount();
-            }
-        });
-        listView.setOnItemLongClickListener((view, position) -> {
-            if (position < 0 || position >= accounts.size()) {
-                return false;
-            }
-            int account = accounts.get(position);
-            if (account == UserConfig.selectedAccount || AndroidUtilities.isTablet()) {
-                // ItemTouchHelper owns the complete gesture for draggable rows. Starting it again
-                // from RecyclerListView's long-click callback cancels the subsequent move stream.
-                return false;
-            } else if (listener != null) {
-                listener.onAccountPreview(account);
-            }
-            return true;
-        });
+        float boundedY = Math.max(1, Math.min(listView.getHeight() - 1, y));
+        View targetView = listView.findChildViewUnder(x, boundedY);
+        if (targetView == null) {
+            return;
+        }
+        int from = accounts.indexOf(state.account);
+        int to = listView.getChildAdapterPosition(targetView);
+        if (to >= accounts.size()) {
+            to = accounts.size() - 1;
+        }
+        if (from < 0 || to < 0 || from == to) {
+            return;
+        }
+        accounts.remove(from);
+        accounts.add(to, state.account);
+        state.changed = true;
+        adapter.notifyItemMoved(from, to);
+    }
+
+    private void finishAccountDrag(AccountDragState state) {
+        if (activeDrag != state) {
+            return;
+        }
+        activeDrag = null;
+        state.source.setAlpha(1f);
+        listView.requestDisallowInterceptTouchEvent(false);
+        if (state.changed && listener != null) {
+            listener.onAccountsReordered(new ArrayList<>(accounts));
+        }
+    }
+
+    private static class AccountDragState {
+        final int account;
+        final View source;
+        boolean changed;
+
+        AccountDragState(int account, View source) {
+            this.account = account;
+            this.source = source;
+        }
     }
 
     public void setAccounts(ArrayList<Integer> value, Listener listener) {
@@ -154,6 +156,11 @@ public class DrawerAccountsCell extends FrameLayout {
         public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
             if (viewType == 1) {
                 DrawerAddCell add = new DrawerAddCell(parent.getContext());
+                add.setOnClickListener(v -> {
+                    if (listener != null) {
+                        listener.onAddAccount();
+                    }
+                });
                 return new RecyclerListView.Holder(add);
             }
             AccountRow row = new AccountRow(parent.getContext());
@@ -166,6 +173,7 @@ public class DrawerAccountsCell extends FrameLayout {
                 AccountRow row = (AccountRow) holder.itemView;
                 int account = accounts.get(position);
                 row.userCell.setAccount(account);
+                row.bind(holder, account);
             }
         }
 
@@ -182,13 +190,102 @@ public class DrawerAccountsCell extends FrameLayout {
 
     private class AccountRow extends FrameLayout {
         final DrawerUserCell userCell;
+        private final int touchSlop;
+        private int boundAccount = -1;
+        private float downX;
+        private float downY;
+        private boolean longPressHandled;
+        private Runnable longPressRunnable;
 
         AccountRow(Context context) {
             super(context);
+            touchSlop = ViewConfiguration.get(context).getScaledTouchSlop();
             userCell = new DrawerUserCell(context);
             userCell.setReorderHandleVisible(false);
             addView(userCell, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 48));
             setBackground(Theme.createSelectorDrawable(Theme.getColor(Theme.key_listSelector), 2));
+            userCell.setOnClickListener(v -> {
+                if (longPressHandled) {
+                    longPressHandled = false;
+                    return;
+                }
+                if (listener != null && boundAccount >= 0) {
+                    listener.onAccountClick(boundAccount);
+                }
+            });
+            userCell.setOnTouchListener((v, event) -> {
+                switch (event.getActionMasked()) {
+                    case MotionEvent.ACTION_DOWN:
+                        cancelLongPressCheck();
+                        longPressHandled = false;
+                        downX = event.getX();
+                        downY = event.getY();
+                        longPressRunnable = this::handleLongPress;
+                        userCell.postDelayed(longPressRunnable, ViewConfiguration.getLongPressTimeout());
+                        break;
+                    case MotionEvent.ACTION_MOVE:
+                        if (!longPressHandled && (Math.abs(event.getX() - downX) > touchSlop
+                                || Math.abs(event.getY() - downY) > touchSlop)) {
+                            cancelLongPressCheck();
+                        }
+                        break;
+                    case MotionEvent.ACTION_UP:
+                    case MotionEvent.ACTION_CANCEL:
+                        cancelLongPressCheck();
+                        break;
+                }
+                // DrawerUserCell remains the touch target, preserving its normal click behavior.
+                return false;
+            });
+        }
+
+        void bind(RecyclerView.ViewHolder holder, int account) {
+            cancelLongPressCheck();
+            boundAccount = account;
+            longPressHandled = false;
+        }
+
+        private void handleLongPress() {
+            longPressRunnable = null;
+            int account = boundAccount;
+            if (account < 0 || accounts.indexOf(account) < 0) {
+                return;
+            }
+            longPressHandled = true;
+            try {
+                userCell.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
+            } catch (Exception ignore) {
+            }
+            if (account == UserConfig.selectedAccount || AndroidUtilities.isTablet()) {
+                listView.stopScroll();
+                listView.requestDisallowInterceptTouchEvent(true);
+                AccountDragState state = new AccountDragState(account, userCell);
+                activeDrag = state;
+                ClipData data = ClipData.newPlainText("tjgram-account-order", Integer.toString(account));
+                View.DragShadowBuilder shadow = new View.DragShadowBuilder(userCell);
+                boolean started;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    started = userCell.startDragAndDrop(data, shadow, state, 0);
+                } else {
+                    started = userCell.startDrag(data, shadow, state, 0);
+                }
+                if (started) {
+                    userCell.setAlpha(0.35f);
+                } else {
+                    activeDrag = null;
+                    listView.requestDisallowInterceptTouchEvent(false);
+                    longPressHandled = false;
+                }
+            } else if (listener != null) {
+                listener.onAccountPreview(account);
+            }
+        }
+
+        private void cancelLongPressCheck() {
+            if (longPressRunnable != null) {
+                userCell.removeCallbacks(longPressRunnable);
+                longPressRunnable = null;
+            }
         }
 
         @Override
