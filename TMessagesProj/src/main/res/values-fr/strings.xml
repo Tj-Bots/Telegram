@@ -51,7 +51,7 @@
     <string name="TjDeletedColorGrey">Gris</string>
     <string name="TjDeletedColorRed">Rouge</string>
     <string name="TjDeletedColorBlack">Noir</string>
-    <string name="TjDeletedPreviewSample">Ceci est un message d'exemple</string>
+    <string name="TjDeletedPreviewSample">Ceci est un message d\'exemple</string>
     <string name="TjDeletedDim">Assombrir les messages conservés</string>
     <string name="TjDeletedStorageHeader">Stockage</string>
     <string name="TjDeletedStorageCap">Limite de stockage</string>
@@ -109,6 +109,6 @@
     <string name="TjSubtitleAuto">Activer les sous-titres automatiquement</string>
     <string name="TjSubtitleAutoInfo">Choisit une piste de sous-titres dans votre langue si la vidéo en a une, sinon en anglais.</string>
     <string name="TjReplyPrivately">Répondre en privé</string>
-    <string name="TjEditHistoryEnable">Voir l'historique des modifications</string>
+    <string name="TjEditHistoryEnable">Voir l\'historique des modifications</string>
     <string name="TjDeleteForBoth">Supprimer des deux côtés par défaut</string>
 </resources>
