@@ -6512,6 +6512,31 @@ public class ChatActivity extends BaseFragment implements
         chatListView.setTag(1);
         chatListView.setVerticalScrollBarEnabled(!SharedConfig.chatBlurEnabled());
         chatListView.setAdapter(chatAdapter = new ChatActivityAdapter(context));
+        chatListView.addItemDecoration(new RecyclerView.ItemDecoration() {
+            @Override
+            public void onDrawOver(Canvas canvas, RecyclerView parent, RecyclerView.State state) {
+                for (int i = 0, count = parent.getChildCount(); i < count; i++) {
+                    View child = parent.getChildAt(i);
+                    if (!(child instanceof ChatMessageCell)) {
+                        continue;
+                    }
+                    MessageObject messageObject = ((ChatMessageCell) child).getMessageObject();
+                    if (messageObject == null || !messageObject.isTjRetainedDeleted()) {
+                        continue;
+                    }
+                    Drawable icon = ContextCompat.getDrawable(child.getContext(), TjSettingsActivity.getDeletedMessagesIconDrawable());
+                    if (icon == null) {
+                        continue;
+                    }
+                    icon.mutate().setTint(TjSettingsActivity.getDeletedMessagesColorArgb());
+                    int size = AndroidUtilities.dp(14);
+                    int right = child.getRight() - AndroidUtilities.dp(6);
+                    int top = child.getTop() + AndroidUtilities.dp(6);
+                    icon.setBounds(right - size, top, right, top + size);
+                    icon.draw(canvas);
+                }
+            }
+        });
         chatListView.setClipToPadding(false);
         if (ChatObject.isMonoForum(currentChat) || ChatObject.areTabsEnabled(currentChat)) {
             chatListView.setClipChildren(false);
@@ -38011,6 +38036,7 @@ public class ChatActivity extends BaseFragment implements
 
                     messageCell.setShowTopic(true);
                     messageCell.setMessageObject(message, groupedMessages, pinnedBottom, pinnedTop, firstInChat, lastInChatList);
+                    messageCell.setAlpha(message.isTjRetainedDeleted() && TjSettingsActivity.isDeletedMessagesDimmed() ? 0.5f : 1f);
                     messageCell.setSpoilersSuppressed(chatListView.getScrollState() != RecyclerView.SCROLL_STATE_IDLE);
                     messageCell.setHighlighted(highlightMessageId != Integer.MAX_VALUE && message.getId() == highlightMessageId);
                     if (messageCell.isHighlighted() && highlightMessageQuote != null) {

@@ -9951,6 +9951,11 @@ public class MessagesStorage extends BaseController {
         if (dialogId == 777000 && serviceUnreadCount != 0) {
             count_unread = serviceUnreadCount;
         }
+        if (!scheduled && !quickReplies && !welcomeMessages && mode == 0 && threadMessageId == 0 && !isTopic
+                && TjSettingsActivity.isDeletedMessagesEnabled() && !DialogObject.isEncryptedDialog(dialogId)
+                && res.messages != null && !res.messages.isEmpty()) {
+            spliceInTjRetainedDeletedMessages(dialogId, res.messages);
+        }
         int countQueryFinal = count_query;
         int maxIdOverrideFinal = max_id_override;
         int minUnreadIdFinal = min_unread_id;
@@ -9970,6 +9975,60 @@ public class MessagesStorage extends BaseController {
         int finalMessagesCount = scheduled ? res.messages.size() : messagesCount;
         return () -> getMessagesController().processLoadedMessages(res, finalMessagesCount, dialogId, mergeDialogId, countQueryFinal, maxIdOverrideFinal, offset_date, true, classGuid, minUnreadIdFinal, lastMessageIdFinal, countUnreadFinal, maxUnreadDateFinal, load_type, isEndFinal, mode, threadMessageId, loadIndex, queryFromServerFinal, mentionsUnreadFinal, processMessages, isTopic, loaderLogger);
         //}
+    }
+
+    /**
+     * Merges locally-retained deleted messages within this loaded page's mid range back into it,
+     * keeping the list's existing date-DESC order - so a deleted message shows up again exactly
+     * where it always was the next time this range of the chat is loaded from disk.
+     */
+    private void spliceInTjRetainedDeletedMessages(long dialogId, ArrayList<TLRPC.Message> messages) {
+        int minMid = Integer.MAX_VALUE;
+        int maxMid = Integer.MIN_VALUE;
+        for (int a = 0, N = messages.size(); a < N; a++) {
+            int mid = messages.get(a).id;
+            if (mid > 0) {
+                if (mid < minMid) {
+                    minMid = mid;
+                }
+                if (mid > maxMid) {
+                    maxMid = mid;
+                }
+            }
+        }
+        if (minMid > maxMid) {
+            return;
+        }
+        SQLiteCursor cursor = null;
+        try {
+            cursor = database.queryFinalized(String.format(Locale.US, "SELECT data FROM tj_deleted_messages WHERE uid = %d AND mid >= %d AND mid <= %d ORDER BY date DESC", dialogId, minMid, maxMid));
+            while (cursor.next()) {
+                NativeByteBuffer data = cursor.byteBufferValue(0);
+                if (data == null) {
+                    continue;
+                }
+                TLRPC.Message message = TLRPC.Message.TLdeserialize(data, data.readInt32(false), false);
+                data.reuse();
+                if (message == null) {
+                    continue;
+                }
+                message.tjLocallyDeleted = true;
+                int insertAt = messages.size();
+                for (int a = 0, N = messages.size(); a < N; a++) {
+                    if (messages.get(a).date <= message.date) {
+                        insertAt = a;
+                        break;
+                    }
+                }
+                messages.add(insertAt, message);
+            }
+        } catch (Exception e) {
+            checkSQLException(e);
+        } finally {
+            if (cursor != null) {
+                cursor.dispose();
+            }
+        }
     }
 
     public void getAnimatedEmoji(String join, ArrayList<TLRPC.Document> documents) {
