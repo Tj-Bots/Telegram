@@ -109,6 +109,23 @@ public class TjSettingsActivity extends BaseFragment {
         getPrefs().edit().putInt(KEY_DELETED_MESSAGES_COLOR, color).apply();
     }
 
+    /** The badge drawable for a retained/deleted message, matching the chosen icon. */
+    public static int getDeletedMessagesIconDrawable() {
+        return getDeletedMessagesIcon() == DELETED_ICON_CROSS ? R.drawable.msg_close : R.drawable.msg_delete;
+    }
+
+    /** The resolved ARGB color for a retained/deleted message's badge and dim tint. */
+    public static int getDeletedMessagesColorArgb() {
+        switch (getDeletedMessagesColor()) {
+            case DELETED_COLOR_RED:
+                return 0xFFE53935;
+            case DELETED_COLOR_BLACK:
+                return 0xFF000000;
+            default:
+                return 0xFF9E9E9E;
+        }
+    }
+
     /** Whether a retained message renders dimmer than a normal one. On by default. */
     public static boolean isDeletedMessagesDimmed() {
         return getPrefs().getBoolean(KEY_DELETED_MESSAGES_DIM, true);

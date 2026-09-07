@@ -314,6 +314,7 @@
     <string name="TjDeletedColorGrey">Серый</string>
     <string name="TjDeletedColorRed">Красный</string>
     <string name="TjDeletedColorBlack">Чёрный</string>
+    <string name="TjDeletedPreviewSample">Это пример сообщения</string>
     <string name="TjDeletedDim">Затемнять сохранённые сообщения</string>
     <string name="TjDeletedStorageHeader">Хранилище</string>
     <string name="TjDeletedStorageCap">Лимит хранилища</string>

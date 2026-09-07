@@ -1,10 +1,21 @@
 package org.telegram.ui;
 
+import static org.telegram.messenger.AndroidUtilities.dp;
+
 import android.content.Context;
 import android.content.DialogInterface;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffColorFilter;
+import android.graphics.drawable.GradientDrawable;
+import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import android.widget.GridLayout;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -17,6 +28,7 @@ import org.telegram.messenger.TjLocale;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
+import org.telegram.ui.ActionBar.BottomSheet;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.HeaderCell;
 import org.telegram.ui.Cells.TextCheckCell;
@@ -38,6 +50,7 @@ public class TjDeletedMessagesActivity extends BaseFragment {
     private static final int VIEW_TYPE_CHECK = 1;
     private static final int VIEW_TYPE_SHADOW = 2;
     private static final int VIEW_TYPE_SETTING = 3;
+    private static final int VIEW_TYPE_PREVIEW = 4;
 
     private static final int ID_ENABLED = 1;
     private static final int ID_ICON = 2;
@@ -143,45 +156,122 @@ public class TjDeletedMessagesActivity extends BaseFragment {
         return fragmentView;
     }
 
+    /** Small grid of the actual icon choices, tap to pick - mirrors FilterCreateActivity's folder icon picker. */
     private void showIconPicker() {
         if (getParentActivity() == null) {
             return;
         }
-        CharSequence[] options = new CharSequence[]{
-            TjLocale.getString(R.string.TjDeletedIconTrash),
-            TjLocale.getString(R.string.TjDeletedIconCross)
-        };
-        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
-        builder.setTitle(TjLocale.getString(R.string.TjDeletedIcon));
-        builder.setItems(options, (dialog, which) -> {
-            TjSettingsActivity.setDeletedMessagesIcon(which);
-            if (adapter != null) {
-                adapter.notifyDataSetChanged();
-            }
-        });
-        builder.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
-        showDialog(builder.create());
+        int[] icons = new int[]{R.drawable.msg_delete, R.drawable.msg_close};
+        int current = TjSettingsActivity.getDeletedMessagesIcon();
+
+        LinearLayout content = new LinearLayout(getParentActivity());
+        content.setOrientation(LinearLayout.VERTICAL);
+
+        TextView titleView = new TextView(getParentActivity());
+        titleView.setText(TjLocale.getString(R.string.TjDeletedIcon));
+        titleView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 20);
+        titleView.setTypeface(AndroidUtilities.bold());
+        titleView.setTextColor(Theme.getColor(Theme.key_dialogTextBlack));
+        titleView.setPadding(dp(22), dp(16), dp(22), dp(8));
+        content.addView(titleView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
+
+        final BottomSheet[] sheet = new BottomSheet[1];
+        GridLayout grid = new GridLayout(getParentActivity());
+        grid.setColumnCount(8);
+        grid.setPadding(dp(12), dp(4), dp(12), dp(16));
+        for (int i = 0; i < icons.length; i++) {
+            int iconValue = i;
+            ImageView icon = new ImageView(getParentActivity());
+            icon.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+            icon.setImageResource(icons[i]);
+            boolean selected = iconValue == current;
+            icon.setColorFilter(new PorterDuffColorFilter(Theme.getColor(selected ? Theme.key_dialogTextBlue : Theme.key_dialogIcon), PorterDuff.Mode.MULTIPLY));
+            icon.setBackground(Theme.createSelectorDrawable(Theme.getColor(Theme.key_listSelector), Theme.RIPPLE_MASK_CIRCLE_20DP));
+            icon.setPadding(dp(8), dp(8), dp(8), dp(8));
+            icon.setOnClickListener(v -> {
+                TjSettingsActivity.setDeletedMessagesIcon(iconValue);
+                if (sheet[0] != null) {
+                    sheet[0].dismiss();
+                }
+                if (adapter != null) {
+                    adapter.notifyDataSetChanged();
+                }
+            });
+            GridLayout.LayoutParams lp = new GridLayout.LayoutParams();
+            lp.width = dp(40);
+            lp.height = dp(40);
+            lp.setMargins(dp(2), dp(2), dp(2), dp(2));
+            grid.addView(icon, lp);
+        }
+
+        ScrollView scroll = new ScrollView(getParentActivity());
+        scroll.addView(grid);
+        content.addView(scroll, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
+
+        BottomSheet.Builder builder = new BottomSheet.Builder(getParentActivity());
+        builder.setCustomView(content);
+        sheet[0] = builder.create();
+        showDialog(sheet[0]);
     }
 
+    /** Small grid of actual colored circles, tap to pick. */
     private void showColorPicker() {
         if (getParentActivity() == null) {
             return;
         }
-        CharSequence[] options = new CharSequence[]{
-            TjLocale.getString(R.string.TjDeletedColorGrey),
-            TjLocale.getString(R.string.TjDeletedColorRed),
-            TjLocale.getString(R.string.TjDeletedColorBlack)
-        };
-        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
-        builder.setTitle(TjLocale.getString(R.string.TjDeletedColor));
-        builder.setItems(options, (dialog, which) -> {
-            TjSettingsActivity.setDeletedMessagesColor(which);
-            if (adapter != null) {
-                adapter.notifyDataSetChanged();
+        int[] colors = new int[]{0xFF9E9E9E, 0xFFE53935, 0xFF000000};
+        int current = TjSettingsActivity.getDeletedMessagesColor();
+
+        LinearLayout content = new LinearLayout(getParentActivity());
+        content.setOrientation(LinearLayout.VERTICAL);
+
+        TextView titleView = new TextView(getParentActivity());
+        titleView.setText(TjLocale.getString(R.string.TjDeletedColor));
+        titleView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 20);
+        titleView.setTypeface(AndroidUtilities.bold());
+        titleView.setTextColor(Theme.getColor(Theme.key_dialogTextBlack));
+        titleView.setPadding(dp(22), dp(16), dp(22), dp(8));
+        content.addView(titleView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
+
+        final BottomSheet[] sheet = new BottomSheet[1];
+        GridLayout grid = new GridLayout(getParentActivity());
+        grid.setColumnCount(8);
+        grid.setPadding(dp(12), dp(4), dp(12), dp(16));
+        for (int i = 0; i < colors.length; i++) {
+            int colorValue = i;
+            boolean selected = colorValue == current;
+            FrameLayout swatch = new FrameLayout(getParentActivity());
+            GradientDrawable circle = new GradientDrawable();
+            circle.setShape(GradientDrawable.OVAL);
+            circle.setColor(colors[i]);
+            if (selected) {
+                circle.setStroke(dp(2), Theme.getColor(Theme.key_dialogTextBlue));
             }
-        });
-        builder.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
-        showDialog(builder.create());
+            swatch.setBackground(circle);
+            swatch.setOnClickListener(v -> {
+                TjSettingsActivity.setDeletedMessagesColor(colorValue);
+                if (sheet[0] != null) {
+                    sheet[0].dismiss();
+                }
+                if (adapter != null) {
+                    adapter.notifyDataSetChanged();
+                }
+            });
+            GridLayout.LayoutParams lp = new GridLayout.LayoutParams();
+            lp.width = dp(32);
+            lp.height = dp(32);
+            lp.setMargins(dp(6), dp(6), dp(6), dp(6));
+            grid.addView(swatch, lp);
+        }
+
+        ScrollView scroll = new ScrollView(getParentActivity());
+        scroll.addView(grid);
+        content.addView(scroll, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
+
+        BottomSheet.Builder builder = new BottomSheet.Builder(getParentActivity());
+        builder.setCustomView(content);
+        sheet[0] = builder.create();
+        showDialog(sheet[0]);
     }
 
     private void showStorageCapPicker() {
@@ -233,6 +323,7 @@ public class TjDeletedMessagesActivity extends BaseFragment {
         items.add(new Item(VIEW_TYPE_CHECK, ID_ENABLED, TjLocale.getString(R.string.TjDeletedEnable)));
         items.add(new Item(VIEW_TYPE_SHADOW, 0, TjLocale.getString(R.string.TjDeletedEnableInfo)));
         items.add(new Item(VIEW_TYPE_HEADER, 0, TjLocale.getString(R.string.TjDeletedAppearance)));
+        items.add(new Item(VIEW_TYPE_PREVIEW, 0, null));
         items.add(new Item(VIEW_TYPE_SETTING, ID_ICON, TjLocale.getString(R.string.TjDeletedIcon)));
         items.add(new Item(VIEW_TYPE_SETTING, ID_COLOR, TjLocale.getString(R.string.TjDeletedColor)));
         items.add(new Item(VIEW_TYPE_CHECK, ID_DIM, TjLocale.getString(R.string.TjDeletedDim)));
@@ -256,6 +347,9 @@ public class TjDeletedMessagesActivity extends BaseFragment {
                 view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
             } else if (viewType == VIEW_TYPE_SETTING) {
                 view = new TextSettingsCell(parent.getContext());
+                view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+            } else if (viewType == VIEW_TYPE_PREVIEW) {
+                view = new PreviewCell(parent.getContext());
                 view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
             } else {
                 view = new TextInfoPrivacyCell(parent.getContext());
@@ -286,6 +380,8 @@ public class TjDeletedMessagesActivity extends BaseFragment {
                     value = "";
                 }
                 ((TextSettingsCell) holder.itemView).setTextAndValue(item.text, value, false);
+            } else if (item.viewType == VIEW_TYPE_PREVIEW) {
+                ((PreviewCell) holder.itemView).refresh();
             } else {
                 boolean divider = position + 1 < items.size() && items.get(position + 1).viewType == VIEW_TYPE_CHECK;
                 boolean checked = item.id == ID_ENABLED ? TjSettingsActivity.isDeletedMessagesEnabled() : TjSettingsActivity.isDeletedMessagesDimmed();
@@ -310,6 +406,48 @@ public class TjDeletedMessagesActivity extends BaseFragment {
         public boolean isEnabled(RecyclerView.ViewHolder holder) {
             int t = holder.getItemViewType();
             return t == VIEW_TYPE_CHECK || t == VIEW_TYPE_SETTING;
+        }
+    }
+
+    /** A tiny sample bubble showing the icon/color/dim settings applied live, as they're picked. */
+    private static class PreviewCell extends FrameLayout {
+        private final TextView bubbleText;
+        private final ImageView badge;
+
+        PreviewCell(Context context) {
+            super(context);
+            setPadding(dp(16), dp(14), dp(16), dp(14));
+
+            FrameLayout bubble = new FrameLayout(context);
+            GradientDrawable bubbleBg = new GradientDrawable();
+            bubbleBg.setShape(GradientDrawable.RECTANGLE);
+            bubbleBg.setCornerRadius(dp(14));
+            bubbleBg.setColor(Theme.getColor(Theme.key_windowBackgroundGray));
+            bubble.setBackground(bubbleBg);
+            bubble.setPadding(dp(14), dp(10), dp(14), dp(10));
+
+            bubbleText = new TextView(context);
+            bubbleText.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
+            bubbleText.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
+            bubbleText.setText(TjLocale.getString(R.string.TjDeletedPreviewSample));
+            bubble.addView(bubbleText, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT,
+                Gravity.CENTER_VERTICAL, LocaleController.isRTL ? 22 : 0, 0, LocaleController.isRTL ? 0 : 22, 0));
+
+            badge = new ImageView(context);
+            badge.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+            bubble.addView(badge, LayoutHelper.createFrame(18, 18,
+                (LocaleController.isRTL ? Gravity.LEFT : Gravity.RIGHT) | Gravity.CENTER_VERTICAL, 0, 0, 0, 0));
+
+            addView(bubble, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT));
+        }
+
+        void refresh() {
+            int color = TjSettingsActivity.getDeletedMessagesColorArgb();
+            badge.setImageResource(TjSettingsActivity.getDeletedMessagesIconDrawable());
+            badge.setColorFilter(new PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN));
+            float alpha = TjSettingsActivity.isDeletedMessagesDimmed() ? 0.5f : 1f;
+            bubbleText.setAlpha(alpha);
+            badge.setAlpha(alpha);
         }
     }
 }

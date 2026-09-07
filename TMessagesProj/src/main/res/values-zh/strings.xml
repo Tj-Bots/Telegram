@@ -51,6 +51,7 @@
     <string name="TjDeletedColorGrey">灰色</string>
     <string name="TjDeletedColorRed">红色</string>
     <string name="TjDeletedColorBlack">黑色</string>
+    <string name="TjDeletedPreviewSample">这是一条示例消息</string>
     <string name="TjDeletedDim">保留的消息变暗</string>
     <string name="TjDeletedStorageHeader">存储</string>
     <string name="TjDeletedStorageCap">存储上限</string>

@@ -51,6 +51,7 @@
     <string name="TjDeletedColorGrey">धूसर</string>
     <string name="TjDeletedColorRed">लाल</string>
     <string name="TjDeletedColorBlack">काला</string>
+    <string name="TjDeletedPreviewSample">यह एक नमूना संदेश है</string>
     <string name="TjDeletedDim">रखे गए संदेश धुंधले करें</string>
     <string name="TjDeletedStorageHeader">संग्रहण</string>
     <string name="TjDeletedStorageCap">संग्रहण सीमा</string>

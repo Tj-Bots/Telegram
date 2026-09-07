@@ -1294,6 +1294,7 @@
     <string name="TjDeletedColorGrey">رمادي</string>
     <string name="TjDeletedColorRed">أحمر</string>
     <string name="TjDeletedColorBlack">أسود</string>
+    <string name="TjDeletedPreviewSample">هذه رسالة توضيحية</string>
     <string name="TjDeletedDim">تعتيم الرسائل المحتفظ بها</string>
     <string name="TjDeletedStorageHeader">التخزين</string>
     <string name="TjDeletedStorageCap">حد التخزين</string>

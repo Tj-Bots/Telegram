@@ -51,6 +51,7 @@
     <string name="TjDeletedColorGrey">אפור</string>
     <string name="TjDeletedColorRed">אדום</string>
     <string name="TjDeletedColorBlack">שחור</string>
+    <string name="TjDeletedPreviewSample">זו הודעה לדוגמה</string>
     <string name="TjDeletedDim">החלש הודעות שמורות</string>
     <string name="TjDeletedStorageHeader">אחסון</string>
     <string name="TjDeletedStorageCap">מגבלת אחסון</string>

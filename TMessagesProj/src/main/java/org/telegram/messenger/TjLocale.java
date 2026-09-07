@@ -62,6 +62,7 @@ public class TjLocale {
         m.put("TjDeletedIconTrash", "\u05e4\u05d7 \u05d0\u05e9\u05e4\u05d4");
         m.put("TjDeletedMediaMessage", "\u05d4\u05d5\u05d3\u05e2\u05ea \u05de\u05d3\u05d9\u05d4");
         m.put("TjDeletedMessages", "\u05d4\u05d5\u05d3\u05e2\u05d5\u05ea \u05e9\u05e0\u05de\u05d7\u05e7\u05d5 \u05d5\u05e0\u05e2\u05e8\u05db\u05d5");
+        m.put("TjDeletedPreviewSample", "\u05d6\u05d5 \u05d4\u05d5\u05d3\u05e2\u05d4 \u05dc\u05d3\u05d5\u05d2\u05de\u05d4");
         m.put("TjDeletedStorageCap", "\u05de\u05d2\u05d1\u05dc\u05ea \u05d0\u05d7\u05e1\u05d5\u05df");
         m.put("TjDeletedStorageHeader", "\u05d0\u05d7\u05e1\u05d5\u05df");
         m.put("TjDeletedViewDeleted", "\u05d4\u05d5\u05d3\u05e2\u05d5\u05ea \u05e9\u05e0\u05de\u05d7\u05e7\u05d5");
@@ -174,6 +175,7 @@ public class TjLocale {
         m.put("TjDeletedIconTrash", "\u0633\u0644\u0629 \u0627\u0644\u0645\u0647\u0645\u0644\u0627\u062a");
         m.put("TjDeletedMediaMessage", "\u0631\u0633\u0627\u0644\u0629 \u0648\u0633\u0627\u0626\u0637");
         m.put("TjDeletedMessages", "\u0627\u0644\u0631\u0633\u0627\u0626\u0644 \u0627\u0644\u0645\u062d\u0630\u0648\u0641\u0629 \u0648\u0627\u0644\u0645\u0639\u062f\u064e\u0651\u0644\u0629");
+        m.put("TjDeletedPreviewSample", "\u0647\u0630\u0647 \u0631\u0633\u0627\u0644\u0629 \u062a\u0648\u0636\u064a\u062d\u064a\u0629");
         m.put("TjDeletedStorageCap", "\u062d\u062f \u0627\u0644\u062a\u062e\u0632\u064a\u0646");
         m.put("TjDeletedStorageHeader", "\u0627\u0644\u062a\u062e\u0632\u064a\u0646");
         m.put("TjDeletedViewDeleted", "\u0627\u0644\u0631\u0633\u0627\u0626\u0644 \u0627\u0644\u0645\u062d\u0630\u0648\u0641\u0629");
@@ -286,6 +288,7 @@ public class TjLocale {
         m.put("TjDeletedIconTrash", "\u041a\u043e\u0440\u0437\u0438\u043d\u0430");
         m.put("TjDeletedMediaMessage", "\u041c\u0435\u0434\u0438\u0430\u0441\u043e\u043e\u0431\u0449\u0435\u043d\u0438\u0435");
         m.put("TjDeletedMessages", "\u0423\u0434\u0430\u043b\u0451\u043d\u043d\u044b\u0435 \u0438 \u0438\u0437\u043c\u0435\u043d\u0451\u043d\u043d\u044b\u0435 \u0441\u043e\u043e\u0431\u0449\u0435\u043d\u0438\u044f");
+        m.put("TjDeletedPreviewSample", "\u042d\u0442\u043e \u043f\u0440\u0438\u043c\u0435\u0440 \u0441\u043e\u043e\u0431\u0449\u0435\u043d\u0438\u044f");
         m.put("TjDeletedStorageCap", "\u041b\u0438\u043c\u0438\u0442 \u0445\u0440\u0430\u043d\u0438\u043b\u0438\u0449\u0430");
         m.put("TjDeletedStorageHeader", "\u0425\u0440\u0430\u043d\u0438\u043b\u0438\u0449\u0435");
         m.put("TjDeletedViewDeleted", "\u0423\u0434\u0430\u043b\u0451\u043d\u043d\u044b\u0435 \u0441\u043e\u043e\u0431\u0449\u0435\u043d\u0438\u044f");
@@ -398,6 +401,7 @@ public class TjLocale {
         m.put("TjDeletedIconTrash", "Corbeille");
         m.put("TjDeletedMediaMessage", "Message m\u00e9dia");
         m.put("TjDeletedMessages", "Messages supprim\u00e9s et modifi\u00e9s");
+        m.put("TjDeletedPreviewSample", "Ceci est un message d'exemple");
         m.put("TjDeletedStorageCap", "Limite de stockage");
         m.put("TjDeletedStorageHeader", "Stockage");
         m.put("TjDeletedViewDeleted", "Messages supprim\u00e9s");
@@ -510,6 +514,7 @@ public class TjLocale {
         m.put("TjDeletedIconTrash", "\u5783\u573e\u6876");
         m.put("TjDeletedMediaMessage", "\u5a92\u4f53\u6d88\u606f");
         m.put("TjDeletedMessages", "\u5df2\u5220\u9664\u548c\u5df2\u7f16\u8f91\u7684\u6d88\u606f");
+        m.put("TjDeletedPreviewSample", "\u8fd9\u662f\u4e00\u6761\u793a\u4f8b\u6d88\u606f");
         m.put("TjDeletedStorageCap", "\u5b58\u50a8\u4e0a\u9650");
         m.put("TjDeletedStorageHeader", "\u5b58\u50a8");
         m.put("TjDeletedViewDeleted", "\u5df2\u5220\u9664\u7684\u6d88\u606f");
@@ -622,6 +627,7 @@ public class TjLocale {
         m.put("TjDeletedIconTrash", "\u0915\u0942\u0921\u093c\u0947\u0926\u093e\u0928");
         m.put("TjDeletedMediaMessage", "\u092e\u0940\u0921\u093f\u092f\u093e \u0938\u0902\u0926\u0947\u0936");
         m.put("TjDeletedMessages", "\u0939\u091f\u093e\u090f \u0914\u0930 \u0938\u0902\u092a\u093e\u0926\u093f\u0924 \u0938\u0902\u0926\u0947\u0936");
+        m.put("TjDeletedPreviewSample", "\u092f\u0939 \u090f\u0915 \u0928\u092e\u0942\u0928\u093e \u0938\u0902\u0926\u0947\u0936 \u0939\u0948");
         m.put("TjDeletedStorageCap", "\u0938\u0902\u0917\u094d\u0930\u0939\u0923 \u0938\u0940\u092e\u093e");
         m.put("TjDeletedStorageHeader", "\u0938\u0902\u0917\u094d\u0930\u0939\u0923");
         m.put("TjDeletedViewDeleted", "\u0939\u091f\u093e\u090f \u0917\u090f \u0938\u0902\u0926\u0947\u0936");

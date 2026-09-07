@@ -11275,6 +11275,7 @@
     <string name="TjDeletedColorGrey">Grey</string>
     <string name="TjDeletedColorRed">Red</string>
     <string name="TjDeletedColorBlack">Black</string>
+    <string name="TjDeletedPreviewSample">This is a sample message</string>
     <string name="TjDeletedDim">Dim retained messages</string>
     <string name="TjDeletedStorageHeader">Storage</string>
     <string name="TjDeletedStorageCap">Storage limit</string>

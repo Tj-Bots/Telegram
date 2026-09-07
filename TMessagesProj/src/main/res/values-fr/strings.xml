@@ -51,6 +51,7 @@
     <string name="TjDeletedColorGrey">Gris</string>
     <string name="TjDeletedColorRed">Rouge</string>
     <string name="TjDeletedColorBlack">Noir</string>
+    <string name="TjDeletedPreviewSample">Ceci est un message d'exemple</string>
     <string name="TjDeletedDim">Assombrir les messages conservés</string>
     <string name="TjDeletedStorageHeader">Stockage</string>
     <string name="TjDeletedStorageCap">Limite de stockage</string>
