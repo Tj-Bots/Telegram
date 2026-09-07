@@ -52,6 +52,25 @@ public class DrawerAccountsCell extends FrameLayout {
         listView.setAdapter(adapter);
         listView.setNestedScrollingEnabled(true);
         listView.setOverScrollMode(OVER_SCROLL_IF_CONTENT_SCROLLS);
+        // The drawer's own RecyclerView (and the ItemTouchHelper it carries for account
+        // reordering) otherwise claims the gesture before this nested, same-orientation list
+        // ever sees it - this card would only ever show its first MAX_VISIBLE_ROWS rows with
+        // no way to reach the rest.
+        listView.addOnItemTouchListener(new RecyclerView.SimpleOnItemTouchListener() {
+            @Override
+            public boolean onInterceptTouchEvent(@NonNull RecyclerView rv, @NonNull MotionEvent e) {
+                switch (e.getActionMasked()) {
+                    case MotionEvent.ACTION_DOWN:
+                        rv.getParent().requestDisallowInterceptTouchEvent(true);
+                        break;
+                    case MotionEvent.ACTION_UP:
+                    case MotionEvent.ACTION_CANCEL:
+                        rv.getParent().requestDisallowInterceptTouchEvent(false);
+                        break;
+                }
+                return false;
+            }
+        });
         addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
     }
 

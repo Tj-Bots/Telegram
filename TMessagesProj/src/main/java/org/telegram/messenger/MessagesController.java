@@ -9360,7 +9360,12 @@ public class MessagesController extends BaseController implements NotificationCe
                     for (int a = 0; a < messages.size(); a++) {
                         Integer id = messages.get(a);
                         MessageObject obj = dialogMessagesByIds.get(id);
-                        if (obj != null) {
+                        // A message the user chose to keep locally (the delete dialog's "keep"
+                        // checkbox) is retained in place by the storage layer - TjDeletionPolicy
+                        // only records a removal when that checkbox was left unchecked. Blanking
+                        // the live object here regardless would make it vanish from the open chat
+                        // immediately, contradicting the row that storage just decided to keep.
+                        if (obj != null && TjDeletionPolicy.isLocalRemoval(currentAccount, dialogId, id)) {
                             obj.deleted = true;
                         }
                     }
