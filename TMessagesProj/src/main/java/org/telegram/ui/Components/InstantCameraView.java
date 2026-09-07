@@ -85,6 +85,7 @@ import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
+import org.telegram.messenger.tj.TjConfig;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.VideoEditedInfo;
 import org.telegram.messenger.camera.Camera2Session;
@@ -3066,6 +3067,9 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
                                     entry.effectId = sendOptions.effectId;
                                 }
                                 delegate.sendMedia(entry, info, sendOptions == null || sendOptions.notify, sendOptions != null ? sendOptions.scheduleDate : 0, sendOptions != null ? sendOptions.scheduleRepeatPeriod : 0, false, sendOptions != null ? sendOptions.stars : 0);
+                                if (TjConfig.scheduleMessages()) {
+                                    startAnimation(false, false);
+                                }
                             }
                             videoEditedInfo = null;
                         } else {

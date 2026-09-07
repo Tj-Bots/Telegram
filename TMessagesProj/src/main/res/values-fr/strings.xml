@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="TjSettings">Paramètres TJ</string>
+    <string name="TjSettings">Paramètres TjGram</string>
     <string name="TjMyProfile">Mon profil</string>
     <string name="TjMessageInfo">Infos du message</string>
     <string name="TjCopyMessageLink">Copier le lien du message</string>
@@ -39,7 +39,6 @@
     <string name="TjContactsCount">Contacts</string>
     <string name="TjChatIdHeader">Identifiants de discussion</string>
     <string name="TjChatsHeader">Discussions</string>
-    <string name="TjMessageMenuInfo">Choisissez les éléments TJ qui apparaissent lors d’un appui long sur un message.</string>
     <string name="TjDeletedMessages">Messages supprimés et modifiés</string>
     <string name="TjDeletedEnable">Conserver les messages supprimés et modifiés</string>
     <string name="TjDeletedEnableInfo">Conserve une copie locale et privée des messages que le serveur signale comme supprimés, ainsi que du texte d\'un message avant une modification. Rien de tout cela n\'est jamais envoyé où que ce soit.</string>
@@ -63,6 +62,7 @@
     <string name="TjDeletedViewDeletedEmpty">Aucun message supprimé conservé pour l\'instant.</string>
     <string name="TjDeletedViewEditsEmpty">Aucun historique de modification conservé pour l\'instant.</string>
     <string name="TjDeletedMediaMessage">Message média</string>
+    <string name="TjMessageMenuInfo">Choisissez les éléments TjGram qui apparaissent lors d’un appui long sur un message.</string>
     <string name="TjChatCountersLoading">Comptage de vos discussions…</string>
     <string name="TjChatCountersInfo">Les compteurs sont calculés à partir des discussions déjà chargées sur cet appareil.</string>
     <string name="TjFolderIcon">Icône du dossier</string>

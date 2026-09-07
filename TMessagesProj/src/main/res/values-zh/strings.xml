@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="TjSettings">TJ 设置</string>
+    <string name="TjSettings">TjGram 设置</string>
     <string name="TjMyProfile">我的资料</string>
     <string name="TjMessageInfo">消息信息</string>
     <string name="TjCopyMessageLink">复制消息链接</string>
@@ -39,7 +39,6 @@
     <string name="TjContactsCount">联系人</string>
     <string name="TjChatIdHeader">聊天 ID</string>
     <string name="TjChatsHeader">聊天</string>
-    <string name="TjMessageMenuInfo">选择长按消息时显示哪些 TJ 选项。</string>
     <string name="TjDeletedMessages">已删除和已编辑的消息</string>
     <string name="TjDeletedEnable">保留已删除和已编辑的消息</string>
     <string name="TjDeletedEnableInfo">在本地私密保存服务器报告已删除的消息，以及消息被编辑前的文本。这些内容永远不会上传到任何地方。</string>
@@ -63,6 +62,7 @@
     <string name="TjDeletedViewDeletedEmpty">尚未保留任何已删除的消息。</string>
     <string name="TjDeletedViewEditsEmpty">尚未保留任何编辑历史。</string>
     <string name="TjDeletedMediaMessage">媒体消息</string>
+    <string name="TjMessageMenuInfo">选择长按消息时显示哪些 TjGram 选项。</string>
     <string name="TjChatCountersLoading">正在统计你的聊天…</string>
     <string name="TjChatCountersInfo">计数基于本设备上已加载的聊天。</string>
     <string name="TjFolderIcon">文件夹图标</string>

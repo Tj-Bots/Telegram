@@ -554,6 +554,10 @@ public class FileLoader extends BaseController {
         cancelLoadFile(document, null, null, null, null, null, deleteFile);
     }
 
+    public void cancelLoadFile(TLRPC.Document document, boolean deleteFile, Utilities.Callback<Boolean> callback) {
+        cancelLoadFile(document, null, null, null, null, null, deleteFile, callback);
+    }
+
     public void cancelLoadFile(SecureDocument document) {
         cancelLoadFile(null, document, null, null, null, null, false);
     }
@@ -589,6 +593,10 @@ public class FileLoader extends BaseController {
     }
 
     private void cancelLoadFile(final TLRPC.Document document, final SecureDocument secureDocument, final WebFile webDocument, final TLRPC.FileLocation location, final String locationExt, String name, boolean deleteFile) {
+        cancelLoadFile(document, secureDocument, webDocument, location, locationExt, name, deleteFile, null);
+    }
+
+    private void cancelLoadFile(final TLRPC.Document document, final SecureDocument secureDocument, final WebFile webDocument, final TLRPC.FileLocation location, final String locationExt, String name, boolean deleteFile, Utilities.Callback<Boolean> callback) {
         if (location == null && document == null && webDocument == null && secureDocument == null && TextUtils.isEmpty(name)) {
             return;
         }
@@ -614,7 +622,10 @@ public class FileLoader extends BaseController {
             FileLoadOperation operation = loadOperationPaths.remove(fileName);
             if (operation != null) {
                 FileLoaderPriorityQueue queue = operation.getQueue();
-                queue.cancel(operation);
+                queue.cancel(operation, deleteFile);
+            }
+            if (callback != null) {
+                AndroidUtilities.runOnUIThread(() -> callback.run(operation != null));
             }
         });
         if (removed && document != null) {

@@ -56,6 +56,9 @@ import org.telegram.SQLite.SQLiteDatabase;
 import org.telegram.SQLite.SQLiteException;
 import org.telegram.SQLite.SQLitePreparedStatement;
 import org.telegram.messenger.browser.Browser;
+import org.telegram.messenger.tj.TjConfig;
+import org.telegram.messenger.tj.TjDeletionPolicy;
+import org.telegram.messenger.tj.TjGhostController;
 import org.telegram.messenger.support.LongSparseIntArray;
 import org.telegram.messenger.support.LongSparseLongArray;
 import org.telegram.messenger.utils.EphemeralMessagesHelper;
@@ -924,7 +927,8 @@ public class MessagesController extends BaseController implements NotificationCe
     }
 
     public boolean isPremiumUser(TLRPC.User currentUser) {
-        return currentUser != null && currentUser.premium && !isSupportUser(currentUser);
+        return currentUser != null && !isSupportUser(currentUser) &&
+                (currentUser.premium || currentUser.id == getUserConfig().getClientUserId() && TjConfig.localPremium());
     }
 
     public boolean didPressTranscribeButtonEnough() {
@@ -8296,7 +8300,7 @@ public class MessagesController extends BaseController implements NotificationCe
                         deleteMessages(mids, null, null, task.keyAt(a), 0, true, 0, !mids.isEmpty() && mids.get(0) > 0);
                     }
                 }
-                if (taskMedia != null) {
+                if (taskMedia != null && !TjConfig.saveDeletedMessages()) {
                     final boolean checkViewer = SecretMediaViewer.hasInstance() && SecretMediaViewer.getInstance().isVisible();
                     final MessageObject viewerObject = checkViewer ? SecretMediaViewer.getInstance().getCurrentMessageObject() : null;
                     for (int a = 0, N = taskMedia.size(); a < N; a++) {
@@ -14408,6 +14412,7 @@ public class MessagesController extends BaseController implements NotificationCe
         }
         arrayList.add(messageObject.getId());
         long dialogId = messageObject.getDialogId();
+        TjGhostController.registerReadContext(currentAccount, dialogId, messageObject.getId());
         getMessagesStorage().markMessagesContentAsRead(dialogId, arrayList, 0, 0);
         getNotificationCenter().postNotificationName(NotificationCenter.messagesReadContent, dialogId, arrayList);
         if (messageObject.getId() < 0) {
@@ -14437,6 +14442,7 @@ public class MessagesController extends BaseController implements NotificationCe
     }
 
     public void markMentionMessageAsRead(int mid, long channelId, long did) {
+        TjGhostController.registerReadContext(currentAccount, did, mid);
         getMessagesStorage().markMentionMessageAsRead(-channelId, mid, did);
         if (channelId != 0) {
             TLRPC.TL_channels_readMessageContents req = new TLRPC.TL_channels_readMessageContents();
@@ -14475,6 +14481,9 @@ public class MessagesController extends BaseController implements NotificationCe
 
     public void doDeleteShowOnceTask(long taskId, long dialogId, int mid) {
         getMessagesStorage().removePendingTask(taskId);
+        if (TjConfig.saveDeletedMessages()) {
+            return;
+        }
         ArrayList<Integer> mids = new ArrayList<>();
         mids.add(mid);
         getMessagesStorage().emptyMessagesMedia(dialogId, mids);
@@ -14494,12 +14503,15 @@ public class MessagesController extends BaseController implements NotificationCe
                 return;
             }
         }
+        TjGhostController.registerReadContext(currentAccount, dialogId, mid);
+        boolean keepLocally = TjConfig.saveDeletedMessages();
+        boolean shouldCreateDeleteTask = createDeleteTask && !keepLocally;
         long newTaskId;
         if (taskId == 0) {
             NativeByteBuffer data = null;
             try {
                 data = new NativeByteBuffer(20 + (inputChannel != null ? inputChannel.getObjectSize() : 0));
-                data.writeInt32(createDeleteTask ? 23 : 101);
+                data.writeInt32(shouldCreateDeleteTask ? 23 : 101);
                 data.writeInt64(dialogId);
                 data.writeInt32(mid);
                 data.writeInt32(ttl);
@@ -14514,7 +14526,7 @@ public class MessagesController extends BaseController implements NotificationCe
             newTaskId = taskId;
         }
         int time = getConnectionsManager().getCurrentTime();
-        if (createDeleteTask) {
+        if (shouldCreateDeleteTask) {
             getMessagesStorage().createTaskForMid(dialogId, mid, time, time, ttl, false);
         }
         if (inputChannel != null) {
@@ -14555,7 +14567,7 @@ public class MessagesController extends BaseController implements NotificationCe
         ArrayList<Long> randomIds = new ArrayList<>();
         randomIds.add(randomId);
         getSecretChatHelper().sendMessagesReadMessage(chat, randomIds, null);
-        if (ttl > 0) {
+        if (ttl > 0 && !TjConfig.saveDeletedMessages()) {
             int time = getConnectionsManager().getCurrentTime();
             getMessagesStorage().createTaskForSecretChat(chat.id, time, time, 0, randomIds);
         }
@@ -16151,6 +16163,7 @@ public class MessagesController extends BaseController implements NotificationCe
     }
 
     public void performLogout(int type) {
+        long tjOwnerUserId = getUserConfig().getClientUserId();
         if (type == 1) {
             unregistedPush();
             TLRPC.TL_auth_logOut req = new TLRPC.TL_auth_logOut();
@@ -16167,6 +16180,7 @@ public class MessagesController extends BaseController implements NotificationCe
         } else {
             getConnectionsManager().cleanup(type == 2);
         }
+        org.telegram.messenger.tj.TjMessageArchive.getInstance().clearOwner(tjOwnerUserId, null);
         getUserConfig().clearConfig();
         SharedPrefsHelper.cleanupAccount(currentAccount);
 
@@ -16873,6 +16887,9 @@ public class MessagesController extends BaseController implements NotificationCe
     }
 
     private void checkChannelError(String text, long channelId) {
+        if (TjConfig.saveDeletedMessages()) {
+            return;
+        }
         switch (text) {
             case "CHANNEL_PRIVATE":
                 getNotificationCenter().postNotificationName(NotificationCenter.chatInfoCantLoad, channelId, 0);
@@ -21108,6 +21125,7 @@ public class MessagesController extends BaseController implements NotificationCe
                 }
             }
             if (deletedMessagesFinal != null) {
+                LongSparseArray<ArrayList<Integer>> actuallyDeletedNotifications = new LongSparseArray<>();
                 for (int a = 0, size = deletedMessagesFinal.size(); a < size; a++) {
                     long dialogId = deletedMessagesFinal.keyAt(a);
                     ArrayList<Integer> arrayList = deletedMessagesFinal.valueAt(a);
@@ -21115,6 +21133,7 @@ public class MessagesController extends BaseController implements NotificationCe
                         continue;
                     }
                     getNotificationCenter().postNotificationName(NotificationCenter.messagesDeleted, arrayList, -dialogId, false);
+                    ArrayList<Integer> actuallyDeleted = new ArrayList<>();
                     if (dialogId == 0) {
                         for (int b = 0, size2 = arrayList.size(); b < size2; b++) {
                             Integer id = arrayList.get(b);
@@ -21123,7 +21142,11 @@ public class MessagesController extends BaseController implements NotificationCe
                                 if (BuildVars.LOGS_ENABLED) {
                                     FileLog.d("mark messages " + obj.getId() + " deleted");
                                 }
-                                obj.deleted = true;
+                                boolean keep = TjConfig.saveDeletedMessages()
+                                        && !TjDeletionPolicy.isLocalRemoval(currentAccount, obj.getDialogId(), obj.getId());
+                                obj.messageOwner.tjDeleted = keep;
+                                obj.deleted = !keep;
+                                if (!keep) actuallyDeleted.add(id);
                             }
                         }
                     } else {
@@ -21134,7 +21157,11 @@ public class MessagesController extends BaseController implements NotificationCe
                                 if (obj != null) {
                                     for (int b = 0, size2 = arrayList.size(); b < size2; b++) {
                                         if (obj.getId() == arrayList.get(b)) {
-                                            obj.deleted = true;
+                                            boolean keep = TjConfig.saveDeletedMessages()
+                                                    && !TjDeletionPolicy.isLocalRemoval(currentAccount, obj.getDialogId(), obj.getId());
+                                            obj.messageOwner.tjDeleted = keep;
+                                            obj.deleted = !keep;
+                                            if (!keep) actuallyDeleted.add(obj.getId());
                                             break;
                                         }
                                     }
@@ -21142,8 +21169,17 @@ public class MessagesController extends BaseController implements NotificationCe
                             }
                         }
                     }
+                    if (!TjConfig.saveDeletedMessages()) {
+                        actuallyDeleted.clear();
+                        actuallyDeleted.addAll(arrayList);
+                    }
+                    if (!actuallyDeleted.isEmpty()) {
+                        actuallyDeletedNotifications.put(dialogId, actuallyDeleted);
+                    }
                 }
-                getNotificationsController().removeDeletedMessagesFromNotifications(deletedMessagesFinal, false);
+                if (actuallyDeletedNotifications.size() > 0) {
+                    getNotificationsController().removeDeletedMessagesFromNotifications(actuallyDeletedNotifications, false);
+                }
             }
             if (deletedQuickRepliesMessagesFinal != null) {
                 for (int a = 0, size = deletedQuickRepliesMessagesFinal.size(); a < size; a++) {
@@ -21630,6 +21666,10 @@ public class MessagesController extends BaseController implements NotificationCe
     }
 
     public SponsoredMessagesInfo getSponsoredMessages(long dialogId) {
+        if (TjConfig.hideSponsoredMessages()) {
+            sponsoredMessages.remove(dialogId);
+            return null;
+        }
         SponsoredMessagesInfo info = sponsoredMessages.get(dialogId);
         if (info != null && (info.loading || Math.abs(SystemClock.elapsedRealtime() - info.loadTime) <= 5 * 60 * 1000)) {
             return info;
@@ -21726,6 +21766,11 @@ public class MessagesController extends BaseController implements NotificationCe
             });
         });
         return null;
+    }
+
+    public void clearTjSponsoredMessages() {
+        sponsoredMessages.clear();
+        getNotificationCenter().postNotificationName(NotificationCenter.didLoadSponsoredMessages, 0L, null);
     }
 
     public void clearSendAsPeers() {

@@ -207,6 +207,7 @@ import org.telegram.messenger.video.VideoAds;
 import org.telegram.messenger.video.VideoFramesRewinder;
 import org.telegram.messenger.video.VideoPlayerRewinder;
 import org.telegram.messenger.TjLocale;
+import org.telegram.messenger.tj.TjConfig;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
@@ -4572,6 +4573,11 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
                                     int mid = markAsDeletedMessages.get(a);
                                     MessageObject message = ids[b].get(markAsDeletedMessages.get(a));
                                     if (message != null) {
+                                        if (TjConfig.saveDeletedMessages()
+                                                && !org.telegram.messenger.tj.TjDeletionPolicy.isLocalRemoval(
+                                                message.currentAccount, message.getDialogId(), mid)) {
+                                            continue;
+                                        }
                                         ids[b].remove(mid);
                                         arr.remove(message);
                                         if (b == 0) {

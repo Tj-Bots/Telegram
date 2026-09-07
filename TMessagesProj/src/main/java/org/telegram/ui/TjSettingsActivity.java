@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import org.telegram.messenger.ApplicationLoader;
+import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
@@ -18,6 +19,8 @@ import org.telegram.ui.Cells.TextSettingsCell;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.TjLocale;
+import org.telegram.messenger.tj.TjConfig;
+import org.telegram.messenger.tj.TjGhostController;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
@@ -41,6 +44,9 @@ public class TjSettingsActivity extends BaseFragment {
     private static final String KEY_GHOST_TYPING = "ghost_hide_typing";
     private static final String KEY_GHOST_ONLINE = "ghost_hide_online";
     private static final String KEY_GHOST_READ = "ghost_hide_read";
+    private static final String KEY_GHOST_FORCE_OFFLINE = "ghost_force_offline";
+    private static final String KEY_GHOST_READ_AFTER_REPLY = "ghost_read_after_reply";
+    private static final String KEY_GHOST_SCHEDULE_MESSAGES = "ghost_schedule_messages";
     private static final String KEY_GHOST_WARNED = "ghost_warning_dismissed";
 
     private static final String KEY_SUBTITLE_FONT_SIZE = "subtitle_font_size";
@@ -58,7 +64,6 @@ public class TjSettingsActivity extends BaseFragment {
     private static final String KEY_MENU_SAVE_TO_SAVED = "menu_save_to_saved";
     private static final String KEY_MENU_FORWARD_NO_TAG = "menu_forward_without_tag";
     private static final String KEY_MENU_REPLY_PRIVATELY = "menu_reply_privately";
-    private static final String KEY_MENU_EDIT_HISTORY = "menu_edit_history";
     private static final String KEY_DELETE_FOR_BOTH = "delete_for_both_default";
 
     private static final String KEY_DELETED_MESSAGES_ENABLED = "deleted_messages_enabled";
@@ -176,39 +181,23 @@ public class TjSettingsActivity extends BaseFragment {
      * expected thing.
      */
     public static boolean isGhostModeEnabled() {
-        return getPrefs().getBoolean(KEY_GHOST_MODE, false);
+        return TjConfig.ghostEnabled();
     }
 
     public static void setGhostModeEnabled(boolean value) {
         getPrefs().edit().putBoolean(KEY_GHOST_MODE, value).apply();
     }
 
+    public static boolean isGhostHideTyping() {
+        return TjConfig.hideTyping();
+    }
+
     public static boolean isGhostHideOnline() {
-        return isGhostModeEnabled() && getPrefs().getBoolean(KEY_GHOST_ONLINE, true);
+        return TjConfig.hideOnline();
     }
 
-    public static boolean isGhostHideTypingSetting() {
-        return getPrefs().getBoolean(KEY_GHOST_TYPING, true);
-    }
-
-    public static void setGhostHideTypingSetting(boolean value) {
-        getPrefs().edit().putBoolean(KEY_GHOST_TYPING, value).apply();
-    }
-
-    public static boolean isGhostHideOnlineSetting() {
-        return getPrefs().getBoolean(KEY_GHOST_ONLINE, true);
-    }
-
-    public static void setGhostHideOnlineSetting(boolean value) {
-        getPrefs().edit().putBoolean(KEY_GHOST_ONLINE, value).apply();
-    }
-
-    public static boolean isGhostHideReadReceiptsSetting() {
-        return getPrefs().getBoolean(KEY_GHOST_READ, true);
-    }
-
-    public static void setGhostHideReadReceiptsSetting(boolean value) {
-        getPrefs().edit().putBoolean(KEY_GHOST_READ, value).apply();
+    public static boolean isGhostHideReadReceipts() {
+        return TjConfig.hideReads();
     }
 
     public static boolean isGhostWarningDismissed() {
@@ -328,20 +317,39 @@ public class TjSettingsActivity extends BaseFragment {
         getPrefs().edit().putInt(KEY_FOLDER_TAB_STYLE, style).apply();
     }
 
-    /**
-     * Folder ids are only unique within one account - two logged-in accounts routinely each
-     * have their own folder #2 - so the key must carry the account too, or setting an icon on
-     * one account's folder silently overwrites a different folder of the same id on another.
-     */
+    private static String getAccountFolderEmoticonKey(int account, int filterId) {
+        long ownerId = UserConfig.getInstance(account).getClientUserId();
+        return KEY_FOLDER_EMOTICON_PREFIX + (ownerId != 0 ? "user_" + ownerId : "slot_" + account) + "_" + filterId;
+    }
+
     public static String getFolderEmoticon(int account, int filterId) {
-        return getPrefs().getString(KEY_FOLDER_EMOTICON_PREFIX + account + "_" + filterId, null);
+        SharedPreferences preferences = getPrefs();
+        String accountKey = getAccountFolderEmoticonKey(account, filterId);
+        if (preferences.contains(accountKey)) {
+            return preferences.getString(accountKey, null);
+        }
+        String slotKey = KEY_FOLDER_EMOTICON_PREFIX + "slot_" + account + "_" + filterId;
+        String legacy = preferences.getString(slotKey, null);
+        if (legacy == null) {
+            // Versions before account isolation stored either account_filter or just filter.
+            legacy = preferences.getString(KEY_FOLDER_EMOTICON_PREFIX + account + "_" + filterId, null);
+        }
+        String legacyKey = KEY_FOLDER_EMOTICON_PREFIX + filterId;
+        if (legacy == null) {
+            legacy = preferences.getString(legacyKey, null);
+        }
+        if (legacy != null) {
+            preferences.edit().putString(accountKey, legacy).apply();
+        }
+        return legacy;
     }
 
     public static void setFolderEmoticon(int account, int filterId, String emoticon) {
+        String key = getAccountFolderEmoticonKey(account, filterId);
         if (emoticon == null) {
-            getPrefs().edit().remove(KEY_FOLDER_EMOTICON_PREFIX + account + "_" + filterId).apply();
+            getPrefs().edit().remove(key).apply();
         } else {
-            getPrefs().edit().putString(KEY_FOLDER_EMOTICON_PREFIX + account + "_" + filterId, emoticon).apply();
+            getPrefs().edit().putString(key, emoticon).apply();
         }
     }
 
@@ -382,11 +390,6 @@ public class TjSettingsActivity extends BaseFragment {
         return getPrefs().getBoolean(KEY_MENU_FORWARD_NO_TAG, true);
     }
 
-    /** "View edit history" in the message menu, shown only for messages that were edited. */
-    public static boolean isEditHistoryEnabled() {
-        return getPrefs().getBoolean(KEY_MENU_EDIT_HISTORY, true);
-    }
-
     /**
      * Position of an account in the side menu. Accounts that were never reordered keep
      * a large order so they stay after the ones the user moved around.
@@ -418,12 +421,14 @@ public class TjSettingsActivity extends BaseFragment {
     private static final int ID_MENU_SAVE_TO_SAVED = 8;
     private static final int ID_MENU_FORWARD_NO_TAG = 9;
     private static final int ID_FOLDER_TAB_STYLE = 10;
-    private static final int ID_GHOST_SETTINGS = 11;
-    private static final int ID_DELETED_MESSAGES = 18;
     private static final int ID_SUBTITLE_AUTO = 15;
     private static final int ID_MENU_REPLY_PRIVATELY = 16;
     private static final int ID_DELETE_FOR_BOTH = 17;
-    private static final int ID_MENU_EDIT_HISTORY = 19;
+    private static final int ID_GHOST_FORCE_OFFLINE = 18;
+    private static final int ID_GHOST_READ_AFTER_REPLY = 19;
+    private static final int ID_GHOST_SCHEDULE_MESSAGES = 20;
+    private static final int ID_PRIVACY_ARCHIVE = 21;
+    private static final int ID_GHOST_SETTINGS = 22;
 
     private static class Item {
         final int viewType;
@@ -448,10 +453,16 @@ public class TjSettingsActivity extends BaseFragment {
             case ID_MENU_COPY_THUMB: return isCopyThumbnailEnabled();
             case ID_MENU_SAVE_TO_SAVED: return isSaveToSavedEnabled();
             case ID_MENU_FORWARD_NO_TAG: return isForwardWithoutTagEnabled();
+            case ID_GHOST_MODE: return isGhostModeEnabled();
+            case ID_GHOST_TYPING: return getPrefs().getBoolean(KEY_GHOST_TYPING, true);
+            case ID_GHOST_ONLINE: return getPrefs().getBoolean(KEY_GHOST_ONLINE, true);
+            case ID_GHOST_READ: return getPrefs().getBoolean(KEY_GHOST_READ, true);
+            case ID_GHOST_FORCE_OFFLINE: return getPrefs().getBoolean(KEY_GHOST_FORCE_OFFLINE, true);
+            case ID_GHOST_READ_AFTER_REPLY: return getPrefs().getBoolean(KEY_GHOST_READ_AFTER_REPLY, false);
+            case ID_GHOST_SCHEDULE_MESSAGES: return getPrefs().getBoolean(KEY_GHOST_SCHEDULE_MESSAGES, false);
             case ID_SUBTITLE_AUTO: return isSubtitleAutoEnabled();
             case ID_MENU_REPLY_PRIVATELY: return isReplyPrivatelyEnabled();
             case ID_DELETE_FOR_BOTH: return isDeleteForBothDefault();
-            case ID_MENU_EDIT_HISTORY: return isEditHistoryEnabled();
         }
         return false;
     }
@@ -468,10 +479,16 @@ public class TjSettingsActivity extends BaseFragment {
             case ID_MENU_COPY_THUMB: key = KEY_MENU_COPY_THUMB; break;
             case ID_MENU_SAVE_TO_SAVED: key = KEY_MENU_SAVE_TO_SAVED; break;
             case ID_MENU_FORWARD_NO_TAG: key = KEY_MENU_FORWARD_NO_TAG; break;
+            case ID_GHOST_MODE: key = KEY_GHOST_MODE; break;
+            case ID_GHOST_TYPING: key = KEY_GHOST_TYPING; break;
+            case ID_GHOST_ONLINE: key = KEY_GHOST_ONLINE; break;
+            case ID_GHOST_READ: key = KEY_GHOST_READ; break;
+            case ID_GHOST_FORCE_OFFLINE: key = KEY_GHOST_FORCE_OFFLINE; break;
+            case ID_GHOST_READ_AFTER_REPLY: key = KEY_GHOST_READ_AFTER_REPLY; break;
+            case ID_GHOST_SCHEDULE_MESSAGES: key = KEY_GHOST_SCHEDULE_MESSAGES; break;
             case ID_SUBTITLE_AUTO: key = KEY_SUBTITLE_AUTO; break;
             case ID_MENU_REPLY_PRIVATELY: key = KEY_MENU_REPLY_PRIVATELY; break;
             case ID_DELETE_FOR_BOTH: key = KEY_DELETE_FOR_BOTH; break;
-            case ID_MENU_EDIT_HISTORY: key = KEY_MENU_EDIT_HISTORY; break;
         }
         if (key != null) {
             getPrefs().edit().putBoolean(key, value).apply();
@@ -500,6 +517,8 @@ public class TjSettingsActivity extends BaseFragment {
 
         listView = new RecyclerListView(context);
         listView.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false));
+        listView.setClipToPadding(false);
+        listView.setPadding(0, 0, 0, AndroidUtilities.dp(24));
         adapter = new ListAdapter();
         listView.setAdapter(adapter);
         frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
@@ -512,12 +531,12 @@ public class TjSettingsActivity extends BaseFragment {
                 showFolderTabStyleAlert();
                 return;
             }
-            if (item.id == ID_GHOST_SETTINGS) {
-                presentFragment(new TjGhostSettingsActivity());
+            if (item.id == ID_PRIVACY_ARCHIVE) {
+                presentFragment(new TjPrivacySettingsActivity());
                 return;
             }
-            if (item.id == ID_DELETED_MESSAGES) {
-                presentFragment(new TjDeletedMessagesActivity());
+            if (item.id == ID_GHOST_SETTINGS) {
+                presentFragment(new TjPrivacySettingsActivity(true));
                 return;
             }
             if (item.viewType != VIEW_TYPE_CHECK) {
@@ -526,6 +545,18 @@ public class TjSettingsActivity extends BaseFragment {
             boolean value = !isChecked(item.id);
             setChecked(item.id, value);
             ((TextCheckCell) view).setChecked(value);
+            if (value && (item.id == ID_GHOST_MODE || item.id == ID_GHOST_FORCE_OFFLINE)) {
+                TjGhostController.sendOfflineStatusForActiveAccounts();
+            }
+            if (item.id == ID_GHOST_READ) {
+                TjGhostController.clearReadExceptions();
+            } else if (value && item.id == ID_GHOST_READ_AFTER_REPLY) {
+                setChecked(ID_GHOST_SCHEDULE_MESSAGES, false);
+                adapter.notifyDataSetChanged();
+            } else if (value && item.id == ID_GHOST_SCHEDULE_MESSAGES) {
+                setChecked(ID_GHOST_READ_AFTER_REPLY, false);
+                adapter.notifyDataSetChanged();
+            }
         });
 
         return fragmentView;
@@ -552,11 +583,11 @@ public class TjSettingsActivity extends BaseFragment {
         items.add(new Item(VIEW_TYPE_CHECK, ID_SHOW_CALL_BUTTON, TjLocale.getString(R.string.TjShowCallButton)));
         items.add(new Item(VIEW_TYPE_SHADOW, 0, TjLocale.getString(R.string.TjShowCallButtonInfo)));
         items.add(new Item(VIEW_TYPE_HEADER, 0, TjLocale.getString(R.string.TjGhostMode)));
-        items.add(new Item(VIEW_TYPE_SETTING, ID_GHOST_SETTINGS, TjLocale.getString(R.string.TjGhostMode)));
+        items.add(new Item(VIEW_TYPE_SETTING, ID_GHOST_SETTINGS, TjLocale.getString(R.string.TjGhostSettings)));
         items.add(new Item(VIEW_TYPE_SHADOW, 0, TjLocale.getString(R.string.TjGhostModeInfo)));
-        items.add(new Item(VIEW_TYPE_HEADER, 0, TjLocale.getString(R.string.TjDeletedMessages)));
-        items.add(new Item(VIEW_TYPE_SETTING, ID_DELETED_MESSAGES, TjLocale.getString(R.string.TjDeletedMessages)));
-        items.add(new Item(VIEW_TYPE_SHADOW, 0, TjLocale.getString(R.string.TjDeletedEnableInfo)));
+        items.add(new Item(VIEW_TYPE_HEADER, 0, TjLocale.getString(R.string.TjPrivacyArchive)));
+        items.add(new Item(VIEW_TYPE_SETTING, ID_PRIVACY_ARCHIVE, TjLocale.getString(R.string.TjPrivacyArchive)));
+        items.add(new Item(VIEW_TYPE_SHADOW, 0, TjLocale.getString(R.string.TjPrivacyArchiveInfo)));
         items.add(new Item(VIEW_TYPE_HEADER, 0, LocaleController.getString(R.string.Filters)));
         items.add(new Item(VIEW_TYPE_SETTING, ID_FOLDER_TAB_STYLE, TjLocale.getString(R.string.TjFolderTabStyle)));
         items.add(new Item(VIEW_TYPE_SHADOW, 0, TjLocale.getString(R.string.TjFolderTabStyleInfo)));
@@ -569,7 +600,6 @@ public class TjSettingsActivity extends BaseFragment {
         items.add(new Item(VIEW_TYPE_CHECK, ID_MENU_COPY_LINK, TjLocale.getString(R.string.TjCopyMessageLink)));
         items.add(new Item(VIEW_TYPE_CHECK, ID_MENU_FORWARD_NO_TAG, TjLocale.getString(R.string.TjForwardWithoutTag)));
         items.add(new Item(VIEW_TYPE_CHECK, ID_MENU_REPLY_PRIVATELY, TjLocale.getString(R.string.TjReplyPrivately)));
-        items.add(new Item(VIEW_TYPE_CHECK, ID_MENU_EDIT_HISTORY, TjLocale.getString(R.string.TjEditHistoryEnable)));
         items.add(new Item(VIEW_TYPE_CHECK, ID_DELETE_FOR_BOTH, TjLocale.getString(R.string.TjDeleteForBoth)));
         items.add(new Item(VIEW_TYPE_SHADOW, 0, TjLocale.getString(R.string.TjMessageMenuInfo)));
     }
@@ -616,16 +646,12 @@ public class TjSettingsActivity extends BaseFragment {
             View view;
             if (viewType == VIEW_TYPE_HEADER) {
                 view = new HeaderCell(parent.getContext());
-                view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
             } else if (viewType == VIEW_TYPE_CHECK) {
                 view = new TextCheckCell(parent.getContext());
-                view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
             } else if (viewType == VIEW_TYPE_SETTING) {
                 view = new TextSettingsCell(parent.getContext());
-                view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
             } else {
                 view = new TextInfoPrivacyCell(parent.getContext());
-                view.setBackground(Theme.getThemedDrawableByKey(parent.getContext(), R.drawable.greydivider, Theme.key_windowBackgroundGrayShadow));
             }
             return new RecyclerListView.Holder(view);
         }
@@ -636,24 +662,45 @@ public class TjSettingsActivity extends BaseFragment {
                 return;
             }
             Item item = items.get(position);
+            applyCardStyle(holder.itemView, position, item.viewType);
             if (item.viewType == VIEW_TYPE_HEADER) {
                 ((HeaderCell) holder.itemView).setText(item.text);
             } else if (item.viewType == VIEW_TYPE_SHADOW) {
                 ((TextInfoPrivacyCell) holder.itemView).setText(item.text);
             } else if (item.viewType == VIEW_TYPE_SETTING) {
-                String value;
-                if (item.id == ID_GHOST_SETTINGS) {
-                    value = LocaleController.getString(isGhostModeEnabled() ? R.string.NotificationsOn : R.string.NotificationsOff);
-                } else if (item.id == ID_DELETED_MESSAGES) {
-                    value = LocaleController.getString(isDeletedMessagesEnabled() ? R.string.NotificationsOn : R.string.NotificationsOff);
-                } else {
-                    value = folderTabStyleName();
-                }
-                ((TextSettingsCell) holder.itemView).setTextAndValue(item.text, value, false);
+                ((TextSettingsCell) holder.itemView).setTextAndValue(
+                        item.text, item.id == ID_FOLDER_TAB_STYLE ? folderTabStyleName() : null, false);
             } else {
                 boolean divider = position + 1 < items.size() && items.get(position + 1).viewType == VIEW_TYPE_CHECK;
                 ((TextCheckCell) holder.itemView).setTextAndCheck(item.text, isChecked(item.id), divider);
             }
+        }
+
+        private void applyCardStyle(View view, int position, int type) {
+            ViewGroup.LayoutParams currentParams = view.getLayoutParams();
+            RecyclerView.LayoutParams params;
+            if (currentParams instanceof RecyclerView.LayoutParams) {
+                params = (RecyclerView.LayoutParams) currentParams;
+            } else {
+                int width = currentParams != null ? currentParams.width : ViewGroup.LayoutParams.MATCH_PARENT;
+                int height = currentParams != null ? currentParams.height : ViewGroup.LayoutParams.WRAP_CONTENT;
+                params = new RecyclerView.LayoutParams(width, height);
+                view.setLayoutParams(params);
+            }
+            if (type == VIEW_TYPE_HEADER || type == VIEW_TYPE_SHADOW) {
+                params.leftMargin = params.rightMargin = 0;
+                view.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+                return;
+            }
+            params.leftMargin = params.rightMargin = AndroidUtilities.dp(16);
+            boolean top = position == 0 || items.get(position - 1).viewType == VIEW_TYPE_HEADER
+                    || items.get(position - 1).viewType == VIEW_TYPE_SHADOW;
+            boolean bottom = position + 1 == items.size() || items.get(position + 1).viewType == VIEW_TYPE_HEADER
+                    || items.get(position + 1).viewType == VIEW_TYPE_SHADOW;
+            view.setBackground(Theme.createRoundRectDrawable(
+                    top ? AndroidUtilities.dp(14) : 0,
+                    bottom ? AndroidUtilities.dp(14) : 0,
+                    Theme.getColor(Theme.key_windowBackgroundWhite)));
         }
 
         @Override

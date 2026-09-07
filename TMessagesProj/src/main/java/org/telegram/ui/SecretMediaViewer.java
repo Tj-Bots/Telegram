@@ -87,6 +87,7 @@ import org.telegram.messenger.FileLog;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
+import org.telegram.messenger.tj.TjConfig;
 import org.telegram.messenger.utils.WindowVisibilityManager;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
@@ -485,6 +486,11 @@ public class SecretMediaViewer implements NotificationCenter.NotificationCenterD
             }
             ArrayList<Integer> markAsDeletedMessages = (ArrayList<Integer>) args[0];
             if (markAsDeletedMessages.contains(currentMessageObject.getId())) {
+                if (TjConfig.saveDeletedMessages()
+                        && !org.telegram.messenger.tj.TjDeletionPolicy.isLocalRemoval(
+                        currentMessageObject.currentAccount, currentMessageObject.getDialogId(), currentMessageObject.getId())) {
+                    return;
+                }
                 if (isVideo && !videoWatchedOneTime) {
                     closeVideoAfterWatch = true;
                 } else {

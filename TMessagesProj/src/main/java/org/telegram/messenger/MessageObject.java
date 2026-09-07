@@ -9991,6 +9991,15 @@ public class MessageObject {
     }
 
     public boolean needDrawBluredPreview() {
+        // Keeping a local copy of deleted messages must never reveal unopened
+        // self-destructing media. Archiving and view-once privacy are independent.
+        return needDrawBluredPreview(true);
+    }
+
+    public boolean needDrawBluredPreview(boolean really) {
+        if (!really) {
+            return false;
+        }
         if (isRepostPreview) {
             return false;
         }

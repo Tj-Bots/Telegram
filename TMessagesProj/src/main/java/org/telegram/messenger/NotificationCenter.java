@@ -34,6 +34,8 @@ public class NotificationCenter {
     public static final int closeChatActivity = totalEvents++;
     public static final int closeProfileActivity = totalEvents++;
     public static final int messagesDeleted = totalEvents++;
+    /** A remote deletion retained locally by TjGram; args: dialog id, message ids. */
+    public static final int tjMessagesDeleted = totalEvents++;
     public static final int historyCleared = totalEvents++;
     public static final int messagesRead = totalEvents++;
     public static final int threadMessagesRead = totalEvents++;

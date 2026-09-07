@@ -70,6 +70,7 @@ import org.telegram.ui.PremiumPreviewFragment;
 import org.telegram.ui.ReportBottomSheet;
 import org.telegram.ui.RevenueSharingAdsInfoBottomSheet;
 import org.telegram.ui.Stories.DarkThemeResourceProvider;
+import org.telegram.messenger.tj.TjConfig;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -112,6 +113,9 @@ public class VideoAds {
     private static HashMap<VideoAdsLocation, VideoAds> cached = new HashMap<>();
 
     public static void dropCache() {
+        for (VideoAds ads : new ArrayList<>(cached.values())) {
+            ads.stop();
+        }
         cached.clear();
     }
 
@@ -163,6 +167,10 @@ public class VideoAds {
 
     private void init(BulletinFactory bulletinFactory) {
         this.bulletinFactory = bulletinFactory;
+        if (TjConfig.hideSponsoredMessages()) {
+            stop();
+            return;
+        }
         if (currentBulletinPassedTime <= 0) {
             this.lastTime = System.currentTimeMillis();
             if (waitingPaused) {
@@ -180,6 +188,7 @@ public class VideoAds {
     private int requestId;
     private boolean loading, loaded;
     private void load() {
+        if (TjConfig.hideSponsoredMessages()) return;
         if (loading || loaded) return;
 
         if (UserConfig.getInstance(currentAccount).isPremium() && MessagesController.getInstance(currentAccount).isSponsoredDisabled()) {
@@ -245,6 +254,10 @@ public class VideoAds {
     private float currentMenuTranslationY;
 
     private void show() {
+        if (TjConfig.hideSponsoredMessages()) {
+            stop();
+            return;
+        }
         if (ads.isEmpty()) return;
         final TLRPC.TL_sponsoredMessage ad = ads.get(0);
         final long showTime = System.currentTimeMillis() - currentBulletinPassedTime;

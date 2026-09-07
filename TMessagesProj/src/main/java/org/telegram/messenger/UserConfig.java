@@ -17,6 +17,8 @@ import android.util.LongSparseArray;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.SerializedData;
 import org.telegram.tgnet.TLRPC;
+import org.telegram.messenger.tj.TjConfig;
+import org.telegram.messenger.tj.TjSyncController;
 import org.telegram.tgnet.tl.TL_account;
 
 import java.util.Arrays;
@@ -25,7 +27,7 @@ public class UserConfig extends BaseController {
 
     public static int selectedAccount;
     public final static int MAX_ACCOUNT_DEFAULT_COUNT = 3;
-    public final static int MAX_ACCOUNT_COUNT = 30;
+    public final static int MAX_ACCOUNT_COUNT = 100;
 
     private final Object sync = new Object();
     private volatile boolean configLoaded;
@@ -259,11 +261,17 @@ public class UserConfig extends BaseController {
     }
 
     public void setCurrentUser(TLRPC.User user) {
+        boolean identityChanged;
         synchronized (sync) {
             TLRPC.User oldUser = currentUser;
+            long oldUserId = oldUser != null ? oldUser.id : 0;
             currentUser = user;
             clientUserId = user.id;
             checkPremiumSelf(oldUser, user);
+            identityChanged = oldUserId != user.id;
+        }
+        if (identityChanged) {
+            TjSyncController.onAccountIdentityChanged(currentAccount);
         }
     }
 
@@ -459,12 +467,16 @@ public class UserConfig extends BaseController {
     }
 
     public void clearConfig() {
+        long oldUserId = getClientUserId();
         getPreferences().edit().clear().apply();
 
         sharingMyLocationUntil = 0;
         lastMyLocationShareTime = 0;
         currentUser = null;
         clientUserId = 0;
+        if (oldUserId != 0) {
+            TjSyncController.onAccountIdentityChanged(currentAccount);
+        }
         registeredForPush = false;
         contactsSavedCount = 0;
         lastSendMessageId = -210000;
@@ -574,9 +586,9 @@ public class UserConfig extends BaseController {
     public boolean isPremium() {
         TLRPC.User user = currentUser;
         if (user == null) {
-            return false;
+            return TjConfig.localPremium();
         }
-        return user.premium;
+        return TjConfig.localPremium() || user.premium;
     }
 
     public Long getEmojiStatus() {

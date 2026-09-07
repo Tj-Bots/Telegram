@@ -1961,6 +1961,9 @@ public class ChatObject {
     }
 
     public static boolean isNotInChat(TLRPC.Chat chat) {
+        if (org.telegram.messenger.tj.TjConfig.saveDeletedMessages()) {
+            return chat == null || chat.left;
+        }
         return chat == null || chat instanceof TLRPC.TL_chatEmpty || isForbidden(chat) || chat.left || chat.kicked || chat.deactivated;
     }
 

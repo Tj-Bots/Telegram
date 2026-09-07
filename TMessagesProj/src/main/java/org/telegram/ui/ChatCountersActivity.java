@@ -64,13 +64,22 @@ public class ChatCountersActivity extends BaseFragment {
         int total;
         int privateChats;
         int groups;
+        int supergroups;
         int channels;
         int bots;
+        int secretChats;
+        int forums;
         int unread;
         int muted;
         int archived;
         int folders;
         int contacts;
+        int creatorGroups;
+        int creatorSupergroups;
+        int creatorChannels;
+        int adminGroups;
+        int adminSupergroups;
+        int adminChannels;
     }
 
     @Override
@@ -153,8 +162,10 @@ public class ChatCountersActivity extends BaseFragment {
                     }
                 } catch (Exception ignore) {
                 }
-                if (DialogObject.isUserDialog(dialogId) || DialogObject.isEncryptedDialog(dialogId)) {
-                    TLRPC.User user = DialogObject.isUserDialog(dialogId) ? controller.getUser(dialogId) : null;
+                if (DialogObject.isEncryptedDialog(dialogId)) {
+                    counters.secretChats++;
+                } else if (DialogObject.isUserDialog(dialogId)) {
+                    TLRPC.User user = controller.getUser(dialogId);
                     if (user != null && user.bot) {
                         counters.bots++;
                     } else {
@@ -162,10 +173,28 @@ public class ChatCountersActivity extends BaseFragment {
                     }
                 } else {
                     TLRPC.Chat chat = controller.getChat(-dialogId);
+                    if (chat != null && chat.forum) {
+                        counters.forums++;
+                    }
+                    final int kind;
                     if (chat != null && ChatObject.isChannel(chat) && !chat.megagroup) {
                         counters.channels++;
+                        kind = 2;
+                    } else if (chat != null && ChatObject.isChannel(chat)) {
+                        counters.supergroups++;
+                        kind = 1;
                     } else {
                         counters.groups++;
+                        kind = 0;
+                    }
+                    if (chat != null && chat.creator) {
+                        if (kind == 2) counters.creatorChannels++;
+                        else if (kind == 1) counters.creatorSupergroups++;
+                        else counters.creatorGroups++;
+                    } else if (ChatObject.hasAdminRights(chat)) {
+                        if (kind == 2) counters.adminChannels++;
+                        else if (kind == 1) counters.adminSupergroups++;
+                        else counters.adminGroups++;
                     }
                 }
             }
@@ -192,8 +221,11 @@ public class ChatCountersActivity extends BaseFragment {
         items.add(new Item(VIEW_TYPE_VALUE, TjLocale.getString(R.string.TjTotalChats), format(counters.total)));
         items.add(new Item(VIEW_TYPE_VALUE, TjLocale.getString(R.string.TjPrivateChats), format(counters.privateChats)));
         items.add(new Item(VIEW_TYPE_VALUE, TjLocale.getString(R.string.TjGroups), format(counters.groups)));
+        items.add(new Item(VIEW_TYPE_VALUE, TjLocale.getString(R.string.TjSupergroups), format(counters.supergroups)));
         items.add(new Item(VIEW_TYPE_VALUE, TjLocale.getString(R.string.TjChannels), format(counters.channels)));
         items.add(new Item(VIEW_TYPE_VALUE, TjLocale.getString(R.string.TjBots), format(counters.bots)));
+        items.add(new Item(VIEW_TYPE_VALUE, TjLocale.getString(R.string.TjSecretChats), format(counters.secretChats)));
+        items.add(new Item(VIEW_TYPE_VALUE, TjLocale.getString(R.string.TjForums), format(counters.forums)));
         items.add(new Item(VIEW_TYPE_SHADOW, null, null));
         items.add(new Item(VIEW_TYPE_VALUE, TjLocale.getString(R.string.TjUnreadChats), format(counters.unread)));
         items.add(new Item(VIEW_TYPE_VALUE, TjLocale.getString(R.string.TjMutedChats), format(counters.muted)));
@@ -201,6 +233,16 @@ public class ChatCountersActivity extends BaseFragment {
         items.add(new Item(VIEW_TYPE_SHADOW, null, null));
         items.add(new Item(VIEW_TYPE_VALUE, TjLocale.getString(R.string.TjFoldersCount), format(counters.folders)));
         items.add(new Item(VIEW_TYPE_VALUE, TjLocale.getString(R.string.TjContactsCount), format(counters.contacts)));
+        items.add(new Item(VIEW_TYPE_SHADOW, null, null));
+        items.add(new Item(VIEW_TYPE_HEADER, TjLocale.getString(R.string.TjCreatorHeader), null));
+        items.add(new Item(VIEW_TYPE_VALUE, TjLocale.getString(R.string.TjGroups), format(counters.creatorGroups)));
+        items.add(new Item(VIEW_TYPE_VALUE, TjLocale.getString(R.string.TjSupergroups), format(counters.creatorSupergroups)));
+        items.add(new Item(VIEW_TYPE_VALUE, TjLocale.getString(R.string.TjChannels), format(counters.creatorChannels)));
+        items.add(new Item(VIEW_TYPE_SHADOW, null, null));
+        items.add(new Item(VIEW_TYPE_HEADER, TjLocale.getString(R.string.TjAdministratorHeader), null));
+        items.add(new Item(VIEW_TYPE_VALUE, TjLocale.getString(R.string.TjGroups), format(counters.adminGroups)));
+        items.add(new Item(VIEW_TYPE_VALUE, TjLocale.getString(R.string.TjSupergroups), format(counters.adminSupergroups)));
+        items.add(new Item(VIEW_TYPE_VALUE, TjLocale.getString(R.string.TjChannels), format(counters.adminChannels)));
         String when = LocaleController.getInstance().getFormatterStats().format(countedAt);
         items.add(new Item(VIEW_TYPE_SHADOW,
                 TjLocale.formatString(R.string.TjChatCountersUpdated, when) + "\n" + TjLocale.getString(R.string.TjChatCountersInfo), null));

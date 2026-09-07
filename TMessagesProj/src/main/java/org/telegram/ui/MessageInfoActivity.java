@@ -17,6 +17,7 @@ import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.R;
 import org.telegram.messenger.TjLocale;
 import org.telegram.messenger.UserObject;
+import org.telegram.messenger.tj.TjMessageArchive;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.BaseFragment;
@@ -141,9 +142,9 @@ public class MessageInfoActivity extends BaseFragment {
         addRow(container, "Date", LocaleController.getInstance().getFormatterStats().format((long) msg.date * 1000), null);
         if (msg.edit_date != 0) {
             addRow(container, "Edited", LocaleController.getInstance().getFormatterStats().format((long) msg.edit_date * 1000), null);
-            if (TjSettingsActivity.isEditHistoryEnabled()) {
-                addNavigationRow(container, TjLocale.getString(R.string.TjDeletedViewEdits), () ->
-                    presentFragment(new TjEditHistoryActivity(messageObject.getDialogId(), msg.id, messageObject)));
+            if (org.telegram.messenger.tj.TjMessageArchive.getInstance().hasRevisionsSync(currentAccount, messageObject.getDialogId(), msg.id)) {
+                addNavigationRow(container, TjLocale.getString(R.string.TjEditHistory), () ->
+                    presentFragment(new TjMessageHistoryActivity(messageObject)));
             }
         }
         if (msg.views != 0) {
@@ -182,6 +183,25 @@ public class MessageInfoActivity extends BaseFragment {
                 addRow(container, "DC", "DC" + photo.dc_id, null);
             }
         }
+        TjMessageArchive.getInstance().getRevisions(getCurrentAccount(), messageObject.getDialogId(),
+                messageObject.getId(), revisions -> {
+                    if (!revisions.isEmpty() && fragmentView != null && getContext() != null) {
+                        addHistoryRow(container, revisions.size());
+                    }
+                });
+    }
+
+    private void addHistoryRow(LinearLayout container, int count) {
+        TextView row = new TextView(getContext());
+        row.setText(TjLocale.formatString(R.string.TjEditHistoryCount, count));
+        row.setTextSize(16);
+        row.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlueText));
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setPadding(0, AndroidUtilities.dp(14), 0, AndroidUtilities.dp(14));
+        row.setBackground(Theme.getSelectorDrawable(true));
+        row.setOnClickListener(v -> presentFragment(new TjMessageHistoryActivity(messageObject)));
+        container.addView(row, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT,
+                LayoutHelper.WRAP_CONTENT));
     }
 
     private String formatBotApiPeerId(long peerId) {

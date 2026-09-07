@@ -1851,7 +1851,8 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
             ArrayList<Integer> markAsDeletedMessages = (ArrayList<Integer>) args[0];
             if (playingMessageObject != null) {
                 if (channelId == playingMessageObject.messageOwner.peer_id.channel_id) {
-                    if (markAsDeletedMessages.contains(playingMessageObject.getId())) {
+                    if (markAsDeletedMessages.contains(playingMessageObject.getId())
+                            && !org.telegram.messenger.tj.TjConfig.saveDeletedMessages()) {
                         cleanupPlayer(true, true);
                     }
                 }
