@@ -61,6 +61,27 @@ public class TjFolderIcons {
         ICONS.put("\uD83D\uDCE2", R.drawable.filter_channels);
         ICONS.put("\uD83D\uDCC1", R.drawable.filter_custom);
         ICONS.put("\uD83D\uDCCB", R.drawable.filter_setup);
+        ICONS.put("\u270F", R.drawable.filter_edit);
+        ICONS.put("\uD83D\uDD17", R.drawable.msg_link);
+        ICONS.put("\uD83C\uDFAC", R.drawable.msg_video);
+        ICONS.put("\uD83D\uDCE6", R.drawable.msg_archive);
+        ICONS.put("\uD83D\uDCC5", R.drawable.msg_calendar);
+        ICONS.put("\uD83D\uDDE8", R.drawable.msg_discussion);
+        ICONS.put("\uD83D\uDD0D", R.drawable.msg_search);
+        ICONS.put("\uD83C\uDF81", R.drawable.msg_gift_premium);
+        ICONS.put("\uD83C\uDF10", R.drawable.msg_language);
+        ICONS.put("\uD83D\uDCF7", R.drawable.msg_camera);
+        ICONS.put("\uD83D\uDDBC", R.drawable.msg_gallery);
+        ICONS.put("\uD83D\uDCCD", R.drawable.msg_location);
+        ICONS.put("\uD83D\uDCCC", R.drawable.msg_pin);
+        ICONS.put("\uD83D\uDD16", R.drawable.msg_saved);
+        ICONS.put("\uD83D\uDD12", R.drawable.msg_secret);
+        ICONS.put("\uD83D\uDCCA", R.drawable.msg_stats);
+        ICONS.put("\uD83D\uDE0A", R.drawable.msg_reactions);
+        ICONS.put("\uD83D\uDCDE", R.drawable.msg_calls);
+        ICONS.put("\u26A0", R.drawable.msg_warning);
+        ICONS.put("\uD83D\uDDD1", R.drawable.msg_delete);
+        ICONS.put("\uD83D\uDDC2", R.drawable.msg_folders);
     }
 
     /** Tab style, shared with TjSettingsActivity. */
