@@ -2,7 +2,9 @@ package org.telegram.ui.Cells;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.LayerDrawable;
 import android.view.HapticFeedbackConstants;
 import android.view.MotionEvent;
 import android.view.View;
@@ -45,7 +47,7 @@ public class DrawerAccountsCell extends FrameLayout {
         super(context);
         setClipToOutline(true);
         GradientDrawable background = new GradientDrawable();
-        background.setColor(Theme.multAlpha(Theme.getColor(Theme.key_chats_menuItemText), 0.07f));
+        background.setColor(Theme.getColor(Theme.key_chats_menuBackground));
         background.setCornerRadius(AndroidUtilities.dp(14));
         setBackground(background);
 
@@ -71,6 +73,17 @@ public class DrawerAccountsCell extends FrameLayout {
                         break;
                 }
                 return false;
+            }
+        });
+        // DrawerAddCell is the adapter's item view itself, not wrapped in a plain-clickable
+        // FrameLayout the way AccountRow wraps DrawerUserCell - RecyclerListView's own
+        // touch handling only backs off to a child's native click when it finds one of the
+        // item view's direct children clickable at the touch point, so a click listener set
+        // on DrawerAddCell itself never fired; the tap was silently absorbed by the list's
+        // own gesture detector with no item-click-listener registered to hand it to.
+        listView.setOnItemClickListener((view, position) -> {
+            if (listener != null && position >= accounts.size()) {
+                listener.onAddAccount();
             }
         });
         addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
@@ -253,6 +266,7 @@ public class DrawerAccountsCell extends FrameLayout {
         private boolean longPressHandled;
         private Runnable longPressRunnable;
         private boolean needDivider;
+        private boolean rowSelected;
 
         AccountRow(Context context) {
             super(context);
@@ -260,7 +274,7 @@ public class DrawerAccountsCell extends FrameLayout {
             userCell = new DrawerUserCell(context);
             userCell.setReorderHandleVisible(false);
             addView(userCell, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 48));
-            setBackground(Theme.createSelectorDrawable(Theme.getColor(Theme.key_listSelector), 2));
+            updateRowBackground();
             setWillNotDraw(false);
             userCell.setOnClickListener(v -> {
                 if (longPressHandled) {
@@ -327,6 +341,24 @@ public class DrawerAccountsCell extends FrameLayout {
             if (this.needDivider != needDivider) {
                 this.needDivider = needDivider;
                 invalidate();
+            }
+            boolean selected = account == UserConfig.selectedAccount;
+            if (this.rowSelected != selected) {
+                this.rowSelected = selected;
+                updateRowBackground();
+            }
+        }
+
+        /** The active account gets a grey fill so it reads against the card's black background. */
+        private void updateRowBackground() {
+            Drawable selector = Theme.createSelectorDrawable(Theme.getColor(Theme.key_listSelector), 2);
+            if (rowSelected) {
+                GradientDrawable fill = new GradientDrawable();
+                fill.setColor(Theme.multAlpha(Theme.getColor(Theme.key_chats_menuItemText), 0.10f));
+                fill.setCornerRadius(AndroidUtilities.dp(10));
+                setBackground(new LayerDrawable(new Drawable[]{fill, selector}));
+            } else {
+                setBackground(selector);
             }
         }
 
