@@ -85,6 +85,8 @@
     <string name="TjGhostModeOffBulletin">Le mode fantôme est désactivé</string>
     <string name="TjGhostInstantRead">Lu à la réponse</string>
     <string name="TjGhostInstantReadInfo">Marquer une discussion fantôme comme lue dès l\'envoi d\'un message.</string>
+    <string name="TjGhostMarkAsRead">Marquer comme lu</string>
+    <string name="TjGhostMarkedAsRead">Marqué comme lu</string>
     <string name="TjGhostWarning">Le mode fantôme n’est pas une fonctionnalité officielle de Telegram. Telegram pourrait le considérer comme un comportement inhabituel : à utiliser à vos risques.</string>
     <string name="TjGhostDontWarnAgain">Ne plus afficher</string>
     <string name="TjChatCountersUpdated">Dernière mise à jour : %1$s</string>

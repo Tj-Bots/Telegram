@@ -11309,6 +11309,8 @@
     <string name="TjGhostModeOffBulletin">Ghost mode is off</string>
     <string name="TjGhostInstantRead">Read on reply</string>
     <string name="TjGhostInstantReadInfo">Mark a ghosted chat as read the instant you send a message into it.</string>
+    <string name="TjGhostMarkAsRead">Mark as read</string>
+    <string name="TjGhostMarkedAsRead">Marked as read</string>
     <string name="TjGhostWarning">Ghost mode is not an official Telegram feature. Telegram may treat it as unusual behaviour, so use it at your own risk.</string>
     <string name="TjGhostDontWarnAgain">Don\'t show this again</string>
     <string name="TjChatCountersUpdated">Last updated: %1$s</string>

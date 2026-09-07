@@ -348,6 +348,8 @@
     <string name="TjGhostModeOffBulletin">Режим призрака выключен</string>
     <string name="TjGhostInstantRead">Прочитано при ответе</string>
     <string name="TjGhostInstantReadInfo">Отмечать чат в режиме призрака прочитанным сразу при отправке сообщения в нём.</string>
+    <string name="TjGhostMarkAsRead">Отметить как прочитанное</string>
+    <string name="TjGhostMarkedAsRead">Отмечено как прочитанное</string>
     <string name="TjGhostWarning">Режим призрака — неофициальная функция. Telegram может счесть это необычным поведением, используйте на свой риск.</string>
     <string name="TjGhostDontWarnAgain">Больше не показывать</string>
     <string name="TjChatCountersUpdated">Обновлено: %1$s</string>

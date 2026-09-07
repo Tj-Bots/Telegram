@@ -85,6 +85,8 @@
     <string name="TjGhostModeOffBulletin">घोस्ट मोड बंद है</string>
     <string name="TjGhostInstantRead">जवाब देने पर पढ़ा हुआ</string>
     <string name="TjGhostInstantReadInfo">भूतिया चैट में संदेश भेजते ही उसे पढ़ा हुआ चिह्नित करें।</string>
+    <string name="TjGhostMarkAsRead">पढ़ा हुआ चिह्नित करें</string>
+    <string name="TjGhostMarkedAsRead">पढ़ा हुआ चिह्नित किया गया</string>
     <string name="TjGhostWarning">घोस्ट मोड Telegram की आधिकारिक सुविधा नहीं है। Telegram इसे असामान्य व्यवहार मान सकता है, इसलिए अपने जोखिम पर उपयोग करें।</string>
     <string name="TjGhostDontWarnAgain">इसे दोबारा न दिखाएँ</string>
     <string name="TjChatCountersUpdated">अंतिम अपडेट: %1$s</string>

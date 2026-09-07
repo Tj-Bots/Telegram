@@ -85,6 +85,8 @@
     <string name="TjGhostModeOffBulletin">隐身模式已关闭</string>
     <string name="TjGhostInstantRead">回复即已读</string>
     <string name="TjGhostInstantReadInfo">在隐身聊天中发送消息后立即将其标记为已读。</string>
+    <string name="TjGhostMarkAsRead">标记为已读</string>
+    <string name="TjGhostMarkedAsRead">已标记为已读</string>
     <string name="TjGhostWarning">隐身模式并非 Telegram 官方功能。Telegram 可能将其视为异常行为，请自行承担风险。</string>
     <string name="TjGhostDontWarnAgain">不再显示</string>
     <string name="TjChatCountersUpdated">最后更新：%1$s</string>

@@ -85,6 +85,8 @@
     <string name="TjGhostModeOffBulletin">מצב רפאים כובה</string>
     <string name="TjGhostInstantRead">קרא עם המענה</string>
     <string name="TjGhostInstantReadInfo">סמן צ\'אט מרופא כנקרא ברגע ששלחת הודעה בו.</string>
+    <string name="TjGhostMarkAsRead">סמן כנקרא</string>
+    <string name="TjGhostMarkedAsRead">סומן כנקרא</string>
     <string name="TjGhostWarning">מצב רפאים אינו תכונה רשמית של טלגרם. ייתכן שטלגרם תתייחס לזה כהתנהגות חריגה, אז השימוש על אחריותך.</string>
     <string name="TjGhostDontWarnAgain">אל תציג את זה שוב</string>
     <string name="TjChatCountersUpdated">עודכן לאחרונה: %1$s</string>

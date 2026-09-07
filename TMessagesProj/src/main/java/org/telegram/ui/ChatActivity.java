@@ -457,6 +457,7 @@ public class ChatActivity extends BaseFragment implements
     private ActionBarMenuItem.Item clearHistoryItem;
     private ActionBarMenuItem.Item pinnedVisibilityItem;
     private ActionBarMenuItem.Item ghostChatItem;
+    private ActionBarMenuItem.Item markAsReadItem;
     private ActionBarMenuItem.Item viewAsTopics;
     private ActionBarMenuItem.Item closeTopicItem;
     private ActionBarMenuItem.Item openForumItem;
@@ -1657,6 +1658,7 @@ public class ChatActivity extends BaseFragment implements
     private final static int forward_no_tag = 1003;
     private final static int toggle_pinned_visibility = 1008;
     private final static int ghost_chat_toggle = 1013;
+    private final static int ghost_mark_as_read = 1014;
     private final static int edit = 23;
     private final static int add_shortcut = 24;
     private final static int save_to = 25;
@@ -3901,7 +3903,11 @@ public class ChatActivity extends BaseFragment implements
                     if (ghostChatItem != null) {
                         ghostChatItem.text = ghostChatItemLabel();
                     }
+                    updateGhostMarkAsReadVisibility();
                     BulletinFactory.of(ChatActivity.this).createSimpleBulletin(R.raw.info, TjLocale.getString(turningOn ? R.string.TjGhostModeOnBulletin : R.string.TjGhostModeOffBulletin)).show();
+                } else if (id == ghost_mark_as_read) {
+                    getMessagesController().markDialogAsReadNow(getDialogId(), 0, true);
+                    BulletinFactory.of(ChatActivity.this).createSimpleBulletin(R.raw.chats_infotip, TjLocale.getString(R.string.TjGhostMarkedAsRead)).show();
                 } else if (id == clear_history || id == delete_chat || id == auto_delete_timer) {
                     if (getParentActivity() == null) {
                         return;
@@ -4527,6 +4533,8 @@ public class ChatActivity extends BaseFragment implements
             headerItem.hideSubItem(toggle_pinned_visibility);
             if (currentEncryptedChat == null && chatMode == MODE_DEFAULT && getDialogId() != getUserConfig().getClientUserId()) {
                 ghostChatItem = headerItem.lazilyAddSubItem(ghost_chat_toggle, R.drawable.tj_ghost, ghostChatItemLabel());
+                markAsReadItem = headerItem.lazilyAddSubItem(ghost_mark_as_read, R.drawable.msg_markread, TjLocale.getString(R.string.TjGhostMarkAsRead));
+                updateGhostMarkAsReadVisibility();
             }
             boolean addedSettings = false;
             if (!isTopic) {
@@ -46665,6 +46673,18 @@ public class ChatActivity extends BaseFragment implements
     private String ghostChatItemLabel() {
         boolean on = TjSettingsActivity.getGhostChatOverride(currentAccount, getDialogId()) == TjSettingsActivity.GHOST_OVERRIDE_ON;
         return TjLocale.getString(on ? R.string.TjGhostModeOffForChat : R.string.TjGhostModeOnForChat);
+    }
+
+    /** "Mark as read" only matters while ghost is actually suppressing read receipts here. */
+    private void updateGhostMarkAsReadVisibility() {
+        if (markAsReadItem == null || headerItem == null) {
+            return;
+        }
+        if (TjSettingsActivity.isGhostActiveForChat(currentAccount, getDialogId())) {
+            headerItem.showSubItem(ghost_mark_as_read);
+        } else {
+            headerItem.hideSubItem(ghost_mark_as_read);
+        }
     }
 
     /** A video message with anything on disk for it - whole, partial or mid-download. */

@@ -1328,6 +1328,8 @@
     <string name="TjGhostModeOffBulletin">تم إيقاف الوضع الخفي</string>
     <string name="TjGhostInstantRead">قراءة عند الرد</string>
     <string name="TjGhostInstantReadInfo">وضع علامة مقروء على محادثة مخفية فور إرسال رسالة فيها.</string>
+    <string name="TjGhostMarkAsRead">وضع علامة مقروء</string>
+    <string name="TjGhostMarkedAsRead">تم وضع علامة مقروء</string>
     <string name="TjGhostWarning">الوضع الخفي ليس ميزة رسمية في تيليجرام. قد يعتبره تيليجرام سلوكًا غير معتاد، فاستخدمه على مسؤوليتك.</string>
     <string name="TjGhostDontWarnAgain">لا تعرض هذا مرة أخرى</string>
     <string name="TjChatCountersUpdated">آخر تحديث: %1$s</string>
