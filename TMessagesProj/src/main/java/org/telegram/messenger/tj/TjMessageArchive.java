@@ -8,6 +8,8 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Environment;
 import android.text.TextUtils;
 
+import androidx.collection.LongSparseArray;
+
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.ChatObject;
@@ -346,6 +348,38 @@ public final class TjMessageArchive extends SQLiteOpenHelper {
             }
         } catch (Throwable error) {
             FileLog.e("Tj deleted messages sync query failed", error);
+        }
+        return result;
+    }
+
+    /**
+     * All KIND_DELETED message ids currently kept in place in messages_v2, grouped by dialog -
+     * used to actually purge those rows (not just this archive's own history) when the user
+     * clears the archive.
+     */
+    public LongSparseArray<ArrayList<Integer>> getAllDeletedByDialogSync(int accountId) {
+        LongSparseArray<ArrayList<Integer>> result = new LongSparseArray<>();
+        long ownerUserId = UserConfig.getInstance(accountId).getClientUserId();
+        if (ownerUserId == 0) {
+            return result;
+        }
+        try (Cursor cursor = getReadableDatabase().query(
+                "snapshots", new String[]{"dialog_id", "message_id"},
+                "owner_user_id=? AND account_id=? AND kind=?",
+                new String[]{String.valueOf(ownerUserId), String.valueOf(accountId), String.valueOf(KIND_DELETED)},
+                null, null, null)) {
+            while (cursor.moveToNext()) {
+                long dialogId = cursor.getLong(0);
+                int messageId = cursor.getInt(1);
+                ArrayList<Integer> ids = result.get(dialogId);
+                if (ids == null) {
+                    ids = new ArrayList<>();
+                    result.put(dialogId, ids);
+                }
+                ids.add(messageId);
+            }
+        } catch (Throwable error) {
+            FileLog.e("Tj deleted messages dialog listing failed", error);
         }
         return result;
     }

@@ -20,9 +20,13 @@ import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.TjLocale;
 import org.telegram.messenger.tj.TjConfig;
+import org.telegram.messenger.tj.TjDeletionPolicy;
 import org.telegram.messenger.tj.TjGhostController;
 import org.telegram.messenger.tj.TjMessageArchive;
 import org.telegram.messenger.tj.TjSyncController;
+import org.telegram.messenger.Utilities;
+
+import androidx.collection.LongSparseArray;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
@@ -518,12 +522,29 @@ public class TjPrivacySettingsActivity extends BaseFragment implements Notificat
         AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
         builder.setTitle(text(R.string.TjClearArchiveTitle));
         builder.setMessage(text(R.string.TjClearArchiveText));
-        builder.setPositiveButton(LocaleController.getString(R.string.Delete), (dialog, which) ->
-                TjMessageArchive.getInstance().clear(currentAccount, success -> {
-                    if (success && getParentActivity() != null) {
-                        Toast.makeText(getParentActivity(), text(R.string.TjArchiveCleared), Toast.LENGTH_SHORT).show();
+        builder.setPositiveButton(LocaleController.getString(R.string.Delete), (dialog, which) -> {
+            int account = currentAccount;
+            Utilities.globalQueue.postRunnable(() -> {
+                LongSparseArray<ArrayList<Integer>> retained = TjMessageArchive.getInstance().getAllDeletedByDialogSync(account);
+                AndroidUtilities.runOnUIThread(() -> {
+                    // Clearing the archive should also make already-kept messages actually
+                    // disappear from the chats they were kept in - not just from this history
+                    // list - so mark them for real deletion the same way the "don't keep"
+                    // checkbox does, then run the normal delete path.
+                    for (int i = 0; i < retained.size(); i++) {
+                        long dialogId = retained.keyAt(i);
+                        ArrayList<Integer> ids = retained.valueAt(i);
+                        TjDeletionPolicy.markLocalRemoval(account, dialogId, ids);
+                        MessagesController.getInstance(account).deleteMessages(ids, null, null, dialogId, 0, false, ChatActivity.MODE_DEFAULT);
                     }
-                }));
+                    TjMessageArchive.getInstance().clear(account, success -> {
+                        if (success && getParentActivity() != null) {
+                            Toast.makeText(getParentActivity(), text(R.string.TjArchiveCleared), Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                });
+            });
+        });
         builder.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
         showDialog(builder.create());
     }
