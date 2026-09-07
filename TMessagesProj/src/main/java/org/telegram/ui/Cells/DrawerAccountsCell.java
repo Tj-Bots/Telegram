@@ -387,11 +387,9 @@ public class DrawerAccountsCell extends FrameLayout {
                 userCell.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
             } catch (Exception ignore) {
             }
-            if (account == UserConfig.selectedAccount || AndroidUtilities.isTablet()) {
-                startAccountDrag(this, account, lastRawY);
-            } else if (listener != null) {
-                listener.onAccountPreview(account);
-            }
+            // Every account is reorderable, not just the active one - the account you're
+            // currently signed into isn't the only row someone might want to drag.
+            startAccountDrag(this, account, lastRawY);
         }
 
         private void cancelLongPressCheck() {

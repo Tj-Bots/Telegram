@@ -114,9 +114,6 @@ public class TjSettingsHomeActivity extends BaseFragment {
                 case DISCUSSION:
                     Browser.openUrl(getParentActivity(), TjCommunity.DISCUSSION_URL);
                     break;
-                case SOURCE:
-                    Browser.openUrl(getParentActivity(), TjCommunity.SOURCE_URL);
-                    break;
             }
         });
         root.addView(list, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
@@ -135,7 +132,6 @@ public class TjSettingsHomeActivity extends BaseFragment {
         items.add(new Item(TYPE_HEADER, 0, TjLocale.getString(R.string.TjLinks), null, 0));
         items.add(new Item(TYPE_ROW, CHANNEL, TjLocale.getString(R.string.TjChannel), TjCommunity.CHANNEL_USERNAME, R.drawable.msg_channel));
         items.add(new Item(TYPE_ROW, DISCUSSION, TjLocale.getString(R.string.TjDiscussions), TjCommunity.DISCUSSION_USERNAME, R.drawable.msg_groups));
-        items.add(new Item(TYPE_ROW, SOURCE, TjLocale.getString(R.string.TjSourceCode), TjCommunity.SOURCE_LABEL, R.drawable.menu_feature_code));
     }
 
     private class Adapter extends RecyclerListView.SelectionAdapter {
