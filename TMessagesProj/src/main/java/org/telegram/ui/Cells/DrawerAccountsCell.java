@@ -1,6 +1,7 @@
 package org.telegram.ui.Cells;
 
 import android.content.Context;
+import android.graphics.Canvas;
 import android.graphics.drawable.GradientDrawable;
 import android.view.HapticFeedbackConstants;
 import android.view.MotionEvent;
@@ -15,6 +16,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.UserConfig;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.LayoutHelper;
@@ -226,7 +228,7 @@ public class DrawerAccountsCell extends FrameLayout {
                 AccountRow row = (AccountRow) holder.itemView;
                 int account = accounts.get(position);
                 row.userCell.setAccount(account);
-                row.bind(account);
+                row.bind(account, position < getItemCount() - 1);
             }
         }
 
@@ -250,6 +252,7 @@ public class DrawerAccountsCell extends FrameLayout {
         private float lastRawY;
         private boolean longPressHandled;
         private Runnable longPressRunnable;
+        private boolean needDivider;
 
         AccountRow(Context context) {
             super(context);
@@ -258,6 +261,7 @@ public class DrawerAccountsCell extends FrameLayout {
             userCell.setReorderHandleVisible(false);
             addView(userCell, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 48));
             setBackground(Theme.createSelectorDrawable(Theme.getColor(Theme.key_listSelector), 2));
+            setWillNotDraw(false);
             userCell.setOnClickListener(v -> {
                 if (longPressHandled) {
                     longPressHandled = false;
@@ -315,11 +319,29 @@ public class DrawerAccountsCell extends FrameLayout {
             });
         }
 
-        void bind(int account) {
+        void bind(int account, boolean needDivider) {
             cancelLongPressCheck();
             boundAccount = account;
             longPressHandled = false;
             setAlpha(activeDrag != null && activeDrag.account == account ? 0f : 1f);
+            if (this.needDivider != needDivider) {
+                this.needDivider = needDivider;
+                invalidate();
+            }
+        }
+
+        @Override
+        protected void onDraw(Canvas canvas) {
+            super.onDraw(canvas);
+            if (needDivider) {
+                int offset = AndroidUtilities.dp(72);
+                canvas.drawLine(
+                        LocaleController.isRTL ? 0 : offset,
+                        getMeasuredHeight() - 1,
+                        getMeasuredWidth() - (LocaleController.isRTL ? offset : 0),
+                        getMeasuredHeight() - 1,
+                        Theme.dividerPaint);
+            }
         }
 
         private void handleLongPress() {
